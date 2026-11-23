@@ -127,7 +127,7 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
     <a class="btn" href="#project">Weight sorting cell ↓</a>
     <a class="btn" href="#sim3d">3D simulator ↓</a>
     <a class="btn" href="#studio">Motion-X Studio ↓</a>
-    <a class="btn" href="#conveyor">Conveyor sorter ↓</a>
+    <a class="btn" href="#conveyor">Conveyor sorter + 3D ↓</a>
     <a class="btn" href="#elevator">6-floor elevator ↓</a>
   </div>
 </header>
@@ -283,6 +283,11 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
         <rect class="box" x="648" y="154" width="50" height="34" rx="3"/><text x="673" y="176" font-size="12" text-anchor="middle">L</text></g>
     </svg>
   </figure>
+  <div class="sim-frame">
+    <iframe src="about:blank" data-src="conveyor-simulator/index.html" title="3D simulator of the conveyor length sorter" loading="lazy"></iframe>
+    <button type="button" class="sim-load">Load the 3D conveyor simulator</button>
+  </div>
+  <p class="caption">Built from the line's STEP assembly. It runs the PLC logic with the team's real variable names: length measuring, FIFO tracking, the RUN / DRAIN / FAULT / RESET states and the alarm words. The fault-injection panel lets you break a sensor or jam a cylinder to watch the error system respond. <a href="conveyor-simulator/" target="_blank" rel="noopener">Open full screen ↗</a></p>
   <div class="subsystems">
     <div class="sub-card"><h3>Tracking parts without extra hardware</h3><p>When a block is measured, its expected arrival time at the bin is queued (FIFO), based on a 32-bit running time count. Several blocks can be on the belt at once, and no tracking hardware was bought. A block is pushed only when the arrival sensor and the queue agree.</p><span class="stack">FIFO queue · 32-bit timer · zone handoff</span></div>
     <div class="sub-card"><h3>Fixes from the test run</h3><p>The sensor reading changed while a block was leaving the sensors, so it went to the wrong bin. The fix holds the size result until the block has fully passed. The arrival sensor flickered, so it now has an on-delay filter.</p><span class="stack">Latch · on-delay filter · edge detection</span></div>
@@ -339,10 +344,12 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
 </div>
 
 <script>
-document.getElementById('sim-load').addEventListener('click', function () {
-  var f = document.getElementById('sim-iframe');
-  f.src = f.getAttribute('data-src');
-  this.hidden = true;
+document.querySelectorAll('.sim-load').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var f = btn.parentNode.querySelector('iframe');
+    f.src = f.getAttribute('data-src');
+    btn.hidden = true;
+  });
 });
 </script>
 </body>

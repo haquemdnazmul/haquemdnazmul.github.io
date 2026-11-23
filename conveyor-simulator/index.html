@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conveyor Length Sorter Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: CAD line on the left, HMI-style operator panel on the right; stacks on phones. Same family as the weight sorter simulator. */
+:root {
+  --bg: #e7e9e6; --panel: #f5f6f3; --ink: #1c2024; --muted: #5d656c; --line: #cdd2cf;
+  --accent: #d2601a; --scene: #dde1df; --ok: #1d8f4e; --warn: #b77d00; --err: #c93030;
+  --c1: #1b8a8a; --c2: #b77d00; --c3: #b0396a; --chip: #e2e5e1;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+    --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+    --c1: #39c0c0; --c2: #e2a91f; --c3: #e0679a; --chip: #262c31; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+  --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+  --c1: #39c0c0; --c2: #e2a91f; --c3: #e0679a; --chip: #262c31; color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 12px; }
+.view { position: relative; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--scene); }
+.view canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.hud { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.hud-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { font-family: var(--font-display); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); }
+.pill.run { color: var(--ok); border-color: var(--ok); }
+.pill.warn { color: var(--warn); border-color: var(--warn); }
+.pill.err { color: #fff; background: var(--err); border-color: var(--err); }
+.counts { display: flex; gap: 6px; }
+.cnt { font-family: var(--font-mono); font-size: 18px; font-weight: 600; padding: 4px 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); font-variant-numeric: tabular-nums; border-left-width: 4px; }
+.cnt small { display: block; font-family: var(--font-display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.views { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
+.views button, .seg button { font-family: var(--font-display); font-weight: 600; letter-spacing: .05em; font-size: 13px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+.views button:hover, .seg button:hover { border-color: var(--accent); }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hint { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: var(--muted); }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--scene); }
+.loading div { display: flex; flex-direction: column; gap: 8px; align-items: center; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bar { width: 220px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.panel { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h2 span { font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.title h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: .02em; text-wrap: balance; }
+.title p { margin: 0; color: var(--muted); line-height: 1.45; }
+.btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.btn { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: .05em; text-transform: uppercase; padding: 9px 6px; border-radius: 7px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.btn small { font-family: var(--font-mono); font-size: 10px; font-weight: 400; color: var(--muted); letter-spacing: 0; text-transform: none; }
+.btn:hover { border-color: var(--accent); }
+.btn.go { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn.go small, .btn.stop small { color: rgba(255,255,255,.8); }
+.btn.stop { background: var(--err); border-color: var(--err); color: #fff; }
+.btn.stop[aria-pressed="true"] { outline: 3px solid var(--err); outline-offset: 2px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.field label small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+input[type=number], select { font-family: var(--font-mono); font-size: 14px; padding: 5px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 70px; }
+select { width: auto; max-width: 100%; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.small-btn { font-family: var(--font-body); font-size: 13px; font-weight: 500; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; }
+.small-btn:hover { border-color: var(--accent); }
+.small-btn i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -0px; }
+.boxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bx { border: 1px solid var(--line); border-radius: 7px; padding: 7px; display: flex; flex-direction: column; gap: 5px; background: var(--bg); min-width: 0; border-top-width: 4px; }
+.bx b { font-family: var(--font-display); font-size: 13px; letter-spacing: .05em; text-transform: uppercase; }
+.bx .n { font-family: var(--font-mono); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bx .n small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.bx label { font-size: 12px; display: flex; gap: 5px; align-items: center; }
+.bx input[type=number] { width: 100%; }
+.fifo { display: grid; grid-template-columns: 52px 1fr; gap: 6px 8px; align-items: center; font-size: 12px; }
+.fifo > span { font-family: var(--font-mono); color: var(--muted); }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; min-height: 22px; }
+.chip { font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); border-left-width: 4px; white-space: nowrap; }
+.chip.late { border-color: var(--err); color: var(--err); }
+.steps { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 12px; }
+.steps b { font-family: var(--font-mono); font-weight: 600; }
+.steps span { font-family: var(--font-mono); color: var(--muted); }
+.steps span.act { color: var(--ink); }
+.alarms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.alarms li { display: grid; grid-template-columns: 54px 1fr; gap: 8px; padding: 5px 7px; border-radius: 6px; background: var(--bg); border-left: 4px solid var(--line); }
+.alarms li em { font-style: normal; font-family: var(--font-display); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 12px; }
+.alarms li small { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.alarms li.g { border-left-color: var(--c1); } .alarms li.g em { color: var(--c1); }
+.alarms li.w { border-left-color: var(--warn); } .alarms li.w em { color: var(--warn); }
+.alarms li.e { border-left-color: var(--err); } .alarms li.e em { color: var(--err); }
+.alarms li.none { border-left-color: var(--ok); color: var(--muted); grid-template-columns: 1fr; }
+.words { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 4px; }
+.word { font-family: var(--font-mono); font-size: 11px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); display: flex; justify-content: space-between; gap: 4px; }
+.word b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.word.on { border-color: var(--accent); }
+.io-wrap { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { position: sticky; top: 0; background: var(--panel); text-align: left; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+td { padding: 3px 7px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; }
+td.d { color: var(--muted); }
+td.v { text-align: right; font-variant-numeric: tabular-nums; }
+tr.grp td { font-family: var(--font-display); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--bg); }
+.on { color: var(--ok); font-weight: 600; }
+.log { margin: 0; padding: 0; list-style: none; max-height: 170px; overflow: auto; font-family: var(--font-mono); font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.log li { display: grid; grid-template-columns: 52px 1fr; gap: 6px; }
+.log li span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.log li.e { color: var(--err); } .log li.ok { color: var(--ok); } .log li.w { color: var(--warn); }
+.note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.checks { display: flex; flex-direction: column; gap: 5px; }
+.checks label { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.checks label small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .view { height: 62vh; min-height: 340px; }
+  .panel { overflow: visible; }
+  .views { max-width: 100%; top: auto; bottom: 30px; right: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="view" id="view">
+    <div class="hud">
+      <div class="hud-row"><span class="pill" id="state">Loading</span><span class="pill" id="rt">Runtime 0 ms</span></div>
+      <div class="counts">
+        <div class="cnt" style="border-left-color:var(--c1)"><small>Box 1 · small</small><span id="h0">0</span></div>
+        <div class="cnt" style="border-left-color:var(--c2)"><small>Box 2 · medium</small><span id="h1">0</span></div>
+        <div class="cnt" style="border-left-color:var(--c3)"><small>Box 3 · large</small><span id="h2">0</span></div>
+      </div>
+    </div>
+    <div class="views" role="group" aria-label="Camera view">
+      <button type="button" data-v="iso">Iso</button><button type="button" data-v="op">Operator</button><button type="button" data-v="top">Top</button><button type="button" data-v="meas">Measuring</button><button type="button" data-v="z1">Outlet 1</button><button type="button" data-v="z2">Outlet 2</button><button type="button" data-v="end">Outlet 3</button>
+    </div>
+    <div class="hint">Drag to orbit · right-drag to pan · scroll to zoom · Esc = E-stop</div>
+    <div class="loading" id="loading"><div><span id="loadTxt">Loading CAD model…</span><span class="bar"><i id="loadBar"></i></span></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="card title">
+      <h1>Conveyor Length Sorter Simulator</h1>
+      <p>Built from the line's STEP assembly. Blocks stop at the measuring stopper, three BYD50 sensors read the length, and the PLC tracks each block in FIFO queues to outlet 1 (small), outlet 2 (medium) or the end box (large). Variable names follow the team's XG5000 parameter list.</p>
+      <p class="note"><a href="../">← Back to the portfolio</a></p>
+    </div>
+
+    <section class="card">
+      <h2>Operation <span>HMI · SIG_BTN_*</span></h2>
+      <div class="btns">
+        <button class="btn go" id="bRun" type="button">Run<small>SIG_BTN_RUN</small></button>
+        <button class="btn" id="bStop" type="button">Stop<small>SIG_BTN_STP → DRAIN</small></button>
+        <button class="btn" id="bPause" type="button">Pause<small>SIG_PAUSE</small></button>
+        <button class="btn" id="bReset" type="button">Reset<small>SIG_RESET</small></button>
+        <button class="btn" id="bInit" type="button">Init counts<small>SIG_INIT</small></button>
+        <button class="btn stop" id="bEms" type="button" aria-pressed="false">E-stop<small>BTN_EMS</small></button>
+      </div>
+      <div class="field"><label>Sim speed</label>
+        <div class="seg" role="group" aria-label="Simulation speed" id="speed">
+          <button type="button" data-s="1" aria-pressed="true">1×</button><button type="button" data-s="2" aria-pressed="false">2×</button><button type="button" data-s="4" aria-pressed="false">4×</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Infeed <span>blocks onto conveyor 1</span></h2>
+      <div class="checks"><label><input type="checkbox" id="autoFeed" checked> Feed automatically while running<small>One block at a time: the next one is placed when the measuring area is clear</small></label></div>
+      <div class="field"><label for="pattern">Feed order</label>
+        <select id="pattern"><option value="rand">Random</option><option value="cycle">Small → medium → large</option><option value="S">Small only</option><option value="M">Medium only</option><option value="L">Large only</option></select>
+      </div>
+      <div class="row">
+        <button class="small-btn" type="button" data-place="S"><i style="background:var(--c1)"></i>Place small 35</button>
+        <button class="small-btn" type="button" data-place="M"><i style="background:var(--c2)"></i>Place medium 55</button>
+        <button class="small-btn" type="button" data-place="L"><i style="background:var(--c3)"></i>Place large 85</button>
+      </div>
+      <div class="row"><button class="small-btn" id="clearBelt" type="button">Remove blocks from conveyors</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Messages <span>guide · light · heavy</span></h2>
+      <ul class="alarms" id="alarms"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Collection boxes <span>GET_BOX_1–3</span></h2>
+      <div class="boxes" id="boxes"></div>
+    </section>
+
+    <section class="card">
+      <h2>Tracking <span>32-bit runtime FIFO</span></h2>
+      <div class="fifo">
+        <span>T1 → W1</span><div class="chips" id="q0"></div>
+        <span>T2 → W2</span><div class="chips" id="q1"></div>
+        <span>T3 → EX</span><div class="chips" id="q2"></div>
+      </div>
+      <div class="steps" id="steps"></div>
+      <p class="note">Each measured block gets an arrival time on the conveyor runtime clock, so pausing the line does not cause false timeouts. A block is handled only when its arrival sensor turns on <em>and</em> its queue expects one.</p>
+    </section>
+
+    <section class="card">
+      <h2>Fault injection <span>test the error system</span></h2>
+      <div class="checks">
+        <label><input type="checkbox" id="fL1"> GET_CHK_L1 sensor dead<small>Medium reads as small and is caught by the outlet 1 size re-check → ERR_TRACKING_MISMATCH_REJ1. Large gives an impossible pattern → ERR_DIMENSION_NG_INSP</small></label>
+        <label><input type="checkbox" id="fW1"> GET_POS_W1 sensor dead<small>Blocks pass outlet 1 unseen → ERR_ARRIVE_TIMEOUT_REJ1</small></label>
+        <label><input type="checkbox" id="fP2"> Outlet 2 pusher stuck<small>SOL_02Y on but no CYL_02Y_F → ERR_CYCLE_TIMEOUT_REJ2</small></label>
+        <label><input type="checkbox" id="fZ0"> Stopper reed switches both on<small>CYL_00Z_F and CYL_00Z_R together → ERR_Z_AXIS_SENSOR_DUAL_INSP</small></label>
+        <label><input type="checkbox" id="fNoLatch"> Turn off the size latch<small>Re-reads the sensors while the block leaves, the bug found in the test run</small></label>
+      </div>
+      <div class="row"><button class="small-btn" id="handPlace" type="button">Put a block on conveyor 2 by hand</button></div>
+      <p class="note">The hand-placed block has no tracking data, so outlet 2 raises ERR_UNEXPECTED_ENTRY_REJ2.</p>
+    </section>
+
+    <section class="card">
+      <h2>Alarm words <span>D00020–D00026</span></h2>
+      <div class="words" id="words"></div>
+    </section>
+
+    <section class="card">
+      <h2>I/O monitor <span>M devices</span></h2>
+      <div class="io-wrap"><table><thead><tr><th>Variable</th><th>Device</th><th style="text-align:right">Value</th></tr></thead><tbody id="ioBody"></tbody></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Event log</h2>
+      <ul class="log" id="log"></ul>
+    </section>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ================= Line geometry, CAD frame (mm, Z up, X = flow direction), from Project_3D_Assy.step =================
+const BELT_Z = 70.5, BW = 35, BH = 35;
+const CONV_END = 1535, CONV_SPLIT = 1032.5;
+const SIZE = { S: { L: 35, name: 'Small', c: '--c1', box: 0 }, M: { L: 55, name: 'Medium', c: '--c2', box: 1 }, L: { L: 85, name: 'Large', c: '--c3', box: 2 } };
+const SEN = { IN: 350, L2: 511, L1: 534, L0: 578, W1: 750, W2: 1250, EX: 1528 };
+const STOP = [{ x0: 588, x1: 618 }, { x0: 808, x1: 838 }, { x0: 1308, x1: 1338 }];   // pad faces, stroke 60 (ACP-B10-S60)
+const STOP_STROKE = 60, STOP_CLEAR = 26.5;   // pad still blocks while lifted less than this
+const PUSH = [{ x0: 780, x1: 800 }, { x0: 1280, x1: 1300 }];   // collars, stroke 150 (ACP-B10-S150), front at y = 66 retracted
+const PUSH_STROKE = 150, PUSH_Y0 = 66;
+const BOX = [{ x: 765, y: -118 }, { x: 1260, y: -109 }, { x: 1604, y: 5 }];
+const W = (x, y, z) => new THREE.Vector3(x - 850, z + 665, -y + 115);   // CAD -> scene
+
+// ================= Log =================
+const sim = { t: 0, speed: 1, ready: false };
+const logEl = $('#log');
+function log(msg, cls) {
+  const li = document.createElement('li'); if (cls) li.className = cls;
+  li.innerHTML = `<span>${sim.t.toFixed(1)}s</span><div></div>`; li.lastChild.textContent = msg;
+  logEl.prepend(li); while (logEl.children.length > 80) logEl.lastChild.remove();
+}
+
+// ================= Three.js scene =================
+const view = $('#view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const setBg = () => { scene.background = new THREE.Color(css('--scene') || '#dde1df'); };
+setBg(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setBg);
+new MutationObserver(setBg).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+const camera = new THREE.PerspectiveCamera(36, 1, 10, 30000);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 150; controls.maxDistance = 7000;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-700, 2600, 1400); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 100, far: 6000 }); sun.shadow.bias = -0.0005;
+scene.add(sun);
+const fillL = new THREE.DirectionalLight(0xffffff, 0.3); fillL.position.set(1500, 900, -1200); scene.add(fillL);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.ShadowMaterial({ opacity: 0.16 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; root.position.set(-850, 665, 115); scene.add(root);
+const G = {}; ['static', 'stop0', 'stop1', 'stop2', 'push0', 'push1', 'box0', 'box1', 'box2'].forEach(k => { G[k] = new THREE.Group(); root.add(G[k]); });
+
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+}
+
+async function loadModel() {
+  const bar = $('#loadBar'), txt = $('#loadTxt');
+  const meta = await (await fetch('sim3d/model.json')).json();
+  const resp = await fetch('sim3d/model.b64.txt');
+  const total = Number(resp.headers.get('Content-Length')) || 10490280;
+  let b64 = '';
+  if (resp.body && resp.body.getReader) {
+    const rd = resp.body.getReader(), dec = new TextDecoder(); const parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(dec.decode(value, { stream: true })); got += value.length; bar.style.width = Math.min(100, got / total * 100) + '%'; txt.textContent = `Loading CAD model… ${(got / 1048576).toFixed(1)} MB`; }
+    b64 = parts.join('');
+  } else b64 = await resp.text();
+  txt.textContent = 'Building meshes…';
+  await new Promise(r => setTimeout(r, 0));
+  const bin = atob(b64.trim()); const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const buf = u8.buffer;
+  const palB = meta.palette.map(h => { const c = parseInt(h.slice(1), 16); return [c >> 16 & 255, c >> 8 & 255, c & 255]; });
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.3, roughness: 0.55 });
+  for (const c of meta.chunks) {
+    const q = new Uint16Array(buf, c.pos, c.nv * 3);
+    const pos = new Float32Array(c.nv * 3);
+    for (let i = 0; i < pos.length; i++) { const a = i % 3; pos[i] = c.o[a] + q[i] * c.s[a]; }
+    const idx = new Uint16Array(buf, c.idx, c.nt * 3).slice();
+    const ci = new Uint8Array(buf, c.col, c.nv);
+    const col = new Uint8Array(c.nv * 3);
+    for (let i = 0; i < c.nv; i++) { const p = palB[ci[i]]; col[i * 3] = p[0]; col[i * 3 + 1] = p[1]; col[i * 3 + 2] = p[2]; }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.castShadow = c.g !== 'static'; mesh.receiveShadow = true;
+    (G[c.g] || G.static).add(mesh);
+  }
+  $('#loading').hidden = true;
+}
+
+// ---- sensor beams and LEDs ----
+function beam(x, y0, y1, z) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(1.6, Math.abs(y1 - y0), 1.6), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.18, depthWrite: false }));
+  m.position.set(x, (y0 + y1) / 2, z); root.add(m); return m;
+}
+function led(x, y, z) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(4.5, 16, 12), new THREE.MeshStandardMaterial({ color: 0x3a3a3a, emissive: 0x000000 }));
+  m.position.set(x, y, z); root.add(m); return m;
+}
+const vis = {
+  IN: { beam: beam(SEN.IN, 105, -70, 89), led: led(SEN.IN, 109, 128) },
+  W1: { beam: beam(SEN.W1, 80, -158, 84), led: led(SEN.W1, 83, 122) },
+  W2: { beam: beam(SEN.W2, 80, -158, 84), led: led(SEN.W2, 83, 122) },
+  L2: { led: led(SEN.L2, -39, 141) }, L1: { led: led(SEN.L1, -39, 141) }, L0: { led: led(SEN.L0, -39, 141) },
+  EX: { led: led(SEN.EX, -52, 92) },
+};
+const lampG = new THREE.Mesh(new THREE.SphereGeometry(13, 20, 14), new THREE.MeshStandardMaterial({ color: 0x0c3d1e, emissive: 0x000000, roughness: 0.3 }));
+lampG.position.set(68, -163, 74); root.add(lampG);
+const lampR = new THREE.Mesh(new THREE.SphereGeometry(13, 20, 14), new THREE.MeshStandardMaterial({ color: 0x3d0c0c, emissive: 0x000000, roughness: 0.3 }));
+lampR.position.set(128, -163, 74); root.add(lampR);
+
+// ================= Physical model =================
+class Cyl {
+  constructor(stroke, speed, ext, single) { this.stroke = stroke; this.speed = speed; this.pos = ext ? stroke : 0; this.single = single; this.stuck = false; this.dual = false; }
+  step(dt, F, R) {
+    if (this.stuck) return;
+    let dir = 0;
+    if (this.single) dir = F ? 1 : -1;
+    else if (F && !R) dir = 1; else if (R && !F) dir = -1;
+    this.pos = Math.max(0, Math.min(this.stroke, this.pos + dir * this.speed * dt));
+  }
+  get F() { return this.dual || this.pos >= this.stroke - 0.5; }
+  get R() { return this.dual || this.pos <= 0.5; }
+}
+// Z stoppers: extended = pad down (blocking). Y pushers: single-acting, spring return.
+const zc = [new Cyl(STOP_STROKE, 240, true, false), new Cyl(STOP_STROKE, 240, false, false), new Cyl(STOP_STROKE, 240, false, false)];
+const yc = [new Cyl(PUSH_STROKE, 320, false, true), new Cyl(PUSH_STROKE, 320, false, true)];
+const boxes = [{ present: true, items: [] }, { present: true, items: [] }, { present: true, items: [] }];
+let blocks = [], nextId = 1;
+const V = 100;   // belt speed mm/s
+
+const blockMat = new THREE.MeshStandardMaterial({ color: 0xf2f2ec, roughness: 0.6 });
+function labelTex(sz, id) {
+  return canvasTex(128, 128, (g, w, h) => {
+    g.fillStyle = '#f2f2ec'; g.fillRect(0, 0, w, h);
+    g.fillStyle = css(SIZE[sz].c) || '#888'; g.fillRect(0, 0, w, 26); g.fillRect(0, h - 26, w, 26);
+    g.fillStyle = '#1c2024'; g.font = '700 54px Barlow Condensed, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(sz + id, w / 2, h / 2 + 2);
+  });
+}
+function spawn(sz, back, withRecord) {
+  const L = SIZE[sz].L, id = nextId++;
+  const top = new THREE.MeshStandardMaterial({ map: labelTex(sz, id), roughness: 0.6 });
+  const m = new THREE.Mesh(new THREE.BoxGeometry(L, BW, BH), [blockMat, blockMat, blockMat, blockMat, top, blockMat]);
+  m.castShadow = true; m.receiveShadow = true; root.add(m);
+  const b = { id, sz, L, x: back, y: 0, z: BELT_Z, state: 'belt', mesh: m, drop: null, hand: !withRecord };
+  blocks.push(b); placeMesh(b); return b;
+}
+function placeMesh(b) { b.mesh.position.set(b.x + b.L / 2, b.y, b.z + BH / 2); }
+const front = b => b.x + b.L;
+const onBelt = b => b.state === 'belt';
+function covers(x) { return blocks.some(b => onBelt(b) && b.x <= x && front(b) >= x && Math.abs(b.y) < 40); }
+
+function dropInto(b, k) {   // k = box index, or -1 for the floor
+  b.state = 'drop';
+  let to;
+  if (k >= 0 && boxes[k].present) {
+    const n = boxes[k].items.length, per = b.sz === 'S' ? 4 : 2, layer = Math.floor(n / per), j = n % per;
+    const ox = b.sz === 'S' ? (j % 2 ? 22 : -22) : 0, oy = (b.sz === 'S' ? (j < 2 ? -22 : 22) : (j ? 22 : -22));
+    to = { x: BOX[k].x + ox - b.L / 2, y: BOX[k].y + oy, z: 4 + Math.min(layer, 2) * BH, rz: (Math.random() - .5) * 0.3 };
+    boxes[k].items.push(b); b.box = k;
+  } else {
+    const ref = k >= 0 ? BOX[k] : { x: 1650, y: 0 };
+    to = { x: ref.x - b.L / 2 + (Math.random() - .5) * 60, y: ref.y + (Math.random() - .5) * 60, z: -665, rz: Math.random() * 3 };
+    b.lost = true;
+  }
+  b.drop = { t0: sim.t, dur: k >= 0 && boxes[k].present ? 0.45 : 0.9, from: { x: b.x, y: b.y, z: b.z }, to };
+}
+
+function physics(dt) {
+  zc.forEach((c, i) => c.step(dt, out['SOL_0' + i + 'Z_F'], out['SOL_0' + i + 'Z_R']));
+  yc.forEach((c, i) => c.step(dt, out['SOL_0' + (i + 1) + 'Y'], false));
+  // belt transport, front-most first
+  const belt = blocks.filter(onBelt).sort((a, b) => front(b) - front(a));
+  for (const b of belt) {
+    if (b.pushing) continue;
+    const cx = b.x + b.L / 2;
+    const run = cx < CONV_SPLIT ? out.CNV_01X : out.CNV_02X;
+    if (!run) continue;
+    let lim = Infinity;
+    STOP.forEach((s, i) => { if (STOP_STROKE - zc[i].pos < STOP_CLEAR && front(b) <= s.x0 + 0.5) lim = Math.min(lim, s.x0); });
+    for (const o of belt) if (o !== b && o.x >= front(b) - 0.5 && Math.abs(o.y - b.y) < BW) lim = Math.min(lim, o.x);
+    const nf = Math.min(front(b) + V * dt, lim);
+    if (nf > front(b)) b.x = nf - b.L;
+    if (b.x + b.L / 2 > CONV_END) dropInto(b, 2);
+  }
+  // pushers
+  PUSH.forEach((p, i) => {
+    const fy = PUSH_Y0 - yc[i].pos;
+    for (const b of blocks) {
+      if (!onBelt(b) || b.x > p.x1 || front(b) < p.x0) continue;
+      if (b.y + BW / 2 > fy) { b.y = fy - BW / 2; b.pushing = true; }
+      if (b.y < -57.5) dropInto(b, i);
+    }
+  });
+  // falling blocks
+  for (const b of blocks) {
+    if (b.state !== 'drop') continue;
+    const d = b.drop, p = Math.min(1, (sim.t - d.t0) / d.dur), e = p * p;
+    b.x = d.from.x + (d.to.x - d.from.x) * p; b.y = d.from.y + (d.to.y - d.from.y) * p; b.z = d.from.z + (d.to.z - d.from.z) * e;
+    b.mesh.rotation.z = d.to.rz * p;
+    if (p >= 1) { b.state = b.lost ? 'floor' : 'inbox'; if (b.lost) log(`Block ${b.sz}${b.id} fell on the floor: no box`, 'w'); }
+  }
+  blocks.forEach(placeMesh);
+}
+
+// ================= PLC =================
+const out = { CNV_01X: 0, CNV_02X: 0, SOL_00Z_F: 0, SOL_00Z_R: 0, SOL_01Y: 0, SOL_01Z_F: 0, SOL_01Z_R: 0, SOL_02Y: 0, SOL_02Z_F: 0, SOL_02Z_R: 0 };
+const inp = {};
+const plc = {
+  state: 'IDLE', ems: false, emsLatched: false, rt: 0,
+  guide: 0, sys: 0, alm: { INSP: 0, REJ1: 0, PASS: 0, REJ2: 0, ULD: 0 },
+  LD: 0, U1: 0, U2: 0, U3: 0, q: [[], [], []], cnt: [0, 0, 0], target: [8, 8, 8],
+  latch: null, cur: [null, null], ack: { W1: false, W2: false, EX: false }, tm: {}, feedT: 0, cycle: 0,
+};
+const ALM_BITS = {
+  0x0: ['WARN_TARGET_QTY_REACH', 'w', 'Box full: target quantity reached. Empty the box.'],
+  0x1: ['WARN_TARGET_QTY_OVER', 'w', 'More blocks than the target went into the box.'],
+  0x2: ['WARN_NO_OUTLET_BOX', 'w', 'Collection box missing. Put the box back.'],
+  0x6: ['ERR_Z_AXIS_SENSOR_DUAL', 'e', 'Stopper reed switches both on: sensor broken or shorted.'],
+  0x7: ['ERR_Y_AXIS_SENSOR_DUAL', 'e', 'Pusher reed switches both on.'],
+  0x8: ['ERR_CYCLE_TIMEOUT', 'e', 'Cylinder did not finish in time: low air or jammed.'],
+  0x9: ['ERR_ARRIVE_TIMEOUT', 'e', 'Expected block never arrived: belt slip or lost block.'],
+  0xA: ['ERR_DIMENSION_NG', 'e', 'Length sensors give an impossible pattern.'],
+  0xB: ['ERR_UNEXPECTED_ENTRY', 'e', 'Block arrived with no tracking data (hand placed?).'],
+  0xC: ['ERR_TRACKING_MISMATCH', 'e', 'Block at the stopper does not match the tracking data.'],
+};
+const GUIDE_BITS = {
+  0x3: ['GUIDE_BOX_MISSING', 'A collection box is missing.'],
+  0x4: ['GUIDE_CYL_NOT_RET', 'Cylinders are not at their origin. Press Reset.'],
+  0x5: ['GUIDE_SEQ_NOT_CLR', 'A sequence is not at step 0. Press Reset.'],
+  0x6: ['GUIDE_CV_SEN_NOT_OFF', 'Blocks are left on the conveyors. Remove them.'],
+  0x7: ['GUIDE_FIFO_NOT_CLR', 'Tracking queue T1/T2 still holds data. Press Reset.'],
+  0x8: ['GUIDE_TOSS_NOT_CLR', 'Handoff queue T3 still holds data. Press Reset.'],
+};
+const ZONES = ['INSP', 'REJ1', 'PASS', 'REJ2', 'ULD'];
+function raise(zone, bit) {
+  if (plc.alm[zone] & (1 << bit)) return;
+  plc.alm[zone] |= 1 << bit;
+  const [n, k, d] = ALM_BITS[bit];
+  log(`${n}_${zone}: ${d}`, k === 'e' ? 'e' : 'w');
+}
+const clearBit = (zone, bit) => { plc.alm[zone] &= ~(1 << bit); };
+const heavy = () => ZONES.some(z => plc.alm[z] & 0x1FC0);
+function TON(name, cond, preset) {   // on-delay timer on sim time
+  if (!cond) { delete plc.tm[name]; return false; }
+  if (plc.tm[name] === undefined) plc.tm[name] = sim.t;
+  return sim.t - plc.tm[name] >= preset;
+}
+const since = name => (plc.tm[name] === undefined ? 0 : sim.t - plc.tm[name]);
+function startT(name) { plc.tm[name] = sim.t; }
+
+function readInputs() {
+  inp.GET_POS_IN = covers(SEN.IN);
+  inp.GET_CHK_L0 = covers(SEN.L0);
+  inp.GET_CHK_L1 = covers(SEN.L1) && !$('#fL1').checked;
+  inp.GET_CHK_L2 = covers(SEN.L2);
+  inp.GET_POS_W1 = covers(SEN.W1) && !$('#fW1').checked;
+  inp.GET_POS_W2 = covers(SEN.W2);
+  inp.GET_POS_EX = covers(SEN.EX);
+  for (let i = 0; i < 3; i++) inp['GET_BOX_' + (i + 1)] = boxes[i].present;
+  zc[0].dual = $('#fZ0').checked; yc[1].stuck = $('#fP2').checked;
+  zc.forEach((c, i) => { inp[`CYL_0${i}Z_F`] = c.F; inp[`CYL_0${i}Z_R`] = c.R; });
+  yc.forEach((c, i) => { inp[`CYL_0${i + 1}Y_F`] = c.F; inp[`CYL_0${i + 1}Y_R`] = c.R; });
+  inp.BTN_EMS = plc.ems;
+}
+function allOff() { Object.keys(out).forEach(k => { out[k] = 0; }); }
+function setZ(i, down) { out[`SOL_0${i}Z_F`] = down ? 1 : 0; out[`SOL_0${i}Z_R`] = down ? 0 : 1; }
+const atOrigin = () => inp.CYL_00Z_F && !inp.CYL_00Z_R && inp.CYL_01Z_R && !inp.CYL_01Z_F && inp.CYL_02Z_R && !inp.CYL_02Z_F && inp.CYL_01Y_R && inp.CYL_02Y_R;
+
+function computeGuide() {
+  let g = 0;
+  if (boxes.some(b => !b.present)) g |= 1 << 3;
+  if (!atOrigin()) g |= 1 << 4;
+  if (plc.LD || plc.U1 || plc.U2 || plc.U3) g |= 1 << 5;
+  if (blocks.some(onBelt)) g |= 1 << 6;
+  if (plc.q[0].length || plc.q[1].length) g |= 1 << 7;
+  if (plc.q[2].length) g |= 1 << 8;
+  plc.guide = g;
+}
+
+function nextSize() {
+  const p = $('#pattern').value;
+  if (p === 'rand') return 'SML'[Math.floor(Math.random() * 3)];
+  if (p === 'cycle') return 'SML'[plc.cycle++ % 3];
+  return p;
+}
+const measureAreaClear = () => !blocks.some(b => onBelt(b) && b.x < STOP[0].x1 + 20);
+
+function scan(dt) {
+  readInputs();
+  // ---- emergency stop: all outputs off, takes priority over everything ----
+  if (plc.ems) { allOff(); plc.state = 'EMERGENCY'; return; }
+  if (plc.state === 'EMERGENCY') { allOff(); return; }   // released: waits for Reset
+  // ---- sensor plausibility (always checked) ----
+  if (inp.CYL_00Z_F && inp.CYL_00Z_R) raise('INSP', 6);
+  if (['RUN', 'DRAIN', 'PAUSE'].includes(plc.state) && heavy()) { plc.state = 'FAULT'; log('Heavy alarm: line stopped (STATE_FAULT). Fix the cause, then press Reset.', 'e'); }
+  if (plc.state === 'FAULT') { allOff(); return; }
+  if (plc.state === 'RESET') return doReset();
+  if (plc.state === 'IDLE' || plc.state === 'READY') {
+    computeGuide(); plc.state = plc.guide ? 'IDLE' : 'READY';
+    out.CNV_01X = out.CNV_02X = 0; return;
+  }
+  // ---- RUN / DRAIN / PAUSE ----
+  if (plc.state === 'PAUSE') { out.CNV_01X = out.CNV_02X = 0; return; }   // cylinders hold, sequences frozen
+  out.CNV_01X = out.CNV_02X = 1;
+  plc.rt += dt * 1000;
+  feeder(dt); seqLD(); seqULD(0); seqULD(1); seqULD3(); arrivalWatch(dt);
+  if (plc.state === 'DRAIN' && !blocks.some(onBelt) && !plc.q.some(q => q.length) && !plc.LD && !plc.U1 && !plc.U2 && !plc.U3) {
+    plc.state = 'IDLE'; out.CNV_01X = out.CNV_02X = 0; log('Line empty: DRAIN finished, back to IDLE', 'ok');
+  }
+}
+
+function feeder() {
+  const ok = plc.state === 'RUN' && $('#autoFeed').checked && plc.LD === 0 && measureAreaClear();
+  if (TON('feed', ok, 0.8)) { delete plc.tm.feed; const sz = nextSize(); spawn(sz, 334, true); log(`Infeed: ${SIZE[sz].name.toLowerCase()} block ${sz}${nextId - 1}`); }
+}
+
+// Measuring unit (LD_00 … LD_04, CHK_01 / CHK_02)
+function seqLD() {
+  switch (plc.LD) {
+    case 0:   // LD_00_CylZDw: stopper down, wait for a block
+      setZ(0, true);
+      if (inp.GET_POS_IN || inp.GET_CHK_L0) { plc.LD = 1; startT('LD_T_LIM'); }
+      break;
+    case 1:   // LD_01_GetItem: block runs up to the stopper and settles (LD_Delay1)
+      if (TON('LD_Delay1', inp.GET_CHK_L0, 0.5)) { plc.LD = 2; delete plc.tm.LD_Delay1; }
+      else if (since('LD_T_LIM') > 12) { raise('INSP', 9); plc.LD = 0; }
+      break;
+    case 2: { // LD_02 / CHK_01_Length / CHK_02_KeepFlag: read and latch the length pattern
+      const p = [inp.GET_CHK_L0, inp.GET_CHK_L1, inp.GET_CHK_L2].map(Number).join('');
+      const sz = { '100': 'S', '110': 'M', '111': 'L' }[p];
+      if (!sz) { raise('INSP', 0xA); log(`Length pattern L0-L1-L2 = ${p} is impossible`, 'e'); return; }
+      plc.latch = { sz, p }; plc.LD = 3; break;
+    }
+    case 3: { // LD_03_ExitItem: LD_CanEx interlock, then DATA_ADD to T1 with the expected arrival time at W1
+      const bx = SIZE[plc.latch.sz].box, zone = ['REJ1', 'REJ2', 'ULD'][bx];
+      const inFlight = plc.q.flat().filter(r => SIZE[r.sz].box === bx).length + plc.cur.filter(r => r && SIZE[r.sz].box === bx).length;
+      if (!boxes[bx].present) { raise(zone, 2); return; }
+      if (plc.cnt[bx] + inFlight >= plc.target[bx]) { raise(zone, 0); return; }   // LD_CanEx off: hold the block at the stopper
+      clearBit(zone, 0); clearBit(zone, 2);
+      const b = blocks.find(b => onBelt(b) && Math.abs(front(b) - STOP[0].x0) < 2);
+      plc.q[0].push({ id: b ? b.id : 0, sz: plc.latch.sz, due: plc.rt + (SEN.W1 - STOP[0].x0) / V * 1000 });
+      log(`Measured ${SIZE[plc.latch.sz].name.toLowerCase()} (L0-L1-L2 = ${plc.latch.p}) → T1`, 'ok');
+      plc.LD = 4; startT('LD_T_LIM'); break;
+    }
+    case 4:   // LD_04_KeepUp: stopper up until the block has passed, then down again
+      if ($('#fNoLatch').checked && inp.GET_CHK_L0) {   // the original bug: judging again while the block leaves
+        const p = [inp.GET_CHK_L0, inp.GET_CHK_L1, inp.GET_CHK_L2].map(Number).join('');
+        const sz = { '100': 'S', '110': 'M', '111': 'L' }[p];
+        const last = plc.q[0][plc.q[0].length - 1];
+        if (sz && last && sz !== last.sz) { log(`No latch: re-read ${p} while leaving, ${last.sz} changed to ${sz}`, 'w'); last.sz = sz; }
+      }
+      if (!plc.ldUp) { setZ(0, false); if (inp.CYL_00Z_R) { plc.ldUp = true; startT('LD_T_LIM'); } else if (since('LD_T_LIM') > 2) raise('INSP', 8); }
+      else if (TON('LD_Clear', !inp.GET_CHK_L0, 45 / V)) {
+        setZ(0, true);
+        if (inp.CYL_00Z_F) { plc.LD = 0; plc.ldUp = false; delete plc.tm.LD_Clear; }
+      }
+      break;
+  }
+}
+
+// Outlets 1 and 2 (ULDn_00 … ULDn_06)
+function seqULD(k) {
+  const n = k + 1, Z = n, key = 'U' + n, zone = 'REJ' + n, W = 'GET_POS_W' + n, size = k ? 'M' : 'S', box = k;
+  const s = plc[key], ackKey = 'W' + n;
+  if (!inp[W]) plc.ack[ackKey] = false;
+  const filt = TON(`ULD${n}_SensorON`, inp[W], 0.1);
+  switch (s) {
+    case 0:   // ULDn_00_CylZUp: stopper up, wait for arrival
+      setZ(Z, false); out[`SOL_0${n}Y`] = 0;
+      if (filt && !plc.ack[ackKey]) { plc.ack[ackKey] = true; plc[key] = 1; }
+      break;
+    case 1: { // ULDn_01_GetItem: pop the queue and decide
+      const rec = plc.q[k].shift();
+      if (!rec) { raise(zone, 0xB); plc[key] = 0; return; }
+      if (rec.sz === size) { plc.cur[k] = rec; plc[key] = 2; startT(`ULD${n}_T_LIM`); }
+      else { plc.q[k + 1].push({ ...rec, due: plc.rt + ((k ? SEN.EX : SEN.W2) - SEN['W' + n]) / V * 1000 }); plc[key] = 0; }
+      break;
+    }
+    case 2:   // ULDn_02_CylZDw
+      setZ(Z, true);
+      if (inp[`CYL_0${Z}Z_F`]) { plc[key] = 3; startT(`ULD${n}_Delay1`); } else if (since(`ULD${n}_T_LIM`) > 2) raise(zone, 8);
+      break;
+    case 3:   // ULDn_03_KeepDw: let the block run up to the stopper
+      if (since(`ULD${n}_Delay1`) > (STOP[n].x0 - SEN['W' + n] + 25) / V) plc[key] = 4;
+      break;
+    case 4: { // ULDn_04_SizChk: block really there and matching? box ready?
+      const b = blocks.find(b => onBelt(b) && Math.abs(front(b) - STOP[n].x0) < 2);
+      if (!b || b.sz !== plc.cur[k].sz) { raise(zone, 0xC); return; }
+      if (!boxes[box].present) { raise(zone, 2); return; } else clearBit(zone, 2);
+      if (plc.cnt[box] >= plc.target[box]) { raise(zone, 0); return; } else clearBit(zone, 0);
+      plc[key] = 5; startT(`ULD${n}_T_LIM`); break;
+    }
+    case 5:   // ULDn_05_CylYAct: push and count
+      out[`SOL_0${n}Y`] = 1;
+      if (inp[`CYL_0${n}Y_F`]) { plc.cnt[box]++; plc[key] = 6; startT(`ULD${n}_T_LIM`); }
+      else if (since(`ULD${n}_T_LIM`) > 2) raise(zone, 8);
+      break;
+    case 6:   // ULDn_06_CylYBack, then stopper up
+      out[`SOL_0${n}Y`] = 0;
+      if (inp[`CYL_0${n}Y_R`]) { setZ(Z, false); if (inp[`CYL_0${Z}Z_R`]) { plc[key] = 0; plc.cur[k] = null; } }
+      else if (since(`ULD${n}_T_LIM`) > 2) raise(zone, 8);
+      break;
+  }
+}
+
+// End outlet (ULD3_00 / ULD3_01)
+function seqULD3() {
+  if (!inp.GET_POS_EX) plc.ack.EX = false;
+  const filt = TON('ULD3_SensorON', inp.GET_POS_EX, 0.1);
+  if (plc.U3 === 0 && filt && !plc.ack.EX) {
+    plc.ack.EX = true; plc.U3 = 1;
+    const rec = plc.q[2].shift();
+    if (!rec) { raise('ULD', 0xB); return; }
+    if (!boxes[2].present) raise('ULD', 2);
+    plc.cnt[2]++;
+    if (plc.cnt[2] === plc.target[2]) raise('ULD', 0); else if (plc.cnt[2] > plc.target[2]) raise('ULD', 1);
+  }
+  if (plc.U3 === 1 && !inp.GET_POS_EX) plc.U3 = 0;
+}
+
+function arrivalWatch(dt) {
+  const zone = ['REJ1', 'REJ2', 'ULD'];
+  const busy = [plc.U1, plc.U2, 0];   // a held outlet blocks the blocks behind it: no timeout while it works
+  plc.q.forEach((q, i) => {
+    if (busy[i]) { q.forEach(r => { r.due += dt * 1000; }); return; }   // queued blocks wait too: shift their arrival time
+    if (q.length && plc.rt > q[0].due + 3000) raise(zone[i], 9);
+  });
+}
+
+function doReset() {
+  allOff();
+  setZ(0, true); setZ(1, false); setZ(2, false);
+  if (atOrigin() || since('RESET') > 4) {
+    if (!atOrigin()) log('Reset: cylinders did not reach their origin', 'e');
+    plc.state = 'IDLE'; computeGuide();
+    log(plc.guide ? 'Reset done. Clear the guide messages, then press Run.' : 'Reset done: READY', plc.guide ? 'w' : 'ok');
+  }
+}
+
+// ================= Buttons =================
+function cmd(name) {
+  if (!sim.ready) return;
+  const s = plc.state;
+  if (name === 'run') {
+    if (s === 'READY' || s === 'PAUSE') { plc.state = 'RUN'; log('RUN', 'ok'); }
+    else if (s === 'DRAIN') { plc.state = 'RUN'; log('Back to RUN'); }
+    else if (s === 'IDLE') { computeGuide(); log('Start refused: ' + Object.entries(GUIDE_BITS).filter(([b]) => plc.guide & (1 << b)).map(([, v]) => v[0]).join(', '), 'w'); }
+    else if (s === 'FAULT' || s === 'EMERGENCY') log('Press Reset first', 'w');
+  } else if (name === 'stop') {
+    if (s === 'RUN' || s === 'PAUSE') { plc.state = 'DRAIN'; log('STOP: DRAIN, feeding stopped, line runs empty'); }
+  } else if (name === 'pause') {
+    if (s === 'RUN' || s === 'DRAIN') { plc.prevState = s; plc.state = 'PAUSE'; log('PAUSE: conveyors stopped'); }
+  } else if (name === 'reset') {
+    if (plc.ems) { log('Release the E-stop first', 'w'); return; }
+    if (['FAULT', 'EMERGENCY', 'IDLE', 'READY'].includes(s)) {
+      plc.state = 'RESET'; startT('RESET');
+      ZONES.forEach(z => { plc.alm[z] = 0; }); plc.q = [[], [], []];
+      plc.LD = plc.U1 = plc.U2 = plc.U3 = 0; plc.ldUp = false; plc.cur = [null, null]; plc.latch = null;
+      blocks.forEach(b => { b.pushing = false; });
+      log('RESET: alarms and tracking cleared, cylinders to origin');
+    }
+  } else if (name === 'init') { plc.cnt = [0, 0, 0]; log('Counters cleared (SIG_INIT)'); }
+  else if (name === 'ems') {
+    plc.ems = !plc.ems; $('#bEms').setAttribute('aria-pressed', String(plc.ems));
+    log(plc.ems ? 'E-STOP pressed: all outputs off' : 'E-stop released. Press Reset.', plc.ems ? 'e' : 'w');
+  }
+}
+$('#bRun').onclick = () => cmd('run'); $('#bStop').onclick = () => cmd('stop'); $('#bPause').onclick = () => cmd('pause');
+$('#bReset').onclick = () => cmd('reset'); $('#bInit').onclick = () => cmd('init'); $('#bEms').onclick = () => cmd('ems');
+window.addEventListener('keydown', e => { if (e.key === 'Escape' && !plc.ems) cmd('ems'); });
+$$('[data-place]').forEach(b => b.onclick = () => {
+  if (!sim.ready) return;
+  if (!measureAreaClear()) { log('Infeed busy: wait until the measuring area is clear', 'w'); return; }
+  const sz = b.dataset.place; spawn(sz, 334, true); log(`Placed ${SIZE[sz].name.toLowerCase()} block ${sz}${nextId - 1}`);
+});
+$('#handPlace').onclick = () => {
+  if (!sim.ready) return;
+  if (blocks.some(b => onBelt(b) && b.x < 1160 && front(b) > 1060)) { log('That spot is taken', 'w'); return; }
+  const b = spawn('M', 1080, false); log(`Hand-placed block M${b.id} on conveyor 2 (no tracking data)`, 'w');
+};
+$('#clearBelt').onclick = () => {
+  const n = blocks.filter(b => onBelt(b) || b.state === 'floor').length;
+  blocks = blocks.filter(b => { if (onBelt(b) || b.state === 'floor') { root.remove(b.mesh); return false; } return true; });
+  log(`Removed ${n} block${n === 1 ? '' : 's'} from the line`);
+};
+$$('#speed button').forEach(b => b.onclick = () => { sim.speed = +b.dataset.s; $$('#speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+
+// boxes card
+const boxEl = $('#boxes');
+['Box 1 · small', 'Box 2 · medium', 'Box 3 · large'].forEach((t, i) => {
+  const d = document.createElement('div'); d.className = 'bx'; d.style.borderTopColor = `var(${['--c1', '--c2', '--c3'][i]})`;
+  d.innerHTML = `<b>${t}</b><span class="n"><span id="bn${i}">0</span> <small>/ <span id="bt${i}">8</span></small></span>
+    <label for="tg${i}">Target</label><input type="number" id="tg${i}" min="1" max="12" value="8">
+    <label><input type="checkbox" id="bp${i}" checked> In place</label>
+    <button class="small-btn" type="button" id="be${i}">Empty</button>`;
+  boxEl.append(d);
+});
+[0, 1, 2].forEach(i => {
+  $('#tg' + i).onchange = e => { plc.target[i] = Math.max(1, +e.target.value || 1); };
+  $('#bp' + i).onchange = e => {
+    boxes[i].present = e.target.checked; G['box' + i].visible = e.target.checked;
+    boxes[i].items.forEach(b => { b.mesh.visible = e.target.checked; });
+    if (e.target.checked) { boxes[i].items.forEach(b => root.remove(b.mesh)); blocks = blocks.filter(b => b.box !== i || b.state !== 'inbox'); boxes[i].items = []; }
+    log(`Box ${i + 1} ${e.target.checked ? 'put back (empty)' : 'removed'}`);
+  };
+  $('#be' + i).onclick = () => {
+    boxes[i].items.forEach(b => root.remove(b.mesh)); blocks = blocks.filter(b => !(b.box === i && b.state === 'inbox')); boxes[i].items = [];
+    plc.cnt[i] = 0; ZONES.forEach(z => { if (z === ['REJ1', 'REJ2', 'ULD'][i]) { clearBit(z, 0); clearBit(z, 1); } });
+    log(`Box ${i + 1} emptied`);
+  };
+});
+
+// ================= UI refresh =================
+const STEP_NAMES = {
+  LD: ['LD_00_CylZDw', 'LD_01_GetItem', 'LD_02 CHK_Length', 'LD_03_ExitItem', 'LD_04_KeepUp'],
+  U: ['ULD_00_CylZUp', 'ULD_01_GetItem', 'ULD_02_CylZDw', 'ULD_03_KeepDw', 'ULD_04_SizChk', 'ULD_05_CylYAct', 'ULD_06_CylYBack'],
+  U3: ['ULD3_00_NA', 'ULD3_01_GetItem'],
+};
+const IO = [
+  ['Inputs'], ['GET_POS_IN', 'M0000F', 'Entry photo sensor (E3JK)'], ['GET_CHK_L0', 'M00004', 'Length sensor, small'], ['GET_CHK_L1', 'M00005', 'Length sensor, medium'], ['GET_CHK_L2', 'M00006', 'Length sensor, large'],
+  ['CYL_00Z_F', 'M00007'], ['CYL_00Z_R', 'M00008'], ['CYL_01Y_F', 'M00009'], ['CYL_01Y_R', 'M0000A'], ['CYL_01Z_F', 'M0000B'], ['CYL_01Z_R', 'M0000C'],
+  ['GET_POS_W1', 'M0000D'], ['CYL_02Y_F', 'M00040'], ['CYL_02Y_R', 'M00041'], ['CYL_02Z_F', 'M00042'], ['CYL_02Z_R', 'M00043'],
+  ['GET_POS_W2', 'M00044'], ['GET_POS_EX', 'M00045'], ['GET_BOX_1', 'M00046'], ['GET_BOX_2', 'M00047'], ['GET_BOX_3', 'M00048'], ['BTN_EMS', 'M00002'],
+  ['Outputs'], ['SOL_00Z_F', 'M00020'], ['SOL_00Z_R', 'M00021'], ['SOL_01Y', 'M00022'], ['SOL_01Z_F', 'M00024'], ['SOL_01Z_R', 'M00025'],
+  ['SOL_02Y', 'M00026'], ['SOL_02Z_F', 'M00027'], ['SOL_02Z_R', 'M00028'], ['CNV_01X', 'M0002C'], ['CNV_02X', 'M0002D'],
+];
+const ioBody = $('#ioBody'), ioCells = {};
+IO.forEach(r => {
+  const tr = document.createElement('tr');
+  if (r.length === 1) { tr.className = 'grp'; tr.innerHTML = `<td colspan="3">${r[0]}</td>`; }
+  else { tr.innerHTML = `<td>${r[0]}</td><td class="d">${r[1]}</td><td class="v"></td>`; ioCells[r[0]] = tr.lastChild; }
+  ioBody.append(tr);
+});
+const wordsEl = $('#words');
+const WORDS = [['D00020', 'GUIDE'], ['D00022', 'INSP'], ['D00023', 'REJ1'], ['D00024', 'PASS'], ['D00025', 'REJ2'], ['D00026', 'ULD']];
+WORDS.forEach(([d, n]) => { const s = document.createElement('div'); s.className = 'word'; s.innerHTML = `<span>${d} ${n}</span><b id="w${n}">0000</b>`; wordsEl.append(s); });
+const hex = v => v.toString(16).toUpperCase().padStart(4, '0');
+
+let lastAlarmKey = '';
+function refreshUI() {
+  const s = plc.state, stEl = $('#state');
+  stEl.textContent = (plc.ems ? 'E-STOP' : s === 'EMERGENCY' ? 'E-stop released · Reset' : 'STATE_' + s);
+  stEl.className = 'pill ' + (s === 'RUN' ? 'run' : ['FAULT', 'EMERGENCY'].includes(s) || plc.ems ? 'err' : ['DRAIN', 'PAUSE', 'IDLE'].includes(s) ? 'warn' : '');
+  $('#rt').textContent = `Runtime ${Math.floor(plc.rt).toLocaleString()} ms`;
+  for (let i = 0; i < 3; i++) { $('#h' + i).textContent = plc.cnt[i]; $('#bn' + i).textContent = plc.cnt[i]; $('#bt' + i).textContent = plc.target[i]; }
+  plc.q.forEach((q, i) => {
+    $('#q' + i).innerHTML = q.map(r => `<span class="chip${plc.rt > r.due ? ' late' : ''}" style="border-left-color:var(${SIZE[r.sz].c})">${r.sz}${r.id || '?'} · ${Math.max(0, (r.due - plc.rt) / 1000).toFixed(1)}s</span>`).join('') || '<span class="note">empty</span>';
+  });
+  $('#steps').innerHTML = [['LD', plc.LD, STEP_NAMES.LD], ['ULD1', plc.U1, STEP_NAMES.U], ['ULD2', plc.U2, STEP_NAMES.U], ['ULD3', plc.U3, STEP_NAMES.U3]]
+    .map(([n, v, names]) => `<b>${n}</b><span class="${v ? 'act' : ''}">${v} · ${names[v].replace('ULD_', n + '_')}</span>`).join('');
+  $('#wGUIDE').textContent = hex(plc.guide);
+  ZONES.forEach(z => { $('#w' + z).textContent = hex(plc.alm[z]); $('#w' + z).parentNode.classList.toggle('on', !!plc.alm[z]); });
+  $('#wGUIDE').parentNode.classList.toggle('on', !!plc.guide);
+  // messages
+  const items = [];
+  if (plc.ems || s === 'EMERGENCY') items.push(['e', 'EMERGENCY', plc.ems ? 'E-stop pressed. All outputs are off.' : 'E-stop released. Press Reset to home the cylinders.']);
+  ZONES.forEach(z => Object.entries(ALM_BITS).forEach(([b, [n, k, d]]) => { if (plc.alm[z] & (1 << b)) items.push([k, k === 'e' ? 'Heavy' : 'Light', d, `${n}_${z} · D000${22 + ZONES.indexOf(z)}.${(+b).toString(16).toUpperCase()}`]); }));
+  if (s === 'IDLE') Object.entries(GUIDE_BITS).forEach(([b, [n, d]]) => { if (plc.guide & (1 << b)) items.push(['g', 'Guide', d, `${n} · D00020.${b}`]); });
+  const key = s + JSON.stringify(items);
+  if (key !== lastAlarmKey) {
+    lastAlarmKey = key;
+    $('#alarms').innerHTML = items.length ? items.map(([k, t, d, n]) => `<li class="${k}"><em>${t}</em><div>${d}${n ? `<small>${n}</small>` : ''}</div></li>`).join('')
+      : `<li class="none">${s === 'READY' ? 'READY: press Run to start.' : 'No messages.'}</li>`;
+  }
+  Object.entries(ioCells).forEach(([k, td]) => { const v = k in out ? out[k] : inp[k]; td.textContent = v ? 'ON' : '0'; td.className = 'v' + (v ? ' on' : ''); });
+}
+
+function refreshScene() {
+  zc.forEach((c, i) => { G['stop' + i].position.z = STOP_STROKE - c.pos; });
+  yc.forEach((c, i) => { G['push' + i].position.y = -c.pos; });
+  const on = (o, v) => { o.led.material.emissive.setHex(v ? 0x22ff66 : 0); o.led.material.color.setHex(v ? 0x22ff66 : 0x3a3a3a); if (o.beam) { o.beam.material.opacity = v ? 0.85 : 0.18; } };
+  on(vis.IN, inp.GET_POS_IN); on(vis.W1, inp.GET_POS_W1); on(vis.W2, inp.GET_POS_W2);
+  on(vis.L0, inp.GET_CHK_L0); on(vis.L1, inp.GET_CHK_L1); on(vis.L2, inp.GET_CHK_L2); on(vis.EX, inp.GET_POS_EX);
+  const blink = Math.floor(sim.t * 2) % 2 === 0;
+  const warn = ZONES.some(z => plc.alm[z] & 0x7);
+  const g = plc.state === 'RUN' || (plc.state === 'DRAIN' && blink);
+  const r = plc.ems || ['FAULT', 'EMERGENCY'].includes(plc.state) || (warn && blink);
+  lampG.material.emissive.setHex(g ? 0x22dd55 : 0); lampG.material.color.setHex(g ? 0x22dd55 : 0x0c3d1e);
+  lampR.material.emissive.setHex(r ? 0xff2a2a : 0); lampR.material.color.setHex(r ? 0xff2a2a : 0x3d0c0c);
+}
+
+// ================= Camera =================
+const VIEWS = {
+  iso: [W(-250, -1650, 1350), W(880, 60, -60)], op: [W(350, -950, 420), W(750, 0, 80)], top: [W(900, 60, 2300), W(900, 61, 60)],
+  meas: [W(470, -330, 260), W(560, 0, 90)], z1: [W(860, -480, 320), W(790, -70, 70)], z2: [W(1360, -480, 320), W(1290, -70, 70)], end: [W(1760, -380, 320), W(1590, 0, 60)],
+};
+let camAnim = null;
+function setView(k, instant) {
+  const [p, t] = VIEWS[k];
+  if (instant) { camera.position.copy(p); controls.target.copy(t); controls.update(); return; }
+  camAnim = { t0: performance.now(), p0: camera.position.clone(), t0v: controls.target.clone(), p, t };
+}
+$$('.views button').forEach(b => b.onclick = () => setView(b.dataset.v));
+setView('iso', true);
+
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view); resize();
+
+// ================= Main loop =================
+let last = performance.now(), uiT = 0;
+function frame(now) {
+  const real = Math.min(0.1, (now - last) / 1000); last = now;
+  if (sim.ready) {
+    let rem = real * sim.speed;
+    while (rem > 1e-6) { const dt = Math.min(rem, 1 / 120); sim.t += dt; scan(dt); physics(dt); rem -= dt; }
+    refreshScene();
+    uiT += real; if (uiT > 0.1) { uiT = 0; refreshUI(); }
+  }
+  if (camAnim) {
+    const p = Math.min(1, (now - camAnim.t0) / 700), e = p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
+    camera.position.lerpVectors(camAnim.p0, camAnim.p, e); controls.target.lerpVectors(camAnim.t0v, camAnim.t, e);
+    if (p >= 1) camAnim = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+loadModel().then(() => {
+  sim.ready = true; readInputs(); computeGuide(); plc.state = plc.guide ? 'IDLE' : 'READY';
+  log('Line ready. Press Run.', 'ok'); refreshUI();
+}).catch(e => { console.error(e); $('#loadTxt').textContent = 'Could not load the CAD model: ' + e.message; });
+})();
+</script>
+</body>
+</html>

@@ -10,6 +10,8 @@ Two conveyors carry 3D-printed blocks past three sensors that measure each block
 
 Hardware: LS XGB PLC, TOP touchscreen HMI, 2 conveyors (80 mm belt), 3 length sensors, 5 pneumatic cylinders (0.4–0.6 MPa). A camera and robot arm can load the blocks onto the belt.
 
+**▶ 3D simulator:** https://haquemdnazmul.github.io/conveyor-simulator/ (built from the line's STEP assembly, runs the PLC logic with the real variable names)
+
 ## Folders
 
 | Folder | Contents |
@@ -18,6 +20,7 @@ Hardware: LS XGB PLC, TOP touchscreen HMI, 2 conveyors (80 mm belt), 3 length se
 | [`hmi/`](hmi/) | HMI screens (TOP Design Studio) |
 | [`python/`](python/) | Vision, robot and conveyor code (`run.py` is the entry point) |
 | [`docs/`](docs/) | Wiring and pneumatic circuit, flowchart, parts list (BOM), error list, parameter list |
+| [`tools/`](tools/) | `step_to_web.py`: turns the STEP assembly into the simulator's web mesh (OpenCascade via `cadquery-ocp`), keeping stoppers, pushers and boxes as separate moving parts |
 
 ## PLC design highlights
 
