@@ -1,0 +1,859 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Object Sort Machine Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: CAD cell on the left, operator panel (HMI-style) on the right; stacks on phones. */
+:root {
+  --bg: #e7e9e6; --panel: #f5f6f3; --ink: #1c2024; --muted: #5d656c; --line: #cdd2cf;
+  --accent: #d2601a; --scene: #dde1df; --ok: #1d8f4e; --warn: #b77d00; --err: #c93030;
+  --c1: #1b8a8a; --c2: #b77d00; --c3: #b0396a; --chip: #e2e5e1;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+    --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+    --c1: #39c0c0; --c2: #e2a91f; --c3: #e0679a; --chip: #262c31; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+  --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+  --c1: #39c0c0; --c2: #e2a91f; --c3: #e0679a; --chip: #262c31; color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box; margin: 0;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 12px; }
+.view { position: relative; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--scene); }
+.view canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.hud { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.hud-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { font-family: var(--font-display); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); }
+.pill.run { color: var(--ok); border-color: var(--ok); }
+.pill.pause { color: var(--warn); border-color: var(--warn); }
+.pill.err { color: #fff; background: var(--err); border-color: var(--err); }
+.scale { font-family: var(--font-mono); font-size: 22px; font-weight: 600; padding: 4px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); font-variant-numeric: tabular-nums; align-self: flex-start; }
+.scale small { font-size: 11px; color: var(--muted); font-family: var(--font-display); letter-spacing: .08em; text-transform: uppercase; display: block; font-weight: 600; }
+.views { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.views button, .seg button { font-family: var(--font-display); font-weight: 600; letter-spacing: .05em; font-size: 13px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+.views button:hover, .seg button:hover { border-color: var(--accent); }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hint { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: var(--muted); }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--scene); }
+.loading div { display: flex; flex-direction: column; gap: 8px; align-items: center; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bar { width: 220px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.panel { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h2 span { font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.title h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: .02em; text-wrap: balance; }
+.title p { margin: 0; color: var(--muted); line-height: 1.45; }
+.btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.btn { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: .05em; text-transform: uppercase; padding: 9px 6px; border-radius: 7px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.btn small { font-family: var(--font-mono); font-size: 10px; font-weight: 400; color: var(--muted); letter-spacing: 0; text-transform: none; }
+.btn:hover { border-color: var(--accent); }
+.btn.go { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn.go small, .btn.stop small { color: rgba(255,255,255,.8); }
+.btn.stop { background: var(--err); border-color: var(--err); color: #fff; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.field label small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+input[type=number], select { font-family: var(--font-mono); font-size: 14px; padding: 5px 7px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 96px; }
+select { width: auto; max-width: 100%; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.small-btn { font-family: var(--font-body); font-size: 13px; font-weight: 500; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; }
+.small-btn:hover { border-color: var(--accent); }
+.items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.it { border: 1px solid var(--line); border-radius: 7px; padding: 6px; display: flex; flex-direction: column; gap: 3px; background: var(--bg); min-width: 0; }
+.it b { font-family: var(--font-display); font-size: 13px; letter-spacing: .04em; display: flex; justify-content: space-between; gap: 4px; }
+.it b em { font-style: normal; font-weight: 500; color: var(--muted); font-family: var(--font-body); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.it input { width: 100%; }
+.grid9 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.slot { border: 1px dashed var(--line); border-radius: 7px; padding: 6px 7px; min-height: 52px; display: flex; flex-direction: column; justify-content: space-between; font-variant-numeric: tabular-nums; border-left-width: 4px; }
+.slot .n { font-family: var(--font-display); font-weight: 600; font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+.slot .w { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+.slot.full { border-style: solid; }
+.slot.res { border-style: solid; opacity: .65; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.io-wrap { max-height: 300px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { position: sticky; top: 0; background: var(--panel); text-align: left; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+td { padding: 3px 7px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; }
+td.d { color: var(--muted); }
+td.v { text-align: right; font-variant-numeric: tabular-nums; }
+tr.grp td { font-family: var(--font-display); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--bg); }
+.on { color: var(--ok); font-weight: 600; }
+.new { font-family: var(--font-display); font-size: 10px; letter-spacing: .08em; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 3px; margin-left: 4px; }
+tr.flash td.v { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.log { margin: 0; padding: 0; list-style: none; max-height: 170px; overflow: auto; font-family: var(--font-mono); font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.log li { display: grid; grid-template-columns: 52px 1fr; gap: 6px; }
+.log li span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.log li.e { color: var(--err); }
+.log li.ok { color: var(--ok); }
+.note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.checks { display: flex; flex-direction: column; gap: 4px; }
+.checks label { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .view { height: 62vh; min-height: 340px; }
+  .panel { overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) { tr.flash td.v { background: none; } .bar i { transition: none; } }
+</style>
+
+<div class="app">
+  <div class="view" id="view">
+    <div class="hud">
+      <div class="hud-row"><span class="pill" id="state">Ready</span><span class="pill" id="steps">STEP_MOVE 0 · STEP_Robot 0</span></div>
+      <div class="scale"><small>Load cell · D_PickWeight</small><span id="scaleVal">0.0 g</span></div>
+    </div>
+    <div class="views" role="group" aria-label="Camera view">
+      <button id="vIso" type="button">Iso</button><button id="vOp" type="button">Operator</button><button id="vTop" type="button">Top</button><button id="vRobot" type="button">Mirobot</button><button id="vGantry" type="button">Pad</button>
+    </div>
+    <div class="hint">Drag to orbit · right-drag to pan · scroll to zoom · Esc = E-stop</div>
+    <div class="loading" id="loading"><div><span id="loadTxt">Loading CAD model…</span><span class="bar"><i id="loadBar"></i></span></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="card title">
+      <h1>Object Sort Machine Simulator</h1>
+      <p>Built from Object_Sort_Machine.stp. The Mirobot beside the load cell puts each item on the scale, the PLC reads the weight, and the ball-screw gantry runs STEP_MOVE / STEP_PickPlace to store it in the 3×3 grid.</p>
+      <p class="note">Mirobot model: WLKATA mirobot_urdf_2 meshes and URDF, used unchanged under the Apache License 2.0 (<a href="sim3d/mirobot_LICENSE.txt">license</a>). The suction cup is added for picking.</p>
+    </div>
+
+    <section class="card">
+      <h2>Operation <span>HMI buttons</span></h2>
+      <div class="btns">
+        <button class="btn go" id="bStart" type="button">Start<small>B_Start</small></button>
+        <button class="btn" id="bPause" type="button">Pause<small>B_Pause</small></button>
+        <button class="btn" id="bRestart" type="button">Restart<small>B_Restart</small></button>
+        <button class="btn stop" id="bEStop" type="button">E-stop<small>B_HMI_EStop</small></button>
+        <button class="btn" id="bErrReset" type="button">Err reset<small>B_ErrReset</small></button>
+        <button class="btn" id="bInit" type="button">Initialize<small>B_Init</small></button>
+      </div>
+      <div class="field"><label>Sim speed</label>
+        <div class="seg" role="group" aria-label="Simulation speed" id="speed">
+          <button type="button" data-s="1" aria-pressed="true">1×</button><button type="button" data-s="2" aria-pressed="false">2×</button><button type="button" data-s="4" aria-pressed="false">4×</button><button type="button" data-s="8" aria-pressed="false">8×</button>
+        </div>
+      </div>
+      <div class="field"><label for="jobQty">Job quantity<small>D_JobQty · D00030 (1–9)</small></label><input type="number" id="jobQty" value="9" min="0" max="20" step="1"></div>
+    </section>
+
+    <section class="card">
+      <h2>Sorting rule <span>by weight</span></h2>
+      <div class="field"><label for="mode">Mode</label>
+        <select id="mode"><option value="rows">3 classes, one row each</option><option value="bins">9 bins, one slot each</option></select>
+      </div>
+      <div id="rowsCfg" class="checks">
+        <div class="field"><label for="lightMax">Light below (g)<small>D_LightMax · D00082 · slots 1–3</small></label><input type="number" id="lightMax" value="150" min="1" step="1"></div>
+        <div class="field"><label for="medMax">Medium below (g)<small>D_MediumMax · D00083 · slots 4–6</small></label><input type="number" id="medMax" value="300" min="1" step="1"></div>
+        <p class="note">Anything at or above the medium limit is heavy and goes to slots 7–9. Slots 1–3 are the row nearest the HMI.</p>
+      </div>
+      <div id="binsCfg" class="checks" hidden>
+        <div class="field"><label for="binStart">Bin 1 starts at (g)</label><input type="number" id="binStart" value="0" min="0" step="1"></div>
+        <div class="field"><label for="binStep">Bin width (g)</label><input type="number" id="binStep" value="50" min="1" step="1"></div>
+        <p class="note">Slot = bin number. If that slot is taken, the PLC stops with error 10.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Stored items <span>S_Pos1–9 · P00001–9</span></h2>
+      <div class="grid9" id="grid9"></div>
+      <div class="legend" id="legend"></div>
+      <div class="row"><button class="small-btn" id="clearGrid" type="button">Return stored items to infeed</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Infeed items <span>true weights, g</span></h2>
+      <div class="items" id="items"></div>
+      <div class="row"><button class="small-btn" id="randomize" type="button">Random weights</button><button class="small-btn" id="refill" type="button">Refill infeed</button></div>
+    </section>
+
+    <section class="card">
+      <h2>Fault injection <span>test error handling</span></h2>
+      <div class="checks">
+        <label><input type="checkbox" id="fCyl"> Cylinder won't extend (error 7 after T_ErrCylFwd 10 s)</label>
+        <label><input type="checkbox" id="fVac"> No vacuum on pick (error 9 after T_ErrSuction 10 s)</label>
+      </div>
+      <p class="note">Other errors come from operation: job quantity 0 (1), out of range (2), grid not empty at start (6), no free slot for the class (10, new), infeed empty (11, new).</p>
+    </section>
+
+    <section class="card">
+      <h2>I/O monitor <span>XG5000 names</span></h2>
+      <div class="io-wrap"><table><thead><tr><th>Variable</th><th>Device</th><th style="text-align:right">Value</th></tr></thead><tbody id="ioBody"></tbody></table></div>
+      <p class="note">Rows marked <span class="new">NEW</span> are suggested additions for the Mirobot and load cell on free addresses. R_BarcodeDone (M00100) now means "weighing done", so the existing STEP_MOVE ladder runs unchanged.</p>
+    </section>
+
+    <section class="card">
+      <h2>Event log</h2>
+      <ul class="log" id="log"></ul>
+    </section>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ================= Machine geometry, CAD frame (mm, Z up), from Object_Sort_Machine.stp =================
+const PLATE_Z = 805;                       // top of the work plate
+const ITEM_H = 40;                         // item height
+const LC = { x: 313.5, y: 522, top: 816 }; // load-cell platform (pickup position, XIST 10)
+const slotPos = n => ({ x: [675.5, 775.5, 875.5][Math.floor((n - 1) / 3)], y: [535, 415, 295][(n - 1) % 3] });
+const BR0 = 1050.5, YC0 = 360.5;          // bridge (800 screw carriage) and Y carriage (400 screw) positions in the CAD pose
+const PAD_DX = -79, PAD_DY = 6;           // vacuum pad centre relative to the carriages
+const PAD_UP = 919;                        // pad bottom with cylinder retracted
+const GANTRY_HOME = { x: BR0 + PAD_DX, y: YC0 + PAD_DY };   // CAD pose = standby
+const GV = 133;                            // gantry speed mm/s (8000 mm/min from the ladder)
+const CYL_V = 180;                         // cylinder speed mm/s
+// WLKATA Mirobot on the work plate beside the load cell (operator side), infeed next to it
+const RB_BASE = { x: 277, y: 335, z: PLATE_Z };
+const RB_YAW = 40 * Math.PI / 180;         // base rotation so J1's range covers home, infeed and load cell
+const R_HOME = { x: 117, y: 335, z: 1000 }; // arm turned towards the HMI end, clear of the bridge
+const SAFE_Z = 960;
+const RV = 120;                            // linear speed mm/s (MOVL)
+const RW = 1.4;                            // joint speed rad/s (MOVJ)
+const infeedPos = i => ({ x: [430, 480, 530][i % 3], y: [260, 310, 360][Math.floor(i / 3)] });   // 150–260 mm from J1: the Mirobot's tool-down reach
+
+// ================= I/O image =================
+const IO_DEF = [
+  ['HMI buttons'], ['B_Start', 'M0002A'], ['B_Pause', 'M0002E'], ['B_Restart', 'M0002F'], ['B_HMI_EStop', 'M00028'], ['B_ErrReset', 'M0002B'], ['B_Init', 'M00029'],
+  ['Stop and errors'], ['Stop', 'M00500'], ['R_StopBtn', 'M00502'], ['R_StopErr', 'M00501'], ['R_EStop', 'M00503'], ['D_ErrCode', 'D00401'],
+  ['Gantry sequence'], ['STEP_MOVE', 'D00010'], ['R_BarcodeDone', 'M00100'], ['D_JobQty', 'D00030'], ['D_DoneCount', 'D00027'], ['JobDoneSig', 'M0010A'],
+  ['STEP_PickPlace', 'D00012'], ['R_Pick', 'M00050'], ['SG_PickDone', 'M00051'], ['R_Place', 'M00052'], ['SG_PlaceDone', 'M00053'],
+  ['SG_ServoPosDone', 'D01000.2'], ['D_Servo1_CurPos', 'D01004'], ['D_Servo2_CurPos', 'D02004'],
+  ['Cylinder and suction'], ['P_CylFwdCmd', 'P00020'], ['P_SuctionCmd', 'P00021'], ['S_Cyl_Fwd', 'P0000D'], ['S_Cyl_Bwd', 'P0000E'], ['S_Suction', 'P0000F'],
+  ['Target slot'], ...[1,2,3,4,5,6,7,8,9].map(i => ['_Pos' + i, 'M0010' + i]),
+  ['Slot sensors (BRQP100)'], ...[1,2,3,4,5,6,7,8,9].map(i => ['S_Pos' + i, 'P0000' + i]),
+  ['Signal tower'], ['L_GL', 'P00024'], ['L_YL', 'P00023'], ['L_RL', 'P00022'],
+  ['Mirobot and load cell (new)'],
+  ['R_RobotLoad', 'M00060', 1], ['SG_RobotBusy', 'M00061', 1], ['SG_RobotDone', 'M00062', 1], ['STEP_Robot', 'D00014', 1],
+  ['SG_WeighStable', 'M00063', 1], ['D_PickWeight', 'D00080'], ['D_WeightClass', 'D00081', 1], ['D_LightMax', 'D00082', 1], ['D_MediumMax', 'D00083', 1],
+];
+const io = {};
+IO_DEF.forEach(d => { if (d.length > 1) io[d[0]] = 0; });
+const WORDS = new Set(['STEP_MOVE','STEP_PickPlace','STEP_Robot','D_JobQty','D_DoneCount','D_ErrCode','D_Servo1_CurPos','D_Servo2_CurPos','D_PickWeight','D_WeightClass','D_LightMax','D_MediumMax']);
+const ERR = {
+  1: 'Enter the job quantity.', 2: 'Job quantity must be between 1 and 9.', 6: 'The loading area is not empty.',
+  7: 'The cylinder did not extend.', 8: 'The cylinder did not return.', 9: 'The suction device did not turn on.',
+  10: 'No free slot for this weight class.', 11: 'Infeed is empty. Refill it, then press Err reset.',
+};
+
+// ================= Log =================
+const logEl = $('#log');
+function log(msg, cls) {
+  const li = document.createElement('li'); if (cls) li.className = cls;
+  li.innerHTML = `<span>${sim.t.toFixed(1)}s</span><div></div>`; li.lastChild.textContent = msg;
+  logEl.prepend(li); while (logEl.children.length > 60) logEl.lastChild.remove();
+}
+
+// ================= Simulation clock & tasks =================
+class Abort extends Error {}
+const sim = { t: 0, speed: 1, tasks: [], running: false, loaded: 0, ready: false };
+const fault = { cyl: false, vac: false };
+const tween = (dur, apply) => new Promise((res, rej) => sim.tasks.push({ tw: true, t0: sim.t, dur: Math.max(dur, 1e-3), apply, res, rej }));
+const wait = s => tween(s, () => {});
+const until = cond => new Promise((res, rej) => sim.tasks.push({ tw: false, cond, res, rej }));
+function stepTasks() {
+  const list = sim.tasks; sim.tasks = [];
+  for (const k of list) {
+    if (k.tw) { const p = Math.min(1, (sim.t - k.t0) / k.dur); k.apply(p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p)); if (p >= 1) k.res(); else sim.tasks.push(k); }
+    else if (k.cond()) k.res(); else sim.tasks.push(k);
+  }
+}
+function abortAll() { const l = sim.tasks; sim.tasks = []; l.forEach(k => k.rej(new Abort())); }
+const quiet = e => { if (!(e instanceof Abort)) { console.error(e); log('Script error: ' + e.message, 'e'); } };
+function raiseError(code) { if (io.R_StopErr && io.D_ErrCode === code) return; io.D_ErrCode = code; io.R_StopErr = 1; log(`Error ${code}: ${ERR[code]}`, 'e'); }
+
+// ================= Three.js scene =================
+const view = $('#view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(36, 1, 10, 30000);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 200; controls.maxDistance = 8000;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.7));
+const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+sun.position.set(-900, 2600, 1400); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -1200, right: 1200, top: 1200, bottom: -1200, near: 100, far: 6000 }); sun.shadow.bias = -0.0005;
+scene.add(sun);
+const fillL = new THREE.DirectionalLight(0xffffff, 0.3); fillL.position.set(1500, 900, -1200); scene.add(fillL);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.ShadowMaterial({ opacity: 0.16 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+// CAD root: Z-up mm -> three Y-up, floor (z = -106) at y = 0, machine centred
+const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; root.position.set(-600, 106, 360); scene.add(root);
+const bridgeG = new THREE.Group(); root.add(bridgeG);
+const ycarG = new THREE.Group(); bridgeG.add(ycarG);
+const zG = new THREE.Group(); ycarG.add(zG);
+const padTip = new THREE.Group(); padTip.position.set(GANTRY_HOME.x, GANTRY_HOME.y, PAD_UP); zG.add(padTip);
+
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; t.userData = { c, g }; return t;
+}
+function redraw(tex, fn) { const { g, c } = tex.userData; fn(g, c.width, c.height); tex.needsUpdate = true; }
+const M = {
+  orange: new THREE.MeshStandardMaterial({ color: 0xf07a1a, roughness: 0.45 }),
+  dark: new THREE.MeshStandardMaterial({ color: 0x2b2e33, metalness: 0.3, roughness: 0.6 }),
+  grey: new THREE.MeshStandardMaterial({ color: 0x4a4f56, metalness: 0.2, roughness: 0.55 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x141518, roughness: 0.7 }),
+  alu: new THREE.MeshStandardMaterial({ color: 0xc4c9cf, metalness: 0.5, roughness: 0.4 }),
+  plate: new THREE.MeshStandardMaterial({ color: 0xd3d7db, metalness: 0.4, roughness: 0.5 }),
+  blue: new THREE.MeshStandardMaterial({ color: 0x2440d6, roughness: 0.4 }),
+  chain: new THREE.MeshStandardMaterial({ color: 0x2a2c30, roughness: 0.7 }),
+};
+function box(w, d, h, mat, x, y, z, parent) {   // CAD-frame box: w along x, d along y, h along z
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, d, h), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+  (parent || root).add(m); return m;
+}
+
+// ---- load the CAD model ----
+const lampMat = {};
+let screenTex = null;
+async function loadModel() {
+  const bar = $('#loadBar'), txt = $('#loadTxt');
+  const meta = await (await fetch('sim3d/model.json')).json();
+  // geometry ships as base64 text (artifact hosting serves text, not raw binary)
+  const resp = await fetch('sim3d/model.b64.txt');
+  const total = Number(resp.headers.get('Content-Length')) || 13972688;
+  let b64 = '';
+  if (resp.body && resp.body.getReader) {
+    const rd = resp.body.getReader(), dec = new TextDecoder(); const parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(dec.decode(value, { stream: true })); got += value.length; bar.style.width = Math.min(100, got / total * 100) + '%'; txt.textContent = `Loading CAD model… ${(got / 1048576).toFixed(1)} MB`; }
+    b64 = parts.join('');
+  } else b64 = await resp.text();
+  txt.textContent = 'Building meshes…';
+  await new Promise(r => setTimeout(r, 0));
+  const bin = atob(b64.trim()); const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const buf = u8.buffer;
+  const pal = meta.palette.map(h => new THREE.Color(h).convertSRGBToLinear());
+  const palB = meta.palette.map(h => { const c = parseInt(h.slice(1), 16); return [c >> 16 & 255, c >> 8 & 255, c & 255]; });
+  const groupOf = { static: root, bridge: bridgeG, ycar: ycarG, z: zG, lampG: root, lampY: root, lampR: root };
+  const baseMat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.35, roughness: 0.55 });
+  for (const c of meta.chunks) {
+    const q = new Uint16Array(buf, c.pos, c.nv * 3);
+    const pos = new Float32Array(c.nv * 3);
+    for (let i = 0; i < pos.length; i++) { const a = i % 3; pos[i] = c.o[a] + q[i] * c.s[a]; }
+    const idx = new Uint16Array(buf, c.idx, c.nt * 3).slice();
+    const ci = new Uint8Array(buf, c.col, c.nv);
+    const col = new Uint8Array(c.nv * 3);
+    for (let i = 0; i < c.nv; i++) { const p = palB[ci[i]]; col[i * 3] = p[0]; col[i * 3 + 1] = p[1]; col[i * 3 + 2] = p[2]; }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.computeVertexNormals();
+    let mat = baseMat;
+    if (c.g.startsWith('lamp')) {
+      const key = { lampG: 'L_GL', lampY: 'L_YL', lampR: 'L_RL' }[c.g];
+      const color = { L_GL: 0x1ea84f, L_YL: 0xf2b600, L_RL: 0xe02424 }[key];
+      mat = new THREE.MeshStandardMaterial({ color, emissive: 0x000000, roughness: 0.3, transparent: true, opacity: 0.8 });
+      lampMat[key] = { m: mat, c: color };
+    }
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.castShadow = c.g !== 'static'; mesh.receiveShadow = true;
+    groupOf[c.g].add(mesh);
+  }
+  // HMI screen overlay (TOP RW0700)
+  if (meta.screen) {
+    const s = meta.screen.map(p => new THREE.Vector3(p[0], p[1], p[2] + 0.6));
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute([s[0], s[1], s[2], s[0], s[2], s[3]].flatMap(v => [v.x, v.y, v.z]), 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], 2));
+    screenTex = canvasTex(512, 384, () => {});
+    root.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: screenTex, side: THREE.DoubleSide })));
+  }
+  $('#loading').hidden = true;
+}
+
+// ---- slot sensor LEDs (mirror the BRQP100 sensors under the plate) ----
+const sensorLeds = {};
+for (let n = 1; n <= 9; n++) {
+  const p = slotPos(n);
+  const led = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 2, 16), new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x000000 }));
+  led.rotation.x = Math.PI / 2; led.position.set(p.x - 40, p.y + 50, PLATE_Z + 1); root.add(led); sensorLeds[n] = led;
+  const tag = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (g, w, h) => { g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, w, h); g.fillStyle = '#222'; g.font = '600 42px Barlow, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), w / 2, h / 2 + 2); }) }));
+  tag.rotation.z = -Math.PI / 2; tag.position.set(p.x - 38, p.y - 46, PLATE_Z + 0.6); root.add(tag);
+}
+
+// ---- X-axis drag chain, regenerated every frame ----
+const CHAIN = { xf: 806, xm0: 941, zlo: 670, zhi: 898, y: 60, L: 980, n: 40 };
+const chainMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(26, 54, 34), M.chain, CHAIN.n);
+chainMesh.castShadow = true; root.add(chainMesh);
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3(1, 1, 1), _ax = new THREE.Vector3(0, 1, 0);
+function updateChain(dx) {
+  const r = (CHAIN.zhi - CHAIN.zlo) / 2, zc = (CHAIN.zlo + CHAIN.zhi) / 2;
+  const xm = CHAIN.xm0 + dx, xc = (CHAIN.xf + xm - (CHAIN.L - Math.PI * r)) / 2;
+  const a = CHAIN.xf - xc, arc = Math.PI * r, b = Math.max(0, xm - xc), tot = a + arc + b;
+  for (let i = 0; i < CHAIN.n; i++) {
+    const s = (i + 0.5) / CHAIN.n * tot; let x, z, ang;
+    if (s < a) { x = CHAIN.xf - s; z = CHAIN.zlo; ang = 0; }
+    else if (s < a + arc) { const t = (s - a) / r; x = xc - r * Math.sin(t); z = zc - r * Math.cos(t); ang = -t; }
+    else { x = xc + (s - a - arc); z = CHAIN.zhi; ang = Math.PI; }
+    _q.setFromAxisAngle(_ax, ang); _v.set(x, CHAIN.y, z); _m.compose(_v, _q, _s); chainMesh.setMatrixAt(i, _m);
+  }
+  chainMesh.instanceMatrix.needsUpdate = true;
+}
+updateChain(0);
+
+// ---- WLKATA Mirobot: official meshes + URDF joint chain (mirobot_urdf_2, Apache-2.0) ----
+const URDF = [   // joint origin (m, rad, URDF rpy), axis, limits
+  { xyz: [0, 0, 0.065406], rpy: [0, 0, 0], axis: [0, 0, 1], lim: [-1.7453, 2.7925] },
+  { xyz: [0.029687, -0.022, 0.061593], rpy: [3.1402, -1.5708, 1.5722], axis: [0, 0, 1], lim: [-0.5235, 1.2217] },
+  { xyz: [0.108, 0, -0.0094471], rpy: [0, 0, 0], axis: [0, 0, 1], lim: [-2.9671, 1.0472] },
+  { xyz: [0.020001, 0.10743, 0.031439], rpy: [-1.5708, 0, 0], axis: [0, 0, 1], lim: [-6.1086, 6.1086] },
+  { xyz: [0, -0.010414, 0.06155], rpy: [1.5708, -1.5708, -3.1416], axis: [0, 0, -1], lim: [-3.5779, 0.6283] },
+  { xyz: [0, -0.01628, 0.010525], rpy: [-1.5708, 0, 0], axis: [0, 0, 1], lim: [-6.2832, 6.2832] },
+];
+const LINK_RGB = [[0.44, 0.5, 0.56], [0.83, 0.83, 0.83], [1, 0.65, 0], [0.83, 0.83, 0.83], [1, 0.65, 0], [0.44, 0.5, 0.56], [0.83, 0.83, 0.83]];
+const robot = new THREE.Group(); robot.position.set(RB_BASE.x, RB_BASE.y, RB_BASE.z); robot.rotation.z = RB_YAW; robot.scale.setScalar(1000); root.add(robot);
+const linkHolders = [robot], jointG = [];
+{
+  let parent = robot;
+  URDF.forEach(j => {
+    const o = new THREE.Group(); o.position.set(...j.xyz); o.rotation.set(j.rpy[0], j.rpy[1], j.rpy[2], 'ZYX'); parent.add(o);
+    const g = new THREE.Group(); o.add(g); g.userData.axis = new THREE.Vector3(...j.axis); jointG.push(g); linkHolders.push(g); parent = g;
+  });
+}
+// suction-cup end effector on the Link6 flange (flange face at z = -29.5 mm, tool points along -z)
+const toolBase = new THREE.Group(); toolBase.position.set(0, 0, -0.0295); jointG[5].add(toolBase);
+{
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.012, 20), M.grey); stem.rotation.x = Math.PI / 2; stem.position.z = -0.006; stem.castShadow = true; toolBase.add(stem);
+  const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0095, 0.01, 24), M.black); cup.rotation.x = Math.PI / 2; cup.position.z = -0.017; cup.castShadow = true; toolBase.add(cup);
+}
+const rCup = new THREE.Group(); rCup.position.set(0, 0, -0.022); toolBase.add(rCup);   // suction point
+const TOOL_LEN = 22;
+const R = { q: [0, 0, 0, 0, 0, 0], inZone: false, held: null, tip: null };
+function setQ(q) { R.q = q.slice(); jointG.forEach((g, i) => g.quaternion.setFromAxisAngle(g.userData.axis, q[i])); robot.updateMatrixWorld(true); }
+const _p = new THREE.Vector3(), _p0 = new THREE.Vector3();
+function fk() {   // tool point and tool direction in the CAD frame
+  root.updateMatrixWorld(true);
+  rCup.getWorldPosition(_p); root.worldToLocal(_p);
+  toolBase.getWorldPosition(_p0); root.worldToLocal(_p0);
+  const d = _p.clone().sub(_p0).normalize();
+  return { p: _p.clone(), d };
+}
+// Numerical IK (damped least squares) on J1, J2, J3, J5 with J4 = J6 = 0: tool point at target, tool pointing straight down
+const IKJ = [0, 1, 2, 4];
+function ikSolve(t, seed) {
+  const q = (seed || R.q).slice(); q[3] = 0; q[5] = 0;
+  const err = () => { const f = fk(); return [f.p.x - t.x, f.p.y - t.y, f.p.z - t.z, f.d.x * 120, f.d.y * 120, (f.d.z + 1) * 120]; };
+  let e = (setQ(q), err()), best = q.slice(), bestN = Infinity;
+  for (let it = 0; it < 40; it++) {
+    const n = Math.hypot(...e); if (n < bestN) { bestN = n; best = q.slice(); } if (n < 0.05) break;
+    const J = IKJ.map(k => { const h = 1e-4, qq = q.slice(); qq[k] += h; setQ(qq); const e2 = err(); return e2.map((v, i) => (v - e[i]) / h); });
+    // solve (J^T J + l^2 I) dq = -J^T e  (4x4)
+    const A = [0, 1, 2, 3].map(a => [0, 1, 2, 3].map(b => J[a].reduce((s, v, i) => s + v * J[b][i], 0) + (a === b ? 4 : 0)));
+    const g = [0, 1, 2, 3].map(a => -J[a].reduce((s, v, i) => s + v * e[i], 0));
+    for (let c = 0; c < 4; c++) { let p = c; for (let r = c + 1; r < 4; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [g[c], g[p]] = [g[p], g[c]]; for (let r = c + 1; r < 4; r++) { const f = A[r][c] / A[c][c]; for (let k = c; k < 4; k++) A[r][k] -= f * A[c][k]; g[r] -= f * g[c]; } }
+    const dq = [0, 0, 0, 0]; for (let c = 3; c >= 0; c--) { let s = g[c]; for (let k = c + 1; k < 4; k++) s -= A[c][k] * dq[k]; dq[c] = s / A[c][c]; }
+    IKJ.forEach((k, i) => { const step = Math.max(-0.3, Math.min(0.3, dq[i])); q[k] = Math.max(URDF[k].lim[0], Math.min(URDF[k].lim[1], q[k] + step)); });
+    setQ(q); e = err();
+  }
+  const n = Math.hypot(...e); if (n < bestN) { bestN = n; best = q.slice(); }
+  setQ(best); return { q: best, err: bestN };
+}
+// seed that faces the target: J1 from the direction, a typical elbow-up posture for the rest
+function seedFor(t) { const a = Math.atan2(t.y - RB_BASE.y, t.x - RB_BASE.x) - RB_YAW; return [Math.max(URDF[0].lim[0], Math.min(URDF[0].lim[1], Math.atan2(Math.sin(a), Math.cos(a)))), 0.3, -0.6, 0, -1.2, 0]; }
+let ikWarned = false;
+function solveTo(t, seed) {
+  const s = ikSolve(t, seed);
+  if (s.err > 2 && !ikWarned) { ikWarned = true; log(`Mirobot cannot reach (${t.x.toFixed(0)}, ${t.y.toFixed(0)}, ${t.z.toFixed(0)}); residual ${s.err.toFixed(1)}`, 'e'); }
+  R.tip = { ...t }; return s.q;
+}
+setQ(solveTo(R_HOME, seedFor(R_HOME)));
+async function robotMoveJ(t) {   // joint-interpolated move (MOVJ)
+  const q0 = R.q.slice(); const q1 = ikSolve(t, seedFor(t)).q; setQ(q0);
+  const dmax = Math.max(...q1.map((v, i) => Math.abs(v - q0[i])));
+  await tween(dmax / RW + 0.15, k => setQ(q0.map((v, i) => v + (q1[i] - v) * k)));
+  setQ(q1); R.tip = { ...t };
+}
+async function robotMoveL(t, v) {  // straight-line move (MOVL), IK every frame
+  const a = { ...R.tip }, d = Math.hypot(t.x - a.x, t.y - a.y, t.z - a.z); if (d < 0.1) return;
+  await tween(d / (v || RV) + 0.1, k => { solveTo({ x: a.x + (t.x - a.x) * k, y: a.y + (t.y - a.y) * k, z: a.z + (t.z - a.z) * k }); });
+}
+async function loadMirobot() {
+  const meta = await (await fetch('sim3d/mirobot.json')).json();
+  const b64 = (await (await fetch('sim3d/mirobot.b64.txt')).text()).trim();
+  const bin = atob(b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  meta.links.forEach((L, i) => {
+    const q = new Uint16Array(u8.buffer, L.pos, L.nv * 3), pos = new Float32Array(L.nv * 3);
+    for (let k = 0; k < pos.length; k++) { const a = k % 3; pos[k] = L.o[a] + q[k] * L.s[a]; }
+    const idx = L.wide ? new Uint32Array(u8.buffer, L.idx, L.nt * 3).slice() : new Uint16Array(u8.buffer, L.idx, L.nt * 3).slice();
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeVertexNormals();
+    const c = LINK_RGB[i];
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: new THREE.Color(c[0], c[1], c[2]).convertSRGBToLinear(), roughness: 0.45, metalness: 0.15 }));
+    m.castShadow = true; m.receiveShadow = true; linkHolders[i].add(m);
+  });
+}
+
+// ================= Items =================
+const DEFAULT_W = [82, 245, 410, 130, 318, 199, 95, 365, 270];
+const SIZES = [[46, 40], [40, 40], [45, 45], [44, 40], [40, 46], [46, 42], [42, 42], [46, 40], [42, 46]];
+function qrDraw(seed) {
+  return (g, w, h) => {
+    g.fillStyle = '#2440d6'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.fillRect(w * .2, h * .12, w * .6, h * .76);
+    let s = seed * 9301 + 49297; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    g.fillStyle = '#111'; const n = 9, cw = w * .5 / n, x0 = w * .25, y0 = h * .5 - cw * n / 2;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (rnd() > .5) g.fillRect(x0 + i * cw, y0 + j * cw, cw, cw);
+  };
+}
+function classColor(c) {
+  if (ui.mode.value === 'rows') return [null, '#1b8a8a', '#c58a00', '#b0396a'][c] || '#666';
+  const t = (c - 1) / 8; return `rgb(${Math.round(27 + t * 149)},${Math.round(138 - t * 81)},${Math.round(138 - t * 32)})`;
+}
+function topDraw(item) {
+  return (g, w, h) => {
+    g.fillStyle = '#2440d6'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '700 70px "Barlow Condensed", sans-serif'; g.fillText('#' + item.id, w / 2, item.measured ? h * .36 : h / 2);
+    if (item.measured) { g.fillStyle = classColor(item.cls); g.fillRect(w * .1, h * .6, w * .8, h * .3); g.fillStyle = '#fff'; g.font = '600 46px "JetBrains Mono", monospace'; g.fillText(Math.round(item.w) + 'g', w / 2, h * .76); }
+  };
+}
+const ui = { mode: $('#mode'), lightMax: $('#lightMax'), medMax: $('#medMax'), binStart: $('#binStart'), binStep: $('#binStep'), jobQty: $('#jobQty') };
+const items = DEFAULT_W.map((w, i) => {
+  const item = { id: i + 1, w, home: i, loc: 'infeed', slot: 0, measured: false, cls: 0, target: 0 };
+  const [sx, sy] = SIZES[i];
+  item.topTex = canvasTex(256, 256, topDraw(item));
+  const side = new THREE.MeshStandardMaterial({ map: canvasTex(128, 128, qrDraw(i + 3)), roughness: .5 });
+  const top = new THREE.MeshStandardMaterial({ map: item.topTex, roughness: .5 });
+  item.mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, ITEM_H), [M.blue, side, M.blue, side, top, M.blue]);
+  item.mesh.castShadow = true; item.mesh.receiveShadow = true; root.add(item.mesh);
+  placeAtHome(item); return item;
+});
+function placeAtHome(item) {
+  const p = infeedPos(item.home);
+  root.attach(item.mesh); item.mesh.position.set(p.x, p.y, PLATE_Z + ITEM_H / 2); item.mesh.rotation.set(0, 0, 0);
+  item.loc = 'infeed'; item.slot = 0; item.target = 0;
+}
+const relabel = item => redraw(item.topTex, topDraw(item));
+function dropAt(item, x, y, baseZ) {
+  root.attach(item.mesh);
+  const e = new THREE.Euler().setFromQuaternion(item.mesh.quaternion, 'ZXY');
+  item.mesh.rotation.set(0, 0, e.z); item.mesh.position.set(x, y, baseZ + ITEM_H / 2);
+}
+const slotItem = {}, reserved = {};
+let lcItem = null, lcReading = 0;
+const nextInfeed = () => items.find(it => it.loc === 'infeed');
+
+// ================= Sorting rule =================
+function classify(w) {
+  if (ui.mode.value === 'rows') { const a = +ui.lightMax.value, b = +ui.medMax.value; return w < a ? 1 : w < b ? 2 : 3; }
+  const s = +ui.binStart.value, st = Math.max(1, +ui.binStep.value);
+  return Math.min(9, Math.max(1, Math.floor((w - s) / st) + 1));
+}
+function chooseSlot(w) {
+  const c = classify(w), free = n => !slotItem[n] && !reserved[n];
+  if (ui.mode.value === 'rows') { for (let n = (c - 1) * 3 + 1; n <= c * 3; n++) if (free(n)) return n; return 0; }
+  return free(c) ? c : 0;
+}
+const CLASS_NAME = ['', 'Light', 'Medium', 'Heavy'];
+
+// ================= Gantry (ball-screw XY + pneumatic Z) =================
+const G = { x: GANTRY_HOME.x, y: GANTRY_HOME.y, tip: PAD_UP, inZone: false, held: null };
+function setGantry(px, py) {
+  G.x = px; G.y = py;
+  const bx = px - PAD_DX, cy = py - PAD_DY;
+  bridgeG.position.x = bx - BR0; ycarG.position.y = cy - YC0; updateChain(bx - BR0);
+  io.D_Servo1_CurPos = Math.round((bx - 197) * 10000); io.D_Servo2_CurPos = Math.round((cy - 147) * 10000);
+}
+const setTip = z => { G.tip = z; zG.position.z = z - PAD_UP; };
+setGantry(G.x, G.y); setTip(PAD_UP); io.SG_ServoPosDone = 1; io.S_Cyl_Bwd = 1;
+async function gantryTo(x, y) {
+  io.SG_ServoPosDone = 0;
+  const x0 = G.x, y0 = G.y, d = Math.max(Math.abs(x - x0), Math.abs(y - y0));
+  if (d > 0.1) await tween(d / GV + 0.15, k => setGantry(x0 + (x - x0) * k, y0 + (y - y0) * k));
+  io.SG_ServoPosDone = 1;
+}
+async function cylinder(fwd, downZ) {
+  io.P_CylFwdCmd = fwd ? 1 : 0; if (fwd) io.S_Cyl_Bwd = 0; else io.S_Cyl_Fwd = 0;
+  if (fwd && fault.cyl) { const t0 = sim.t; await until(() => { if (!fault.cyl) return true; if (sim.t - t0 > 10) raiseError(7); return false; }); }
+  const z0 = G.tip, z1 = fwd ? downZ : PAD_UP;
+  await tween(Math.abs(z1 - z0) / CYL_V + 0.1, k => setTip(z0 + (z1 - z0) * k));
+  if (fwd) io.S_Cyl_Fwd = 1; else io.S_Cyl_Bwd = 1;
+}
+async function gantryPickPlace(pick) {
+  io[pick ? 'R_Pick' : 'R_Place'] = 1;
+  io.STEP_PickPlace = 1; await cylinder(true, pick ? LC.top + ITEM_H : PLATE_Z + ITEM_H);
+  io.STEP_PickPlace = 2;
+  if (pick) {
+    io.P_SuctionCmd = 1;
+    if (fault.vac) { const t0 = sim.t; await until(() => { if (!fault.vac) return true; if (sim.t - t0 > 10) raiseError(9); return false; }); }
+    await wait(0.12); io.S_Suction = 1;
+    const it = lcItem; lcItem = null; G.held = it; it.loc = 'gantry'; padTip.attach(it.mesh); io.SG_WeighStable = 0;
+    await wait(0.2);
+  } else {
+    io.P_SuctionCmd = 0; io.S_Suction = 0;
+    const it = G.held, p = slotPos(it.target); G.held = null;
+    dropAt(it, p.x, p.y, PLATE_Z); it.loc = 'slot'; it.slot = it.target; slotItem[it.target] = it; delete reserved[it.target];
+    await wait(0.2);
+  }
+  io.STEP_PickPlace = 3; await cylinder(false);
+  io.STEP_PickPlace = 4; io[pick ? 'SG_PickDone' : 'SG_PlaceDone'] = 1; await wait(0.05);
+  io[pick ? 'R_Pick' : 'R_Place'] = 0; io[pick ? 'SG_PickDone' : 'SG_PlaceDone'] = 0; io.STEP_PickPlace = 0;
+}
+
+// ================= Main sequences =================
+async function gantryLoop() {
+  while (true) {
+    io.STEP_MOVE = 0;
+    await until(() => io.R_BarcodeDone === 1);
+    io.STEP_MOVE = 1;
+    await until(() => !R.inZone); G.inZone = true;
+    await gantryTo(LC.x, LC.y);
+    io.STEP_MOVE = 2; await gantryPickPlace(true);
+    const n = G.held.target, p = slotPos(n);
+    io.STEP_MOVE = 3; await gantryTo(p.x, p.y); G.inZone = false;
+    io.STEP_MOVE = 4; await gantryPickPlace(false);
+    io.D_DoneCount++; io.R_BarcodeDone = 0; io['_Pos' + n] = 0;
+    log(`Stored item in slot ${n} (${io.D_DoneCount}/${io.D_JobQty})`, 'ok');
+    io.STEP_MOVE = 5;
+    if (io.D_DoneCount >= io.D_JobQty) {
+      io.STEP_MOVE = 6; io.JobDoneSig = 1; await gantryTo(GANTRY_HOME.x, GANTRY_HOME.y);
+      io.STEP_MOVE = 0; sim.running = false; log('Job complete (JobDoneSig)', 'ok'); return;
+    }
+  }
+}
+async function weigh(item) {
+  io.SG_WeighStable = 0;
+  const w = item.w, noise = (Math.random() - .5) * 0.4;
+  await tween(1.2, k => { lcReading = w * (1 - Math.exp(-5 * k)) + Math.sin(k * 40) * (1 - k) * w * 0.03; });
+  lcReading = Math.round((w + noise) * 10) / 10; io.D_PickWeight = Math.round(lcReading * 10); io.SG_WeighStable = 1;
+  item.measured = true; item.cls = classify(lcReading); relabel(item); io.D_WeightClass = item.cls;
+  let n = 0;
+  await until(() => { n = chooseSlot(lcReading); if (!n) raiseError(10); return n > 0; });
+  item.target = n; reserved[n] = item;
+  await until(() => !io.R_BarcodeDone);
+  io['_Pos' + n] = 1; io.R_BarcodeDone = 1;
+  log(`Item #${item.id}: ${lcReading.toFixed(1)} g → ${ui.mode.value === 'rows' ? CLASS_NAME[item.cls] + ', ' : ''}slot ${n}`);
+}
+async function robotLoop() {
+  while (sim.loaded < io.D_JobQty) {
+    // STEP 1: wait at home until the load cell is empty AND the gantry bridge is away from the robot area
+    io.STEP_Robot = 1;
+    await until(() => !lcItem && !G.inZone);
+    R.inZone = true;                                     // the robot works under the bridge path: gantry must wait
+    let item = nextInfeed();
+    if (!item) await until(() => { item = nextInfeed(); if (!item) raiseError(11); return !!item; });
+    io.R_RobotLoad = 1; io.SG_RobotBusy = 1; io.STEP_Robot = 2;
+    const p = item.mesh.position.clone();
+    await robotMoveJ({ x: p.x, y: p.y, z: SAFE_Z });
+    await robotMoveL({ x: p.x, y: p.y, z: PLATE_Z + ITEM_H }, 80);
+    await wait(0.15); R.held = item; item.loc = 'robot'; rCup.attach(item.mesh);
+    await robotMoveL({ x: p.x, y: p.y, z: SAFE_Z }, 80);
+    io.STEP_Robot = 3;
+    await robotMoveJ({ x: LC.x, y: LC.y, z: SAFE_Z });
+    await robotMoveL({ x: LC.x, y: LC.y, z: LC.top + ITEM_H }, 80);
+    await wait(0.15);
+    dropAt(item, LC.x, LC.y, LC.top); R.held = null; item.loc = 'loadcell'; lcItem = item;
+    io.STEP_Robot = 4;
+    await robotMoveL({ x: LC.x, y: LC.y, z: SAFE_Z }, 80);
+    weigh(item).catch(quiet);
+    await robotMoveJ(R_HOME);
+    R.inZone = false; sim.loaded++;
+    io.STEP_Robot = 0; io.SG_RobotBusy = 0; io.R_RobotLoad = 0;
+    io.SG_RobotDone = 1; wait(0.3).then(() => io.SG_RobotDone = 0).catch(() => {});
+  }
+}
+
+// ================= Buttons =================
+function pulse(name) { io[name] = 1; setTimeout(() => { io[name] = 0; }, 350); }
+function start() {
+  pulse('B_Start');
+  if (!sim.ready) { log('The CAD model is still loading.'); return; }
+  if (sim.running) { log('Already running.'); return; }
+  if (io.R_EStop) { log('E-stop is active. Press Initialize first.', 'e'); return; }
+  if (io.R_StopErr) { log('Clear the error first (Err reset).', 'e'); return; }
+  const q = Number(ui.jobQty.value) || 0; io.D_JobQty = q;
+  if (q === 0) return raiseError(1);
+  if (q < 1 || q > 9) return raiseError(2);
+  if (Object.keys(slotItem).length) return raiseError(6);
+  sim.running = true; sim.loaded = 0; io.D_DoneCount = 0; io.JobDoneSig = 0; io.R_StopBtn = 0;
+  log(`Start: job of ${q} item${q > 1 ? 's' : ''}`, 'ok');
+  robotLoop().catch(quiet); gantryLoop().catch(quiet);
+}
+function pause() { pulse('B_Pause'); if (!io.R_StopBtn) { io.R_StopBtn = 1; log('Paused (R_StopBtn).'); } }
+function restart() { pulse('B_Restart'); if (io.R_StopBtn) { io.R_StopBtn = 0; log('Restart.'); } }
+function estop() { pulse('B_HMI_EStop'); if (!io.R_EStop) { io.R_EStop = 1; io.R_StopBtn = 1; log('EMERGENCY STOP. Press Initialize to recover.', 'e'); } }
+function errReset() { pulse('B_ErrReset'); if (io.D_ErrCode || io.R_StopErr) { io.D_ErrCode = 0; io.R_StopErr = 0; log('Error reset.'); } }
+function initialize() {
+  pulse('B_Init'); abortAll(); sim.running = false; sim.loaded = 0;
+  if (G.held) { placeAtHome(G.held); G.held = null; }
+  if (R.held) { placeAtHome(R.held); R.held = null; }
+  if (lcItem) { placeAtHome(lcItem); lcItem = null; }
+  Object.keys(reserved).forEach(k => delete reserved[k]);
+  G.inZone = false; R.inZone = false; lcReading = 0;
+  ['R_StopBtn','R_StopErr','R_EStop','R_BarcodeDone','R_Pick','R_Place','SG_PickDone','SG_PlaceDone','P_CylFwdCmd','P_SuctionCmd','S_Suction','S_Cyl_Fwd',
+   'R_RobotLoad','SG_RobotBusy','SG_RobotDone','SG_WeighStable','JobDoneSig'].forEach(k => io[k] = 0);
+  for (let i = 1; i <= 9; i++) io['_Pos' + i] = 0;
+  io.STEP_MOVE = 0; io.STEP_PickPlace = 0; io.STEP_Robot = 0; io.D_DoneCount = 0; io.D_ErrCode = 0; io.D_PickWeight = 0;
+  setTip(PAD_UP); io.S_Cyl_Bwd = 1;
+  log('Initialize: homing robot and gantry.');
+  Promise.all([gantryTo(GANTRY_HOME.x, GANTRY_HOME.y), robotMoveJ(R_HOME)]).then(() => log('Ready.')).catch(quiet);
+  refreshItemsUI(true);
+}
+$('#bStart').onclick = start; $('#bPause').onclick = pause; $('#bRestart').onclick = restart;
+$('#bEStop').onclick = estop; $('#bErrReset').onclick = errReset; $('#bInit').onclick = initialize;
+window.addEventListener('keydown', e => { if (e.key === 'Escape') estop(); });
+$('#speed').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; sim.speed = +b.dataset.s;
+  $('#speed').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+});
+ui.mode.onchange = () => { $('#rowsCfg').hidden = ui.mode.value !== 'rows'; $('#binsCfg').hidden = ui.mode.value === 'rows'; items.forEach(it => it.measured && relabel(it)); buildLegend(); };
+$('#fCyl').onchange = e => { fault.cyl = e.target.checked; };
+$('#fVac').onchange = e => { fault.vac = e.target.checked; };
+$('#clearGrid').onclick = () => {
+  let n = 0; Object.keys(slotItem).forEach(k => { const it = slotItem[k]; delete slotItem[k]; it.measured = false; relabel(it); placeAtHome(it); n++; });
+  log(n ? `Returned ${n} stored item${n > 1 ? 's' : ''} to the infeed.` : 'Grid is already empty.'); refreshItemsUI(true);
+};
+$('#refill').onclick = () => {
+  if (sim.running) { log('Stop the job (Initialize) before refilling.', 'e'); return; }
+  items.forEach(it => { if (it.slot) delete slotItem[it.slot]; it.measured = false; relabel(it); placeAtHome(it); });
+  log('Infeed refilled with all 9 items.'); refreshItemsUI(true);
+};
+$('#randomize').onclick = () => { items.forEach(it => { if (it.loc === 'infeed') it.w = Math.round(40 + Math.random() * 440); }); log('New random weights for items in the infeed.'); refreshItemsUI(true); };
+
+// ================= Panel rendering =================
+const itemsEl = $('#items');
+items.forEach(it => {
+  const d = document.createElement('div'); d.className = 'it';
+  d.innerHTML = `<b>#${it.id}<em></em></b><input type="number" id="w${it.id}" min="1" max="2000" step="1" aria-label="Weight of item ${it.id} in grams">`;
+  const inp = d.querySelector('input'); inp.value = it.w;
+  inp.onchange = () => { const v = Math.max(1, Math.min(2000, +inp.value || 1)); it.w = v; inp.value = v; };
+  it.ui = { st: d.querySelector('em'), inp }; itemsEl.append(d);
+});
+function refreshItemsUI(force) {
+  items.forEach(it => {
+    const st = it.loc === 'slot' ? 'slot ' + it.slot : it.loc === 'loadcell' ? 'on scale' : it.loc;
+    if (it.ui.st.textContent !== st) it.ui.st.textContent = st;
+    const dis = it.loc !== 'infeed'; if (it.ui.inp.disabled !== dis) it.ui.inp.disabled = dis;
+    if (force) it.ui.inp.value = it.w;
+  });
+}
+const grid9 = $('#grid9'), slotEls = {};
+for (let n = 1; n <= 9; n++) { const d = document.createElement('div'); d.className = 'slot'; d.innerHTML = `<span class="n">SLOT ${n}</span><span class="w">—</span>`; grid9.append(d); slotEls[n] = d; }
+function buildLegend() {
+  $('#legend').innerHTML = ui.mode.value === 'rows'
+    ? `<span><i style="background:var(--c1)"></i>Light: 1–3</span><span><i style="background:var(--c2)"></i>Medium: 4–6</span><span><i style="background:var(--c3)"></i>Heavy: 7–9</span>`
+    : `<span><i style="background:${classColor(1)}"></i>Bin 1 lightest</span><span><i style="background:${classColor(9)}"></i>Bin 9 heaviest</span>`;
+}
+buildLegend();
+const slotColor = n => ui.mode.value === 'rows' ? ['', 'var(--c1)', 'var(--c2)', 'var(--c3)'][Math.ceil(n / 3)] : classColor(n);
+function refreshGrid() {
+  for (let n = 1; n <= 9; n++) {
+    const el = slotEls[n], it = slotItem[n] || reserved[n];
+    const txt = slotItem[n] ? `#${it.id} · ${Math.round(it.w)} g` : reserved[n] ? `→ #${it.id}` : '—';
+    if (el.lastChild.textContent !== txt) el.lastChild.textContent = txt;
+    el.classList.toggle('full', !!slotItem[n]); el.classList.toggle('res', !slotItem[n] && !!reserved[n]); el.style.borderLeftColor = slotColor(n);
+  }
+}
+const ioBody = $('#ioBody'), ioCells = {}, ioLast = {};
+IO_DEF.forEach(d => {
+  const tr = document.createElement('tr');
+  if (d.length === 1) { tr.className = 'grp'; tr.innerHTML = `<td colspan="3">${d[0]}</td>`; }
+  else { tr.innerHTML = `<td>${d[0]}${d[2] ? '<span class="new">NEW</span>' : ''}</td><td class="d">${d[1]}</td><td class="v"></td>`; ioCells[d[0]] = { td: tr.lastChild, tr }; }
+  ioBody.append(tr);
+});
+const fmt = (k, v) => WORDS.has(k) ? String(v) : (v ? 'ON' : 'OFF');
+function refreshIO() {
+  for (const k in ioCells) {
+    const v = io[k]; if (ioLast[k] === v) continue;
+    const c = ioCells[k]; c.td.textContent = fmt(k, v); c.td.classList.toggle('on', !WORDS.has(k) && !!v);
+    if (ioLast[k] !== undefined) { c.tr.classList.remove('flash'); void c.tr.offsetWidth; c.tr.classList.add('flash'); setTimeout(() => c.tr.classList.remove('flash'), 400); }
+    ioLast[k] = v;
+  }
+}
+const stateEl = $('#state'), stepsEl = $('#steps'), scaleEl = $('#scaleVal');
+let lastHud = '', lastLc = '', lastHmi = '';
+function refreshHud() {
+  let s = 'Ready', cls = '';
+  if (io.R_EStop) { s = 'E-stop'; cls = 'err'; } else if (io.R_StopErr) { s = 'Error ' + io.D_ErrCode; cls = 'err'; }
+  else if (io.R_StopBtn) { s = 'Paused'; cls = 'pause'; } else if (sim.running) { s = 'Running'; cls = 'run'; } else if (io.JobDoneSig) { s = 'Job done'; cls = 'run'; }
+  if (s + cls !== lastHud) { stateEl.textContent = s; stateEl.className = 'pill ' + cls; lastHud = s + cls; }
+  const st = `STEP_MOVE ${io.STEP_MOVE} · STEP_Robot ${io.STEP_Robot} · Done ${io.D_DoneCount}/${io.D_JobQty || ui.jobQty.value}`;
+  if (stepsEl.textContent !== st) stepsEl.textContent = st;
+  const lc = (lcItem || lcReading ? lcReading : 0).toFixed(1) + ' g';
+  if (lc !== lastLc) { scaleEl.textContent = lc; lastLc = lc; }
+  const hm = `${s}|${io.STEP_MOVE}|${io.D_DoneCount}|${io.D_JobQty}|${io.D_PickWeight}|${io.D_ErrCode}`;
+  if (screenTex && hm !== lastHmi) {
+    lastHmi = hm;
+    redraw(screenTex, (g, w, h) => {
+      g.fillStyle = '#0f1a24'; g.fillRect(0, 0, w, h);
+      g.fillStyle = cls === 'err' ? '#e23b3b' : cls === 'pause' ? '#d79b00' : '#1f8f55'; g.fillRect(0, 0, w, 64);
+      g.fillStyle = '#fff'; g.font = '700 38px "Barlow Condensed", sans-serif'; g.textBaseline = 'middle'; g.fillText('OBJECT SORT · ' + s.toUpperCase(), 18, 33);
+      g.font = '500 32px "JetBrains Mono", monospace'; g.fillStyle = '#cfe3f3';
+      g.fillText(`STEP_MOVE  ${io.STEP_MOVE}`, 22, 116); g.fillText(`DONE       ${io.D_DoneCount} / ${io.D_JobQty}`, 22, 168);
+      g.fillText(`WEIGHT     ${(io.D_PickWeight / 10).toFixed(1)} g`, 22, 220); g.fillText(`ERROR      ${io.D_ErrCode}`, 22, 272);
+      if (io.D_ErrCode) { g.fillStyle = '#ff8a8a'; g.font = '500 24px "Barlow", sans-serif'; g.fillText(ERR[io.D_ErrCode] || '', 22, 330); }
+    });
+  }
+}
+
+// ================= Camera, theme, resize =================
+const toW = (x, y, z) => new THREE.Vector3(x - 600, z + 106, 360 - y);   // CAD -> three
+const VIEWS = {
+  vIso: [toW(-700, -900, 1700), toW(600, 400, 760)],
+  vOp: [toW(-1050, 360, 1350), toW(500, 400, 760)],
+  vTop: [toW(600, 420, 3300), toW(600, 421, 800)],
+  vRobot: [toW(-150, 80, 1200), toW(330, 400, 860)],
+  vGantry: [toW(500, -250, 1150), toW(650, 420, 850)],
+};
+function setView(k) { const [p, t] = VIEWS[k]; camera.position.copy(p); controls.target.copy(t); controls.update(); }
+Object.keys(VIEWS).forEach(k => $('#' + k).onclick = () => setView(k));
+setView('vIso');
+const applyTheme = () => { scene.background = new THREE.Color(css('--scene') || '#dde1df'); };
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+function resize() { const w = view.clientWidth, h = view.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(view); resize();
+
+// ================= Main loop =================
+let last = performance.now(), uiTimer = 0;
+function tick(dt, now) {
+  io.Stop = (io.R_StopBtn || io.R_StopErr || io.R_EStop) ? 1 : 0;
+  if (!io.Stop) { sim.t += dt * sim.speed; stepTasks(); }
+  for (let n = 1; n <= 9; n++) { const on = slotItem[n] ? 1 : 0; io['S_Pos' + n] = on; sensorLeds[n].material.emissive.setHex(on ? 0x22dd55 : 0x000000); }
+  io.D_LightMax = +ui.lightMax.value || 0; io.D_MediumMax = +ui.medMax.value || 0;
+  io.L_GL = io.R_BarcodeDone; io.L_YL = (io.STEP_MOVE !== 0 || io.STEP_Robot !== 0) ? 1 : 0;
+  io.L_RL = io.Stop && (io.R_EStop || io.R_StopErr || Math.floor(now / 500) % 2) ? 1 : 0;
+  for (const k in lampMat) { const L = lampMat[k]; L.m.emissive.setHex(io[k] ? L.c : 0x000000); L.m.opacity = io[k] ? 1 : 0.55; }
+  if (!lcItem && !io.SG_WeighStable) lcReading = 0;
+  controls.update(); renderer.render(scene, camera);
+  if ((uiTimer += dt) > 0.12) { uiTimer = 0; refreshIO(); refreshHud(); refreshGrid(); refreshItemsUI(false); }
+}
+function frame(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; tick(dt, now); requestAnimationFrame(frame); }
+// Test hook: WeightSim.run(seconds) advances the sim without animation frames (e.g. from DevTools).
+window.WeightSim = {
+  io, items, get time() { return sim.t; }, get ready() { return sim.ready; },
+  ikProbe(x, y, z) { const q0 = R.q.slice(); const t = { x, y, z }; const s = ikSolve(t, seedFor(t)); setQ(q0); return { err: +s.err.toFixed(2), q: s.q.map(v => +v.toFixed(3)) }; },
+  async run(sec) { const n = Math.ceil(sec / 0.05); for (let i = 0; i < n; i++) { tick(0.05, performance.now() + i * 50); for (let j = 0; j < 30; j++) await null; } return sim.t; },
+};
+Promise.all([loadModel(), loadMirobot()]).then(() => { sim.ready = true; log('CAD model loaded. Set the job quantity and press Start.'); })
+  .catch(e => { $('#loadTxt').textContent = 'Could not load the CAD model: ' + e.message; console.error(e); });
+requestAnimationFrame(frame);
+})();
+</script>

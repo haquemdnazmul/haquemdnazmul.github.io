@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Md Nazmul Haque - automation and robotics engineer: PLC, HMI/SCADA, robot arms and 3D vision.">
+<title>Nazmul Haque Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow reading column, framed like a machine spec sheet; one wide system diagram as the centerpiece */
+:root{
+  --bg:#eef0f2; --panel:#ffffff; --ink:#18212b; --muted:#5a6673; --line:#cfd5dc;
+  --accent:#d98a00; --accent-ink:#8a5600; --wire:#2f6f9f; --ok:#2e8b57;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --panel:#1a2129; --ink:#e6eaee; --muted:#98a4b0; --line:#2c3640;
+  --accent:#f0a020; --accent-ink:#f5b84a; --wire:#6aa8d8; --ok:#5cc28a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --panel:#1a2129; --ink:#e6eaee; --muted:#98a4b0; --line:#2c3640;
+  --accent:#f0a020; --accent-ink:#f5b84a; --wire:#6aa8d8; --ok:#5cc28a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+.wrap{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.1;text-wrap:balance;margin:0}
+h2{font-size:2rem;letter-spacing:.01em}
+h3{font-size:1.35rem}
+p{margin:0;max-width:65ch}
+a{color:var(--wire)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.label{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:20px}
+
+/* hero */
+header.hero{padding-top:56px;display:flex;flex-direction:column;gap:18px;border-bottom:1px solid var(--line);padding-bottom:40px}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.lamp{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.hero h1{font-size:clamp(2.8rem,9vw,4.6rem);font-weight:700;letter-spacing:-.01em}
+.hero .role{font-family:var(--display);font-size:clamp(1.3rem,4vw,1.7rem);color:var(--accent-ink);font-weight:500}
+.hero p{color:var(--muted);font-size:1.05rem}
+.links{display:flex;flex-wrap:wrap;gap:12px}
+.btn{font-family:var(--mono);font-size:.85rem;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:8px 14px;border-radius:4px}
+.btn:hover{border-color:var(--accent)}
+
+/* skills */
+.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.skill{background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.skill ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.skill li{font-family:var(--mono);font-size:.8rem;padding:2px 8px;border:1px solid var(--line);border-radius:3px}
+
+/* project */
+.project-head{display:flex;flex-direction:column;gap:10px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:500}
+.diagram{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+.diagram svg{display:block;min-width:720px;width:100%;height:auto}
+.diagram svg text{font-family:var(--mono);fill:var(--ink)}
+.diagram .sub{fill:var(--muted)}
+.diagram .box{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.diagram .box.hot{stroke:var(--accent);stroke-width:2}
+.diagram .wire{stroke:var(--wire);stroke-width:2;fill:none}
+.diagram .wire.dash{stroke-dasharray:5 4}
+.diagram .proto{fill:var(--wire);font-size:11px}
+.caption{font-size:.85rem;color:var(--muted)}
+
+.subsystems{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.sub-card{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:2px solid var(--ink);min-width:0}
+.sub-card p{font-size:.95rem}
+.sub-card .stack{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+
+.highlights{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.highlights li{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:8px 24px;padding:14px 0;border-bottom:1px solid var(--line)}
+.highlights strong{font-family:var(--display);font-size:1.15rem;font-weight:600}
+@media (max-width:560px){.highlights li{grid-template-columns:1fr}}
+
+.photo{margin:0;display:flex;flex-direction:column;gap:8px}
+.photo img{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);display:block}
+.sim-frame{position:relative;width:100%;aspect-ratio:16/10;max-width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.sim-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.sim-load{position:absolute;inset:0;margin:auto;width:max-content;height:max-content;font-family:var(--mono);font-size:.95rem;padding:14px 22px;border-radius:4px;border:2px solid var(--accent);background:var(--bg);color:var(--ink);cursor:pointer}
+.sim-load:hover{background:var(--accent);color:#18212b}
+.sim-load:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media (max-width:560px){.sim-frame{aspect-ratio:3/4}}
+.elev{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:620px){.elev{grid-template-columns:1fr}}
+.shaft{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+.shaft svg{display:block;width:100%;max-width:220px;height:auto;margin:0 auto}
+.shaft svg text{font-family:var(--mono);fill:var(--ink)}
+.shaft .fl{stroke:var(--line);stroke-width:1}
+.shaft .rail{stroke:var(--muted);stroke-width:2}
+.shaft .car{fill:var(--panel);stroke:var(--accent);stroke-width:2}
+.shaft .stop{fill:#c0392b}
+.shaft .pass{fill:#2f6f9f}
+.shaft .btnlabel{fill:#ffffff;font-size:12px;font-weight:600}
+.flow{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--mono);font-size:.8rem}
+.flow li{padding:4px 10px;border:1px solid var(--line);border-radius:3px;background:var(--panel)}
+.flow li.arrow{border:0;background:none;padding:0;color:var(--muted)}
+.elev-body{display:flex;flex-direction:column;gap:18px;min-width:0}
+.result{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.8rem}
+.spec{width:100%;border-collapse:collapse;font-size:.9rem}
+.spec-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.spec th,.spec td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.spec th{font-family:var(--mono);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;white-space:nowrap}
+.spec tr:last-child td{border-bottom:0}
+.spec td:first-child{font-weight:500;white-space:nowrap}
+
+footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="tag"><span class="lamp" aria-hidden="true"></span>Open to automation &amp; robotics roles</span>
+  <h1>Md Nazmul Haque</h1>
+  <div class="role">Automation &amp; Robotics Engineer</div>
+  <p>I build industrial automation cells end to end: PLC ladder logic and motion control, HMI and SCADA screens, and the Python vision and robot code that ties them together. My projects include a cell that sorts parts by weight using a PLC-driven gantry, a 6-axis robot arm and a 3D depth camera, a conveyor line that sorts parts by length, and a 6-floor elevator controlled by a PLC and an HMI.</p>
+  <div class="links">
+    <a class="btn" href="https://github.com/haquemdnazmul" target="_blank" rel="noopener">GitHub · haquemdnazmul</a>
+    <a class="btn" href="#project">Weight sorting cell ↓</a>
+    <a class="btn" href="#sim3d">3D simulator ↓</a>
+    <a class="btn" href="#studio">Motion-X Studio ↓</a>
+    <a class="btn" href="#conveyor">Conveyor sorter ↓</a>
+    <a class="btn" href="#elevator">6-floor elevator ↓</a>
+  </div>
+</header>
+
+<section aria-labelledby="skills-h">
+  <span class="label">Skills</span>
+  <h2 id="skills-h">What I work with</h2>
+  <div class="skills">
+    <div class="skill"><h3>PLC &amp; motion</h3><ul><li>LS XGB PLC</li><li>XG5000 ladder</li><li>2-axis positioning</li><li>Load-cell module</li><li>AC motor control</li><li>Pneumatics</li><li>Sensors</li></ul></div>
+    <div class="skill"><h3>HMI &amp; SCADA</h3><ul><li>TOP Design Studio</li><li>CIMON SCADA</li><li>XGT FEnet</li><li>XGT Cnet / RS-485</li><li>Alarm design</li></ul></div>
+    <div class="skill"><h3>Robotics &amp; vision</h3><ul><li>WLKATA Mirobot</li><li>G-code over serial</li><li>Intel RealSense D455</li><li>OpenCV</li><li>Hand-eye calibration</li></ul></div>
+    <div class="skill"><h3>Software</h3><ul><li>Python</li><li>Tkinter</li><li>NumPy</li><li>Three.js</li><li>PyInstaller</li></ul></div>
+  </div>
+</section>
+
+<section id="project" aria-labelledby="proj-h">
+  <div class="project-head">
+    <span class="label">Featured project</span>
+    <h2 id="proj-h">Automated Weight Sorting Cell</h2>
+    <div class="meta"><span><b>Team</b> Group 1</span><span><b>When</b> Nov 2026</span><span><b>Controller</b> LS XGB XBM-DN32H2</span><span><b>Output</b> 9 slots, ordered by weight</span></div>
+  </div>
+  <p>A working sorting cell that picks blocks, weighs each one on a load cell and places it into one of nine positions in weight order. A 2-axis servo gantry with a pneumatic gripper does the sorting under PLC control. On top of that, a 3D camera finds blocks on the table and a 6-axis robot arm feeds them to the load cell, waiting for the PLC's weight reading before it starts the next pick.</p>
+
+  <figure class="diagram" style="margin:0">
+    <svg viewBox="0 0 760 330" role="img" aria-label="System diagram: the D455 camera feeds a Python vision program, which drives the Mirobot arm over USB serial. The arm places blocks on the load cell. The XGB PLC reads the load cell, drives the 2-axis gantry into 9 sorted slots, and reports the weight back to Python over RS-485. HMI and SCADA connect to the PLC over Ethernet.">
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--wire)"/></marker></defs>
+      <!-- row 1 -->
+      <rect class="box" x="10" y="20" width="160" height="62" rx="4"/><text x="24" y="46" font-size="14">RealSense D455</text><text class="sub" x="24" y="66" font-size="11">depth + colour camera</text>
+      <rect class="box hot" x="290" y="20" width="180" height="62" rx="4"/><text x="304" y="46" font-size="14">Python vision app</text><text class="sub" x="304" y="66" font-size="11">OpenCV · block pose</text>
+      <rect class="box" x="590" y="20" width="160" height="62" rx="4"/><text x="604" y="46" font-size="14">WLKATA Mirobot</text><text class="sub" x="604" y="66" font-size="11">6-axis arm</text>
+      <path class="wire" d="M170,51 H286" marker-end="url(#arr)"/><text class="proto" x="190" y="43">USB</text>
+      <path class="wire" d="M470,51 H586" marker-end="url(#arr)"/><text class="proto" x="482" y="43">G-code / serial</text>
+      <!-- row 2 -->
+      <rect class="box hot" x="290" y="150" width="180" height="62" rx="4"/><text x="304" y="176" font-size="14">LS XGB PLC</text><text class="sub" x="304" y="196" font-size="11">ladder · step sequencer</text>
+      <rect class="box" x="590" y="150" width="160" height="62" rx="4"/><text x="604" y="176" font-size="14">Load cell</text><text class="sub" x="604" y="196" font-size="11">weight → D00400</text>
+      <path class="wire" d="M670,82 V146" marker-end="url(#arr)"/><text class="proto" x="678" y="120">places block</text>
+      <path class="wire" d="M590,181 H474" marker-end="url(#arr)"/><text class="proto" x="500" y="173">analog in</text>
+      <path class="wire dash" d="M380,150 V86" marker-end="url(#arr)"/><text class="proto" x="388" y="114">RS-485 · XGT Cnet</text>
+      <rect class="box" x="10" y="150" width="160" height="62" rx="4"/><text x="24" y="176" font-size="14">HMI + SCADA</text><text class="sub" x="24" y="196" font-size="11">TOP · CIMON</text>
+      <path class="wire" d="M174,181 H286" marker-start="url(#arr)" marker-end="url(#arr)"/><text class="proto" x="186" y="173">Ethernet · FEnet</text>
+      <!-- row 3 -->
+      <rect class="box" x="290" y="260" width="180" height="56" rx="4"/><text x="304" y="284" font-size="14">2-axis gantry</text><text class="sub" x="304" y="302" font-size="11">servo + pneumatic gripper</text>
+      <path class="wire" d="M380,212 V256" marker-end="url(#arr)"/>
+      <g aria-hidden="true">
+        <text class="sub" x="590" y="272" font-size="11">sorted output, light → heavy</text>
+        <rect class="box" x="590" y="282" width="14" height="22"/><rect class="box" x="608" y="282" width="14" height="22"/><rect class="box" x="626" y="282" width="14" height="22"/><rect class="box" x="644" y="282" width="14" height="22"/><rect class="box" x="662" y="282" width="14" height="22"/><rect class="box" x="680" y="282" width="14" height="22"/><rect class="box" x="698" y="282" width="14" height="22"/><rect class="box" x="716" y="282" width="14" height="22"/><rect class="box hot" x="734" y="282" width="14" height="22"/>
+      </g>
+      <path class="wire" d="M470,293 H586" marker-end="url(#arr)"/>
+    </svg>
+  </figure>
+  <p class="caption">How the parts talk to each other. The dashed link is the weight reading the PLC sends back to the Python program.</p>
+
+  <figure class="photo">
+    <img src="img/weight-sorter.jpg" width="1400" height="1395" loading="lazy" alt="The real weight sorting machine: an aluminium frame with a ball-screw gantry and a suction cup above blue test blocks, the load cell plate in the middle, and a TOP touchscreen HMI with start, stop and emergency stop buttons at the front.">
+    <figcaption class="caption">The real machine: the 2-axis gantry with its suction cup, blue test blocks, the load cell (round plate, centre) and the TOP HMI panel with start, stop and emergency stop.</figcaption>
+  </figure>
+
+  <div class="subsystems">
+    <div class="sub-card"><h3>PLC sorting logic</h3><p>Ladder program in six parts: basic operation, coordinate setup, auto run, manual jog, errors and lamps. Step registers drive homing, pick and place, and sorting. A 9-slot weight table is reordered by swapping entries.</p><span class="stack">XG5000 · XGB · positioning · load-cell module</span></div>
+    <div class="sub-card"><h3>3D vision and robot</h3><p>Finds blue blocks by colour and depth. Fits the table plane, then gets each block's centre, size and rotation. Sends the Mirobot raw G-code over USB serial, with no vendor library.</p><span class="stack">Python 3.12 · pyrealsense2 · OpenCV · pyserial</span></div>
+    <div class="sub-card"><h3>Operator app with face login</h3><p>A desktop app with face-recognition sign-in, Admin and Operator roles, English and Korean screens, calibration tools, a run log and a live 3D view of the robot.</p><span class="stack">Tkinter · OpenCV YuNet + SFace</span></div>
+    <div class="sub-card"><h3>HMI, SCADA and simulators</h3><p>An HMI panel for the sorter, a CIMON SCADA tag set covering two production lines, and browser-based 3D simulators of the machine packaged as Windows apps.</p><span class="stack">TOP Design Studio · CIMON 3.91 · Three.js · PyInstaller</span></div>
+  </div>
+</section>
+
+<section id="sim3d" aria-labelledby="sim-h">
+  <span class="label">Try it in your browser</span>
+  <h2 id="sim-h">3D machine simulator</h2>
+  <p>A 3D model of the sorting machine and the Mirobot arm, built with Three.js from the machine's CAD mesh and the official Mirobot model. Drag to turn the view and scroll to zoom. It runs a full sorting cycle on screen, so anyone can see how the machine works without the hardware. The first load takes a few seconds because the model is about 15 MB.</p>
+  <div class="sim-frame">
+    <iframe id="sim-iframe" src="about:blank" data-src="simulator/index.html" title="3D simulator of the weight sorting machine" loading="lazy"></iframe>
+    <button type="button" id="sim-load" class="sim-load">Load the 3D simulator</button>
+  </div>
+  <div class="links"><a class="btn" href="simulator/index.html" target="_blank" rel="noopener">Open full screen ↗</a></div>
+</section>
+
+<section id="studio" aria-labelledby="studio-h">
+  <span class="label">Software</span>
+  <h2 id="studio-h">Motion-X Studio</h2>
+  <p>The operator app we wrote in Python to run the vision, weighing and robot cell from one window. It links the D455 camera, the PLC load cell (over RS-485) and the WLKATA Mirobot, and shows a live 3D view of the robot.</p>
+  <div class="spec-wrap">
+    <table class="spec">
+      <thead><tr><th>Screen</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>Face login</td><td>Webcam sign-in with OpenCV face recognition. A person is logged in after 5 matching frames, and the app locks itself after 10 minutes without use.</td></tr>
+        <tr><td>Dashboard</td><td>Live camera view, 3D robot simulator, machine state, load cell weight, session counts and the START / STOP / AUTO controls.</td></tr>
+        <tr><td>Learning</td><td>Pick height learned per stack layer. A good pick moves the next one 1 mm higher, a miss 3 mm lower, within set limits.</td></tr>
+        <tr><td>Calibration</td><td>One-click automatic camera-to-robot calibration. The result is rejected if the error is over 15 mm. Admin only.</td></tr>
+        <tr><td>Users</td><td>Add, re-scan or delete face IDs with Admin or Operator roles. The face model retrains itself after every change.</td></tr>
+        <tr><td>Log</td><td>Machine log and access log.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="subsystems">
+    <div class="sub-card"><h3>Live 3D robot</h3><p>With the real robot, the 3D arm follows the joint angles read from every status reply. In dry-run mode every robot command is turned into joint angles and animated, so a whole run can be checked without moving the robot.</p><span class="stack">Python · NumPy · robot kinematics</span></div>
+    <div class="sub-card"><h3>Pick height per block</h3><p>Each block is picked at its own height: 12.0 + 1.05 × the height the camera measures. The rule was fitted to heights taught in WLKATA Studio and checked on the real robot.</p><span class="stack">Depth camera · fitted model</span></div>
+    <div class="sub-card"><h3>English and Korean</h3><p>One button switches the whole app between English and Korean, and the choice is remembered. A status bar shows lights for the robot, camera, PLC and face model.</p><span class="stack">Tkinter · i18n</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="hl-h">
+  <span class="label">Engineering details</span>
+  <h2 id="hl-h">Problems I solved</h2>
+  <ul class="highlights">
+    <li><strong>Camera-to-robot calibration</strong><span>The arm visits 36 points at three heights while the camera tracks a marker on the tool. OpenCV's solvePnPRansac then works out exactly where the camera is relative to the robot, with no manual measuring.</span></li>
+    <li><strong>Weight as feedback</strong><span>If no weight appears after a place, the block was missed, so the next pick goes 3 mm lower. To find a block by touch, the arm lowers in 1 mm steps while watching the load cell.</span></li>
+    <li><strong>Talking to the PLC directly</strong><span>I wrote my own client for LS's XGT Cnet protocol over RS-485, so Python can read the weight register in real time. A SCADA tag generator builds 182 tags with alarms for two PLCs over FEnet.</span></li>
+    <li><strong>Reliable on the shop floor</strong><span>COM ports are found automatically by USB ID, and the serial link reopens itself if the RS-485 adapter drops out.</span></li>
+    <li><strong>Easy to demo</strong><span>The 3D simulators are bundled into Windows .exe files that run with no internet connection, so anyone can try the machine without the hardware.</span></li>
+  </ul>
+</section>
+
+<section aria-labelledby="spec-h">
+  <span class="label">Hardware list</span>
+  <h2 id="spec-h">Hardware used</h2>
+  <div class="spec-wrap">
+    <table class="spec">
+      <thead><tr><th>Component</th><th>Model</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>PLC</td><td>LS Electric XGB XBM-DN32H2</td><td>Sequencing, motion, weighing</td></tr>
+        <tr><td>Robot arm</td><td>WLKATA Mirobot (6-axis)</td><td>Picks blocks and places them on the load cell</td></tr>
+        <tr><td>3D camera</td><td>Intel RealSense D455</td><td>Finds blocks and their position</td></tr>
+        <tr><td>Gantry</td><td>2-axis servo, pneumatic gripper</td><td>Moves blocks into the 9 sorted slots</td></tr>
+        <tr><td>Weighing</td><td>Load cell + PLC input module</td><td>Weight with zero, span and 2-point calibration</td></tr>
+        <tr><td>Links</td><td>USB serial · RS-485 · Ethernet</td><td>Robot · PLC to PC · PLC to HMI and SCADA</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="conveyor" aria-labelledby="conv-h">
+  <div class="project-head">
+    <span class="label">Project</span>
+    <h2 id="conv-h">Conveyor Sorter for Three Part Lengths</h2>
+    <div class="meta"><span><b>Team</b> Group 1</span><span><b>When</b> Aug 25 – Oct 2, 2026</span><span><b>Controller</b> LS XGB · XG5000</span><span><b>Parts</b> 35 / 55 / 85 mm blocks</span></div>
+  </div>
+  <p>Two conveyors carry 3D-printed blocks past a row of three sensors that measure each block's length. Pneumatic cylinders then push each block into the right bin for small, medium or large. The line runs from a touchscreen HMI. Optionally, a camera and robot arm can load the blocks onto the belt.</p>
+  <figure class="diagram" style="margin:0">
+    <svg viewBox="0 0 760 200" role="img" aria-label="Line layout: blocks enter conveyor 1, pass three length sensors, transfer to conveyor 2, and are pushed by pneumatic cylinders into small, medium and large bins.">
+      <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--wire)"/></marker></defs>
+      <rect class="box" x="10" y="80" width="300" height="36" rx="18"/><text class="sub" x="24" y="138" font-size="11">conveyor 1</text>
+      <rect class="box" x="330" y="80" width="420" height="36" rx="18"/><text class="sub" x="344" y="138" font-size="11">conveyor 2</text>
+      <rect x="40" y="88" width="34" height="20" rx="2" style="fill:var(--accent)"/>
+      <path class="wire" d="M84,98 H130" marker-end="url(#arr2)"/>
+      <g><circle cx="170" cy="62" r="7" class="box hot"/><circle cx="200" cy="62" r="7" class="box hot"/><circle cx="230" cy="62" r="7" class="box hot"/><line x1="170" y1="69" x2="170" y2="80" class="wire dash"/><line x1="200" y1="69" x2="200" y2="80" class="wire dash"/><line x1="230" y1="69" x2="230" y2="80" class="wire dash"/><text x="150" y="40" font-size="12">length sensors ×3</text></g>
+      <text class="proto" x="300" y="70">step transfer</text>
+      <g><rect class="box" x="420" y="40" width="26" height="30" rx="2"/><rect class="box" x="540" y="40" width="26" height="30" rx="2"/><rect class="box" x="660" y="40" width="26" height="30" rx="2"/><text x="400" y="30" font-size="12">pneumatic pushers</text>
+        <path class="wire" d="M433,72 V150" marker-end="url(#arr2)"/><path class="wire" d="M553,72 V150" marker-end="url(#arr2)"/><path class="wire" d="M673,72 V150" marker-end="url(#arr2)"/>
+        <rect class="box" x="408" y="154" width="50" height="34" rx="3"/><text x="433" y="176" font-size="12" text-anchor="middle">S</text>
+        <rect class="box" x="528" y="154" width="50" height="34" rx="3"/><text x="553" y="176" font-size="12" text-anchor="middle">M</text>
+        <rect class="box" x="648" y="154" width="50" height="34" rx="3"/><text x="673" y="176" font-size="12" text-anchor="middle">L</text></g>
+    </svg>
+  </figure>
+  <div class="subsystems">
+    <div class="sub-card"><h3>Tracking parts without extra hardware</h3><p>When a block is measured, its expected arrival time at the bin is queued (FIFO), based on a 32-bit running time count. Several blocks can be on the belt at once, and no tracking hardware was bought. A block is pushed only when the arrival sensor and the queue agree.</p><span class="stack">FIFO queue · 32-bit timer · zone handoff</span></div>
+    <div class="sub-card"><h3>Fixes from the test run</h3><p>The sensor reading changed while a block was leaving the sensors, so it went to the wrong bin. The fix holds the size result until the block has fully passed. The arrival sensor flickered, so it now has an on-delay filter.</p><span class="stack">Latch · on-delay filter · edge detection</span></div>
+    <div class="sub-card"><h3>Safe stop and restart</h3><p>A normal stop runs the belt until it is empty. An emergency stop cuts all outputs at once. To restart, the line steps from Reset (clear data, return cylinders) to Safe to Idle, so nothing moves suddenly.</p><span class="stack">Drain mode · E-stop · interlocks</span></div>
+    <div class="sub-card"><h3>Error system</h3><p>Alarms are bit-mapped by zone and split into guide messages, light alarms (the line waits) and heavy alarms (the line stops). A broken upstream sensor is found from an empty handoff buffer, not from an extra sensor.</p><span class="stack">Bit-mapped alarms · HMI guidance</span></div>
+  </div>
+  <p class="caption">Delivered with a wiring and pneumatic circuit diagram, flowchart, parts list, I/O list, error list, parameter list and a user and maintenance manual.</p>
+</section>
+
+<section id="elevator" aria-labelledby="elev-h">
+  <div class="project-head">
+    <span class="label">Project</span>
+    <h2 id="elev-h">6-Floor Elevator with AC Motor and Pneumatics</h2>
+    <div class="meta"><span><b>Team</b> Group 2</span><span><b>When</b> Sep – Oct 2026</span><span><b>Controller</b> LS XGB · XG5000</span><span><b>Result</b> passed acceptance test</span></div>
+  </div>
+  <div class="elev">
+    <figure class="shaft" style="margin:0">
+      <svg viewBox="0 0 200 300" role="img" aria-label="HMI floor buttons: floors 5 and 2 are red because the car will stop there; the other floors are blue. The car is at floor 3, moving up.">
+        <line class="rail" x1="20" y1="10" x2="20" y2="290"/><line class="rail" x1="80" y1="10" x2="80" y2="290"/>
+        <line class="fl" x1="20" y1="56" x2="80" y2="56"/><line class="fl" x1="20" y1="103" x2="80" y2="103"/><line class="fl" x1="20" y1="150" x2="80" y2="150"/><line class="fl" x1="20" y1="197" x2="80" y2="197"/><line class="fl" x1="20" y1="244" x2="80" y2="244"/>
+        <rect class="car" x="26" y="158" width="48" height="32" rx="2"/><text x="50" y="179" font-size="13" text-anchor="middle">▲ 3</text>
+        <rect class="pass" x="110" y="16" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="36" text-anchor="middle">6</text>
+        <rect class="stop" x="110" y="63" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="83" text-anchor="middle">5</text>
+        <rect class="pass" x="110" y="110" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="130" text-anchor="middle">4</text>
+        <rect class="pass" x="110" y="157" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="177" text-anchor="middle">3</text>
+        <rect class="stop" x="110" y="204" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="224" text-anchor="middle">2</text>
+        <rect class="pass" x="110" y="251" width="34" height="30" rx="3"/><text class="btnlabel" x="127" y="271" text-anchor="middle">1</text>
+        <text x="152" y="83" font-size="10" style="fill:var(--muted)">stop</text><text x="152" y="224" font-size="10" style="fill:var(--muted)">stop</text>
+      </svg>
+      <figcaption class="caption" style="margin-top:8px">HMI floor buttons: red means the car will stop there, blue means it won't.</figcaption>
+    </figure>
+    <div class="elev-body">
+      <p>A working 6-floor elevator model. An AC motor with a speed controller moves the car, a pneumatic cylinder acts as the door, and a sensor on every floor reads a flag on the car. Each floor has hall call buttons (Up only at floor 1, Down only at floor 6). Inside the car, the floor buttons, the direction arrows and the door open/close buttons are on a touchscreen HMI.</p>
+      <ol class="flow" aria-label="Control sequence">
+        <li>Read calls</li><li class="arrow" aria-hidden="true">→</li><li>Find current floor</li><li class="arrow" aria-hidden="true">→</li><li>Pick target floor</li><li class="arrow" aria-hidden="true">→</li><li>Up or down</li><li class="arrow" aria-hidden="true">→</li><li>Run motor</li><li class="arrow" aria-hidden="true">→</li><li>Stop, open door</li>
+      </ol>
+      <div class="subsystems">
+        <div class="sub-card"><h3>PLC program</h3><p>Split into six programs, one per job: switch input, floor sensing, direction, floor request, arrival and motor drive. Sensor states become position values in D00000, and the target goes in D00001. Comparing the two decides whether the car goes up or down. Timers handle the door after the car arrives.</p><span class="stack">XG5000 ladder · counters · timers</span></div>
+        <div class="sub-card"><h3>Safe elevator behaviour</h3><p>The car stops only at floors called in its direction of travel and ignores calls for floors it has already passed. The door stays shut while the car is moving. An emergency stop halts everything, and the car runs again after the stop is released.</p><span class="stack">Call priority · door interlock · E-stop</span></div>
+        <div class="sub-card"><h3>HMI and documentation</h3><p>The operator screen was built in TOP Design Studio, with a car status view, direction arrows, floor buttons and door controls. The team also wrote a user manual, a control flowchart, a parts list and a test report.</p><span class="stack">TOP Design Studio · user manual · test report</span></div>
+      </div>
+      <p><span class="result"><span class="lamp" aria-hidden="true"></span>Passed all 9 requirements and 9 of the 10 functional tests.</span> The one marginal result was speed control: the motor speed setting is safe up to level 3 (limit 3.5). From level 4, the car's inertia carries it past the floor, so that range was written into the test report.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>Md Nazmul Haque · 2026</span>
+  <a href="https://github.com/haquemdnazmul" target="_blank" rel="noopener">github.com/haquemdnazmul</a>
+</footer>
+
+</div>
+
+<script>
+document.getElementById('sim-load').addEventListener('click', function () {
+  var f = document.getElementById('sim-iframe');
+  f.src = f.getAttribute('data-src');
+  this.hidden = true;
+});
+</script>
+</body>
+</html>
