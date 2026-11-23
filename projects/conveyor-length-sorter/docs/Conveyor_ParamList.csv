@@ -1,0 +1,399 @@
+﻿변수,타입,디바이스,사용 유무,HMI,설명문
+ULD1_NUM,BIT/WORD,C0310,1,0,내부 연산용 가상 변수 (ULD1_NUM)
+ULD2_NUM,BIT/WORD,C0320,1,0,내부 연산용 가상 변수 (ULD2_NUM)
+ULD3_NUM,BIT/WORD,C0330,1,0,내부 연산용 가상 변수 (ULD3_NUM)
+Past_00_IN,WORD,D00000,1,0,물리 입력 채널 0 스캔 백업 데이터 레지스터 (과거값 저장용)
+Past_01_IN,WORD,D00004,1,0,물리 입력 채널 1 스캔 백업 데이터 레지스터 (과거값 저장용)
+Save_IN_Temp0,WORD,D00010,1,0,입력 스캔 백업 임시연산 레지스터 0
+Save_IN_Temp1,WORD,D00011,1,0,입력 스캔 백업 임시연산 레지스터 1
+FLAGS_GUIDE,WORD,D00020,1,0,설비 가동 전 기동 조건 및 준비 사항 미흡 항목 수용 워드 레지스터
+GUIDE_UTIL_NOT_RDY,BIT,D00020.0,1,0,설비 기동 조건 가이드 - 공급 유틸리티(전원 및 공압) 공급 상태 미완료 감지 가이드 비트
+GUIDE_MOTOR_NOT_RDY,BIT,D00020.1,1,0,설비 기동 조건 가이드 - 메인 구동 모터 드라이버 통신 및 준비 상태 미완료 감지 가이드 비트
+GUIDE_DOOR_OPEN,BIT,D00020.2,1,0,설비 기동 조건 가이드 - 설비 안전 도어(Door Interface) 개방 상태 감지 가이드 비트
+GUIDE_BOX_MISSING,BIT,D00020.3,1,0,설비 기동 조건 가이드 - 배출부 수거박스 미장착 감지 가이드 비트
+GUIDE_CYL_NOT_RET,BIT,D00020.4,1,0,설비 기동 조건 가이드 - 모든 액추에이터 실린더 원점(후퇴) 미복귀 가이드 비트
+GUIDE_SEQ_NOT_CLR,BIT,D00020.5,1,0,설비 기동 조건 가이드 - 유닛 시퀀스 초기화 상태 미복귀 가이드 비트
+GUIDE_CV_SEN_NOT_OFF,BIT,D00020.6,1,0,설비 기동 조건 가이드 - 컨베이어 상 자재 미수거 잔류 감지 가이드 비트
+GUIDE_FIFO_NOT_CLR,BIT,D00020.7,1,0,설비 기동 조건 가이드 - 진입 대기 큐(FIFO Queue) 잔류 데이터 존재 가이드 비트
+GUIDE_TOSS_NOT_CLR,BIT,D00020.8,1,0,설비 기동 조건 가이드 - 인계 버퍼(TOSS Buffer) 잔류 데이터 존재 가이드 비트
+GUIDE_RESERVED_B9,BIT,D00020.9,0,0,설비 기동 가이드 예비 비트 9
+GUIDE_RESERVED_BA,BIT,D00020.A,0,0,설비 기동 가이드 예비 비트 A
+GUIDE_RESERVED_BB,BIT,D00020.B,0,0,설비 기동 가이드 예비 비트 B
+GUIDE_RESERVED_BC,BIT,D00020.C,0,0,설비 기동 가이드 예비 비트 C
+GUIDE_RESERVED_BD,BIT,D00020.D,0,0,설비 기동 가이드 예비 비트 D
+GUIDE_RESERVED_BE,BIT,D00020.E,0,0,설비 기동 가이드 예비 비트 E
+GUIDE_RESERVED_BF,BIT,D00020.F,0,0,설비 기동 가이드 예비 비트 F
+FLAGS_ALM_SYS,WORD,D00021,1,0,시스템 전체 공통 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_SYS_RUNTIME_OVER,BIT,D00021.0,1,0,설비 연속 가동 허용한계 시간 초과 감지 경알람 비트 (교대 가동 관리)
+WARN_SYS_TACT_DELAY,BIT,D00021.1,1,0,설비 택타임(Tact Time) 기준 지연 감지 경알람 비트 (기구 마모/노후 감시)
+WARN_SYS_LUBRICANT_LOW,BIT,D00021.2,1,0,구동기어 기구부 윤활유 레벨 기준치 미만 저하 감지 경알람 비트 (Oil Low)
+WARN_SYS_AIR_DROP,BIT,D00021.3,1,0,공급 에어 압력 기준치 미만 강하 감지 경알람 비트 (Air Leak)
+WARN_SYS_RESERVED_B4,BIT,D00021.4,0,0,시스템 공통 경알람 예비 비트 4
+WARN_SYS_RESERVED_B5,BIT,D00021.5,0,0,시스템 공통 경알람 예비 비트 5
+ERR_SYS_RESERVED_B6,BIT,D00021.6,0,0,시스템 공통 중알람 예비 비트 6
+ERR_SYS_RESERVED_B7,BIT,D00021.7,0,0,시스템 공통 중알람 예비 비트 7
+ERR_SYS_RESERVED_B8,BIT,D00021.8,0,0,시스템 공통 중알람 예비 비트 8
+ERR_SYS_RESERVED_B9,BIT,D00021.9,0,0,시스템 공통 중알람 예비 비트 9
+ERR_SYS_RESERVED_BA,BIT,D00021.A,0,0,시스템 공통 중알람 예비 비트 A
+ERR_SYS_RESERVED_BB,BIT,D00021.B,0,0,시스템 공통 중알람 예비 비트 B
+ERR_SYS_RESERVED_BC,BIT,D00021.C,0,0,시스템 공통 중알람 예비 비트 C
+ERR_SYS_RESERVED_BD,BIT,D00021.D,0,0,시스템 공통 중알람 예비 비트 D
+ERR_SYS_RESERVED_BE,BIT,D00021.E,0,0,시스템 공통 중알람 예비 비트 E
+ERR_SYS_RESERVED_BF,BIT,D00021.F,0,0,시스템 공통 중알람 예비 비트 F
+FLAGS_ALM_INSP,WORD,D00022,1,0,측정부 종합 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_TARGET_QTY_REACH_INSP,BIT,D00022.0,1,0,측정부 박스 목표 가동 수량 도달(만재 상태) 경알람 비트
+WARN_TARGET_QTY_OVER_INSP,BIT,D00022.1,1,0,측정부 박스 목표 가동 수량 초과 경알람 비트
+WARN_NO_OUTLET_BOX_INSP,BIT,D00022.2,1,0,측정부 가동 중 배출구 박스 이탈(수거 상실) 경알람 비트
+WARN_RESERVED_B3_INSP,BIT,D00022.3,1,0,측정부 예비 경알람 비트 3
+WARN_RESERVED_B4_INSP,BIT,D00022.4,1,0,측정부 예비 경알람 비트 4
+WARN_RESERVED_B5_INSP,BIT,D00022.5,1,0,측정부 예비 경알람 비트 5
+ERR_Z_AXIS_SENSOR_DUAL_INSP,BIT,D00022.6,1,0,측정부 Z축 스토퍼실린더 이상 (상/하한 센서 동시 ON) 중알람 비트
+ERR_Y_AXIS_SENSOR_DUAL_INSP,BIT,D00022.7,1,0,측정부 예비 Y축 실린더 센서 이상 중알람 비트 7
+ERR_CYCLE_TIMEOUT_INSP,BIT,D00022.8,1,0,측정부 기구 동작 제한시간 초과(타임아웃) 중알람 비트
+ERR_ARRIVE_TIMEOUT_INSP,BIT,D00022.9,1,0,측정부 자재 도착 지연 시간 초과(FIFO 대기시간 초과) 중알람 비트
+ERR_DIMENSION_NG_INSP,BIT,D00022.A,1,0,측정부 센서 조합 오류(치수판정 불량) 중알람 비트
+ERR_UNEXPECTED_ENTRY_INSP,BIT,D00022.B,1,0,측정부 시퀀스 가동 중 비정상 자재 진입 중알람 비트
+ERR_TRACKING_MISMATCH_INSP,BIT,D00022.C,1,0,측정부 트래킹 데이터 불일치(추적 오동작) 중알람 비트
+ERR_RESERVED_B13_INSP,BIT,D00022.D,1,0,측정부 예비 중알람 비트 13
+ERR_RESERVED_B14_INSP,BIT,D00022.E,1,0,측정부 예비 중알람 비트 14
+ERR_RESERVED_B15_INSP,BIT,D00022.F,1,0,측정부 예비 중알람 비트 15
+FLAGS_ALM_REJ1,WORD,D00023,1,0,배출부1 종합 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_TARGET_QTY_REACH_REJ1,BIT,D00023.0,1,0,배출부1 박스 목표 가동 수량 도달(만재 상태) 경알람 비트
+WARN_TARGET_QTY_OVER_REJ1,BIT,D00023.1,1,0,배출부1 박스 목표 가동 수량 초과 경알람 비트
+WARN_NO_OUTLET_BOX_REJ1,BIT,D00023.2,1,0,배출부1 가동 중 배출구 박스 이탈(수거 상실) 경알람 비트
+WARN_RESERVED_B3_REJ1,BIT,D00023.3,1,0,배출부1 예비 경알람 비트 3
+WARN_RESERVED_B4_REJ1,BIT,D00023.4,1,0,배출부1 예비 경알람 비트 4
+WARN_RESERVED_B5_REJ1,BIT,D00023.5,1,0,배출부1 예비 경알람 비트 5
+ERR_Z_AXIS_SENSOR_DUAL_REJ1,BIT,D00023.6,1,0,배출부1 Z축 실린더 오토스위치 이상 (상/하한 센서 동시 ON) 중알람 비트
+ERR_Y_AXIS_SENSOR_DUAL_REJ1,BIT,D00023.7,1,0,배출부1 Y축 실린더 오토스위치 이상 (전/후진 센서 동시 ON) 중알람 비트
+ERR_CYCLE_TIMEOUT_REJ1,BIT,D00023.8,1,0,배출부1 기구 동작 제한시간 초과(타임아웃) 중알람 비트
+ERR_ARRIVE_TIMEOUT_REJ1,BIT,D00023.9,1,0,배출부1 자재 도착 지연 시간 초과(FIFO 대기시간 초과) 중알람 비트
+ERR_DIMENSION_NG_REJ1,BIT,D00023.A,1,0,배출부1 센서 조합 오류(치수판정 불량) 중알람 비트
+ERR_UNEXPECTED_ENTRY_REJ1,BIT,D00023.B,1,0,배출부1 시퀀스 가동 중 비정상 자재 진입 중알람 비트
+ERR_TRACKING_MISMATCH_REJ1,BIT,D00023.C,1,0,배출부1 트래킹 데이터 불일치(추적 오동작) 중알람 비트
+ERR_RESERVED_B13_REJ1,BIT,D00023.D,1,0,배출부1 예비 중알람 비트 13
+ERR_RESERVED_B14_REJ1,BIT,D00023.E,1,0,배출부1 예비 중알람 비트 14
+ERR_RESERVED_B15_REJ1,BIT,D00023.F,1,0,배출부1 예비 중알람 비트 15
+FLAGS_ALM_PASS,WORD,D00024,1,0,승계구간 종합 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_TARGET_QTY_REACH_PASS,BIT,D00024.0,1,0,승계구간 목표 가동 수량 도달(만재 상태) 경알람 비트
+WARN_TARGET_QTY_OVER_PASS,BIT,D00024.1,1,0,승계구간 목표 가동 수량 초과 경알람 비트
+WARN_NO_OUTLET_BOX_PASS,BIT,D00024.2,1,0,승계구간 가동 중 배출구 박스 이탈(수거 상실) 경알람 비트
+WARN_RESERVED_B3_PASS,BIT,D00024.3,1,0,승계구간 예비 경알람 비트 3
+WARN_RESERVED_B4_PASS,BIT,D00024.4,1,0,승계구간 예비 경알람 비트 4
+WARN_RESERVED_B5_PASS,BIT,D00024.5,1,0,승계구간 예비 경알람 비트 5
+ERR_Z_AXIS_SENSOR_DUAL_PASS,BIT,D00024.6,1,0,승계구간 예비 Z축 이상 중알람 비트 6
+ERR_Y_AXIS_SENSOR_DUAL_PASS,BIT,D00024.7,1,0,승계구간 예비 Y축 이상 중알람 비트 7
+ERR_CYCLE_TIMEOUT_PASS,BIT,D00024.8,1,0,승계구간 물류 걸림(이송 중 컨베이어 지연) 중알람 비트
+ERR_ARRIVE_TIMEOUT_PASS,BIT,D00024.9,1,0,승계구간 자재 도착 지연 시간 초과(FIFO 대기시간 초과) 중알람 비트
+ERR_DIMENSION_NG_PASS,BIT,D00024.A,1,0,승계구간 센서 조합 오류(치수판정 불량) 중알람 비트
+ERR_UNEXPECTED_ENTRY_PASS,BIT,D00024.B,1,0,승계구간 시퀀스 가동 중 비정상 자재 진입 중알람 비트
+ERR_TRACKING_MISMATCH_PASS,BIT,D00024.C,1,0,승계구간 트래킹 데이터 불일치(추적 오동작) 중알람 비트
+ERR_RESERVED_B13_PASS,BIT,D00024.D,1,0,승계구간 예비 중알람 비트 13
+ERR_RESERVED_B14_PASS,BIT,D00024.E,1,0,승계구간 예비 중알람 비트 14
+ERR_RESERVED_B15_PASS,BIT,D00024.F,1,0,승계구간 예비 중알람 비트 15
+FLAGS_ALM_REJ2,WORD,D00025,1,0,배출부2 종합 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_TARGET_QTY_REACH_REJ2,BIT,D00025.0,1,0,배출부2 박스 목표 가동 수량 도달(만재 상태) 경알람 비트
+WARN_TARGET_QTY_OVER_REJ2,BIT,D00025.1,1,0,배출부2 박스 목표 가동 수량 초과 경알람 비트
+WARN_NO_OUTLET_BOX_REJ2,BIT,D00025.2,1,0,배출부2 가동 중 배출구 박스 이탈(수거 상실) 경알람 비트
+WARN_RESERVED_B3_REJ2,BIT,D00025.3,1,0,배출부2 예비 경알람 비트 3
+WARN_RESERVED_B4_REJ2,BIT,D00025.4,1,0,배출부2 예비 경알람 비트 4
+WARN_RESERVED_B5_REJ2,BIT,D00025.5,1,0,배출부2 예비 경알람 비트 5
+ERR_Z_AXIS_SENSOR_DUAL_REJ2,BIT,D00025.6,1,0,배출부2 Z축 실린더 오토스위치 이상 (상/하한 센서 동시 ON) 중알람 비트
+ERR_Y_AXIS_SENSOR_DUAL_REJ2,BIT,D00025.7,1,0,배출부2 Y축 실린더 오토스위치 이상 (전/후진 센서 동시 ON) 중알람 비트
+ERR_CYCLE_TIMEOUT_REJ2,BIT,D00025.8,1,0,배출부2 기구 동작 제한시간 초과(타임아웃) 중알람 비트
+ERR_ARRIVE_TIMEOUT_REJ2,BIT,D00025.9,1,0,배출부2 자재 도착 지연 시간 초과(FIFO 대기시간 초과) 중알람 비트
+ERR_DIMENSION_NG_REJ2,BIT,D00025.A,1,0,배출부2 센서 조합 오류(치수판정 불량) 중알람 비트
+ERR_UNEXPECTED_ENTRY_REJ2,BIT,D00025.B,1,0,배출부2 시퀀스 가동 중 비정상 자재 진입 중알람 비트
+ERR_TRACKING_MISMATCH_REJ2,BIT,D00025.C,1,0,배출부2 트래킹 데이터 불일치(추적 오동작) 중알람 비트
+ERR_RESERVED_B13_REJ2,BIT,D00025.D,1,0,배출부2 예비 중알람 비트 13
+ERR_RESERVED_B14_REJ2,BIT,D00025.E,1,0,배출부2 예비 중알람 비트 14
+ERR_RESERVED_B15_REJ2,BIT,D00025.F,1,0,배출부2 예비 중알람 비트 15
+FLAGS_ALM_ULD,WORD,D00026,1,0,배출부3(언로더) 종합 이상상태(경알람/중알람) 수용 워드 레지스터
+WARN_TARGET_QTY_REACH_ULD,BIT,D00026.0,1,0,배출부3 박스 목표 가동 수량 도달(만재 상태) 경알람 비트
+WARN_TARGET_QTY_OVER_ULD,BIT,D00026.1,1,0,배출부3 박스 목표 가동 수량 초과 경알람 비트
+WARN_NO_OUTLET_BOX_ULD,BIT,D00026.2,1,0,배출부3 가동 중 배출구 박스 이탈(수거 상실) 경알람 비트
+WARN_RESERVED_B3_ULD,BIT,D00026.3,1,0,배출부3 예비 경알람 비트 3
+WARN_RESERVED_B4_ULD,BIT,D00026.4,1,0,배출부3 예비 경알람 비트 4
+WARN_RESERVED_B5_ULD,BIT,D00026.5,1,0,배출부3 예비 경알람 비트 5
+ERR_Z_AXIS_SENSOR_DUAL_ULD,BIT,D00026.6,1,0,배출부3 Z축 실린더 오토스위치 이상 (상/하한 센서 동시 ON) 중알람 비트
+ERR_Y_AXIS_SENSOR_DUAL_ULD,BIT,D00026.7,1,0,배출부3 Y축 실린더 오토스위치 이상 (전/후진 센서 동시 ON) 중알람 비트
+ERR_CYCLE_TIMEOUT_ULD,BIT,D00026.8,1,0,배출부3 기구 동작 제한시간 초과(타임아웃) 중알람 비트
+ERR_ARRIVE_TIMEOUT_ULD,BIT,D00026.9,1,0,배출부3 자재 도착 지연 시간 초과(FIFO 대기시간 초과) 중알람 비트
+ERR_DIMENSION_NG_ULD,BIT,D00026.A,1,0,배출부3 센서 조합 오류(치수판정 불량) 중알람 비트
+ERR_UNEXPECTED_ENTRY_ULD,BIT,D00026.B,1,0,배출부3 시퀀스 가동 중 비정상 자재 진입 중알람 비트
+ERR_TRACKING_MISMATCH_ULD,BIT,D00026.C,1,0,배출부3 트래킹 데이터 불일치(추적 오동작) 중알람 비트
+ERR_RESERVED_B13_ULD,BIT,D00026.D,1,0,배출부3 예비 중알람 비트 13
+ERR_RESERVED_B14_ULD,BIT,D00026.E,1,0,배출부3 예비 중알람 비트 14
+ERR_RESERVED_B15_ULD,BIT,D00026.F,1,0,배출부3 예비 중알람 비트 15
+ALM_RAW_TOTAL,WORD,D00040,1,0,로우 알람 데이터 - 원시 알람(Raw Alarm) 상태 취합 레지스터 (ALM_RAW_TOTAL)
+ALM_WARN_TOTAL,WORD,D00041,1,0,경알람 에러 워드 - 전체 경알람 WARNING 비트 종합 취합 레지스터 (ALM_WARN_TOTAL)
+ALM_ERR_TOTAL,WORD,D00042,1,0,중알람 에러 워드 - 전체 중알람 FAULT 비트 종합 취합 레지스터 (ALM_ERR_TOTAL)
+ALM_SUMMARY_WORD,WORD,D00043,0,0,통합 알람 제어 - 가이드/경알람/중알람 비트 종합 취합 레지스터 (ALM_SUMMARY_WORD)
+FLAG_GUIDE_EXIST,BIT,D00043.0,1,0,통합 알람 플래그 - 설비 준비 부족 기동 불허(GUIDE) 활성화
+FLAG_WARN_EXIST,BIT,D00043.1,1,0,통합 알람 플래그 - 시스템 경알람 에러(WARNING) 감지 활성화
+FLAG_ERR_EXIST,BIT,D00043.2,1,0,통합 알람 플래그 - 시스템 중알람 에러(FAULT) 감지 활성화
+SUMMARY,WORD,D00044,0,0,
+LanBusy,BIT,D00044.0,1,0,
+Safety,WORD,D00045,1,0,
+Mode,WORD,D00046,1,0,
+State,WORD,D00047,1,0,
+CV_T_1,WORD,D00102,1,0,
+LD_EX_NUM,WORD,D00201,1,0,
+LD_T_CYL_Z_F,WORD,D00202,1,0,
+LD_T_CYL_Z_R,WORD,D00203,1,0,
+ULD1_NUM_Target,WORD,D00310,1,0,배출부1 박스 목표 분류/배출 완료 수량 레지스터
+ULD1_EX_NUM,WORD,D00311,1,0,
+ULD1_T_CYL_Z_F,WORD,D00312,1,0,
+ULD1_T_CYL_Z_R,WORD,D00313,1,0,
+ULD1_T_CYL_Y_F,WORD,D00314,1,0,
+ULD1_T_CYL_Y_R,WORD,D00315,1,0,
+ULD2_NUM_Target,WORD,D00320,1,0,배출부2 박스 목표 분류/배출 완료 수량 레지스터
+ULD2_EX_NUM,WORD,D00321,1,0,
+ULD2_T_CYL_Z_F,WORD,D00322,1,0,
+ULD2_T_CYL_Z_R,WORD,D00323,1,0,
+ULD2_T_CYL_Y_F,WORD,D00324,1,0,
+ULD2_T_CYL_Y_R,WORD,D00325,1,0,
+ULD3_NUM_Target,WORD,D00330,1,0,배출부3 박스 목표 분류/배출 완료 수량 레지스터
+ULD3_EX_NUM,WORD,D00331,1,0,
+T_PLC_ACT_0,WORD,D05000,1,0,PLC 연속 가동 시간(타임스탬프) 데이터 레지스터 하위 16비트 (0.1초 해상도)
+T_PLC_ACT_1,WORD,D05001,0,0,PLC 연속 가동 시간(타임스탬프) 데이터 레지스터 상위 16비트 (0.1초 해상도)
+T_Limit,WORD,D05002,1,0,단위 동작 고장 감지 제한시간(타임아웃) 기준값 설정 레지스터
+T_Interval_ULD1_0,WORD,D05100,1,0,도착 예상 시간
+T_Interval_ULD1_1,WORD,D05101,0,0,도착 예상 시간
+T_Interval_ULD2_0,WORD,D05200,1,0,도착 예상 시간
+T_Interval_ULD2_1,WORD,D05201,0,0,도착 예상 시간
+T_Interval_ULD3_0,WORD,D05300,1,0,도착 예상 시간
+T_Interval_ULD3_1,WORD,D05301,0,0,도착 예상 시간
+List_T0_FIFO,WORD,D06000,1,0,선입선출 FIFO 대기열 관리 기준 포인터 레지스터 (List_T0_FIFO)
+FIFO_ITER,WORD,D06001,1,0,
+FIFO_Target_T0,WORD,D06002,1,0,
+FIFO_Target_T1,WORD,D06003,1,0,
+List_T1_FIFO,WORD,D06100,1,0,배출부1 선입선출 FIFO 대기열 관리 레지스터 (List_T1_FIFO)
+List_T1_FIFO_1stValue_0,WORD,D06101,1,0,배출부1 선입선출 FIFO 도착 예정 시간 데이터 레지스터 하위 16비트 (32비트 연산)
+List_T1_FIFO_1stValue_1,WORD,D06102,0,0,배출부1 선입선출 FIFO 도착 예정 시간 데이터 레지스터 상위 16비트 (32비트 연산)
+List_T2_FIFO,WORD,D06200,1,0,배출부2 선입선출 FIFO 대기열 관리 레지스터 (List_T2_FIFO)
+List_T2_FIFO_1stValue_0,WORD,D06201,1,0,배출부2 선입선출 FIFO 도착 예정 시간 데이터 레지스터 하위 16비트 (32비트 연산)
+List_T2_FIFO_1stValue_1,WORD,D06202,0,0,배출부2 선입선출 FIFO 도착 예정 시간 데이터 레지스터 상위 16비트 (32비트 연산)
+List_T3_FIFO,WORD,D06300,1,0,배출부3 선입선출 FIFO 대기열 관리 레지스터 (List_T3_FIFO)
+List_T3_FIFO_1stValue_0,WORD,D06301,1,0,배출부3 선입선출 FIFO 도착 예정 시간 데이터 레지스터 하위 16비트 (32비트 연산)
+List_T3_FIFO_1stValue_1,WORD,D06302,0,0,배출부3 선입선출 FIFO 도착 예정 시간 데이터 레지스터 상위 16비트 (32비트 연산)
+List_ZONE0,WORD,D07000,1,0,물류 추적/트래킹 오류 발생 구역 인덱스 기록 레지스터 (List_ZONE0)
+TOSS_POP,WORD,D07001,1,0,
+List_ZONE1,WORD,D07100,1,0,배출 영역1 물류 트래킹 데이터 적재 레지스터 (List_ZONE1)
+List_ZONE2,WORD,D07200,1,0,배출 영역2 물류 트래킹 데이터 적재 레지스터 (List_ZONE2)
+List_ZONE3,WORD,D07300,1,0,배출 영역3 물류 트래킹 데이터 적재 레지스터 (List_ZONE3)
+PosNum,WORD,D10000,1,0,서브루틴 호출용 위치 인덱스 보관 레지스터 (PosNum)
+TempData1,WORD,D10001,1,0,임시 연산용 레지스터 1 (TempData1)
+TempData2,WORD,D10002,1,0,임시 연산용 레지스터 2 (TempData2)
+TempData3,WORD,D10003,0,0,임시 연산용 레지스터 3 (TempData3)
+Now_00_IN,WORD,M0000,1,0,물리 입력 채널 0 실시간 미러링 워드 레지스터 (Past_00_IN 비교용)
+BTN_STP,BIT,M00000,0,0,물리 스위치 입력 - 자동 운전 정지 버튼 감지 신호 (BTN_STP)
+BTN_RUN,BIT,M00001,0,0,물리 스위치 입력 - 자동 운전 시작 버튼 감지 신호 (BTN_RUN)
+BTN_EMS,BIT,M00002,1,0,"물리 스위치 입력 - 비상정지 버튼 감지 신호 (BTN_EMS, 동력 차단용)"
+GET_CHK_L0,BIT,M00004,0,0,물리 센서 입력 - 측정부 소형 자재(길이) 감지 및 진입 판정 신호 (BYD50-DDT L0)
+GET_CHK_L1,BIT,M00005,0,0,물리 센서 입력 - 측정부 중형 자재(길이) 감지 신호 (BYD50-DDT L1)
+GET_CHK_L2,BIT,M00006,0,0,물리 센서 입력 - 측정부 대형 자재(길이) 감지 신호 (BYD50-DDT L2)
+CYL_00Z_F,BIT,M00007,0,0,물리 센서 입력 - 측정부 Z축 실린더 전진 완료 리드스위치 입력 (D-D72K)
+CYL_00Z_R,BIT,M00008,0,0,물리 센서 입력 - 측정부 Z축 실린더 후진 완료 리드스위치 입력 (D-D72K)
+CYL_01Y_F,BIT,M00009,0,0,물리 센서 입력 - 배출부1 Y축 실린더 전진 완료 리드스위치 입력 (D-D72K)
+CYL_01Y_R,BIT,M0000A,0,0,물리 센서 입력 - 배출부1 Y축 실린더 후진 완료 리드스위치 입력 (D-D72K)
+CYL_01Z_F,BIT,M0000B,0,0,물리 센서 입력 - 배출부1 Z축 실린더 전진 완료 리드스위치 입력 (D-D72K)
+CYL_01Z_R,BIT,M0000C,0,0,물리 센서 입력 - 배출부1 Z축 실린더 후진 완료 리드스위치 입력 (D-D72K)
+GET_POS_W1,BIT,M0000D,0,0,물리 센서 입력 - 배출구1 자재 도착 감지 신호 (BY4M-PDT 광전센서)
+GET_POS_B1,BIT,M0000E,0,0,물리 센서 입력 - 승계구간 자재 걸림 감지 신호 (E3JK-RR12 광전센서)
+GET_POS_IN,BIT,M0000F,0,0,물리 센서 입력 - 측정부 자재 진입로 도착 감지 신호 (BY4M-PDT 광전센서)
+CALC_00_OUT,WORD,M0002,1,0,출력 가공 제어 - 전송 전 연산용 종합 출력 워드 레지스터
+SOL_00Z_F,BIT,M00020,1,0,내부 출력 코일 - 측정부 Z축 스토퍼실린더 전진 솔레노이드 제어
+SOL_00Z_R,BIT,M00021,1,0,내부 출력 코일 - 측정부 Z축 스토퍼실린더 후진 솔레노이드 제어
+SOL_01Y,BIT,M00022,1,0,내부 출력 코일 - 배출부1 Y축 푸셔실린더 전진 솔레노이드 제어 (단동)
+SOL_01Z_F,BIT,M00024,1,0,내부 출력 코일 - 배출부1 Z축 스토퍼실린더 전진 솔레노이드 제어
+SOL_01Z_R,BIT,M00025,1,0,내부 출력 코일 - 배출부1 Z축 스토퍼실린더 후진 솔레노이드 제어
+SOL_02Y,BIT,M00026,1,0,내부 출력 코일 - 배출부2 Y축 푸셔실린더 전진 솔레노이드 제어 (단동)
+SOL_02Z_F,BIT,M00027,1,0,내부 출력 코일 - 배출부2 Z축 스토퍼실린더 전진 솔레노이드 제어
+SOL_02Z_R,BIT,M00028,1,0,내부 출력 코일 - 배출부2 Z축 스토퍼실린더 후진 솔레노이드 제어
+CNV_01X,BIT,M0002C,1,0,내부 출력 코일 - 컨베이어1 이송 모터 구동 지령
+CNV_02X,BIT,M0002D,1,0,내부 출력 코일 - 컨베이어2 이송 모터 구동 지령
+Now_01_IN,WORD,M0004,1,0,물리 입력 채널 1 실시간 미러링 워드 레지스터 (Past_01_IN 비교용)
+CYL_02Y_F,BIT,M00040,0,0,물리 센서 입력 - 배출부2 Y축 실린더 전진 완료 리드스위치 입력 (D-D72K)
+CYL_02Y_R,BIT,M00041,0,0,물리 센서 입력 - 배출부2 Y축 실린더 후진 완료 리드스위치 입력 (D-D72K)
+CYL_02Z_F,BIT,M00042,0,0,물리 센서 입력 - 배출부2 Z축 실린더 전진 완료 리드스위치 입력 (D-D72K)
+CYL_02Z_R,BIT,M00043,0,0,물리 센서 입력 - 배출부2 Z축 실린더 후진 완료 리드스위치 입력 (D-D72K)
+GET_POS_W2,BIT,M00044,0,0,물리 센서 입력 - 배출구2 자재 도착 감지 신호 (BY4M-PDT 광전센서)
+GET_POS_EX,BIT,M00045,0,0,물리 센서 입력 - 배출구3 자재 도착 감지 신호 (BY4M-PDT 광전센서)
+GET_BOX_1,BIT,M00046,0,0,물리 센서 입력 - 배출구1 수거박스 안착 감지 신호 (PR12-4DA 근접센서)
+GET_BOX_2,BIT,M00047,0,0,물리 센서 입력 - 배출구2 수거박스 안착 감지 신호 (PR12-4DA 근접센서)
+GET_BOX_3,BIT,M00048,0,0,물리 센서 입력 - 배출구3 수거박스 안착 감지 신호 (PR12-4DA 근접센서)
+SIG_00_IN,WORD,M0010,1,0,가상 입력 채널 0 통합 워드 데이터 레지스터
+SIG_BTN_STP,BIT,M00100,1,0,가상 제어 입력 - 자동 운전 정지(STOP) 통합 신호
+SIG_BTN_RUN,BIT,M00101,1,0,가상 제어 입력 - 자동 운전 시작(RUN) 통합 신호
+SIG_BTN_EMS,BIT,M00102,0,0,가상 제어 입력 - 비상정지(EMS) 활성화 통합 신호
+SIG_MOD,BIT,M00103,1,0,가상 제어 입력 - AUTO/MANUAL 운전 모드 전환 통합 신호
+SIG_GET_CHK_L0,BIT,M00104,1,0,가상 센서 입력 - 측정부 소형 자재(길이) 감지 및 진입 판정 통합 신호 (BYD50-DDT L0)
+SIG_GET_CHK_L1,BIT,M00105,1,0,가상 센서 입력 - 측정부 중형 자재(길이) 감지 통합 신호 (BYD50-DDT L1)
+SIG_GET_CHK_L2,BIT,M00106,1,0,가상 센서 입력 - 측정부 대형 자재(길이) 감지 통합 신호 (BYD50-DDT L2)
+SIG_CYL_00Z_F,BIT,M00107,1,0,가상 센서 입력 - 측정부 Z축 실린더 전진 완료 리드스위치 통합 신호
+SIG_CYL_00Z_R,BIT,M00108,1,0,가상 센서 입력 - 측정부 Z축 실린더 후진 완료 리드스위치 통합 신호
+SIG_CYL_01Y_F,BIT,M00109,1,0,가상 센서 입력 - 배출부1 Y축 실린더 전진 완료 리드스위치 통합 신호
+SIG_CYL_01Y_R,BIT,M0010A,1,0,가상 센서 입력 - 배출부1 Y축 실린더 후진 완료 리드스위치 통합 신호
+SIG_CYL_01Z_F,BIT,M0010B,1,0,가상 센서 입력 - 배출부1 Z축 실린더 전진 완료 리드스위치 통합 신호
+SIG_CYL_01Z_R,BIT,M0010C,1,0,가상 센서 입력 - 배출부1 Z축 실린더 후진 완료 리드스위치 통합 신호
+SIG_GET_POS_W1,BIT,M0010D,1,0,가상 센서 입력 - 배출구1 자재 도착 감지 통합 신호 (BY4M-PDT)
+SIG_GET_POS_B1,BIT,M0010E,1,0,가상 센서 입력 - 승계구간 자재 걸림 감지 통합 신호 (E3JK-RR12)
+SIG_GET_POS_IN,BIT,M0010F,1,0,가상 센서 입력 - 측정부 자재 진입로 도착 감지 통합 신호 (BY4M-PDT)
+SIG_GET_QR_L0,BIT,M00114,1,0,
+SIG_GET_QR_L1,BIT,M00115,1,0,
+SIG_GET_QR_L2,BIT,M00116,1,0,
+SIG_00_OUT,WORD,M0012,1,0,가상 출력 채널 0 통합 워드 데이터 레지스터
+SIG_SOL_00Z_F,BIT,M00120,0,0,가상 출력 코일 - 측정부 Z축 스토퍼실린더 전진 솔레노이드 밸브 통합 출력
+SIG_SOL_00Z_R,BIT,M00121,0,0,가상 출력 코일 - 측정부 Z축 스토퍼실린더 후진 솔레노이드 밸브 통합 출력
+SIG_SOL_01Y,BIT,M00122,0,0,가상 출력 코일 - 배출부1 Y축 푸셔실린더 전진 솔레노이드 밸브 통합 출력 (단동)
+SIG_SOL_01Z_F,BIT,M00124,0,0,가상 출력 코일 - 배출부1 Z축 스토퍼실린더 전진 솔레노이드 밸브 통합 출력
+SIG_SOL_01Z_R,BIT,M00125,0,0,가상 출력 코일 - 배출부1 Z축 스토퍼실린더 후진 솔레노이드 밸브 통합 출력
+SIG_SOL_02Y,BIT,M00126,0,0,가상 출력 코일 - 배출부2 Y축 푸셔실린더 전진 솔레노이드 밸브 통합 출력 (단동)
+SIG_SOL_02Z_F,BIT,M00127,0,0,가상 출력 코일 - 배출부2 Z축 스토퍼실린더 전진 솔레노이드 밸브 통합 출력
+SIG_SOL_02Z_R,BIT,M00128,0,0,가상 출력 코일 - 배출부2 Z축 스토퍼실린더 후진 솔레노이드 밸브 통합 출력
+SIG_CNV_01X,BIT,M0012C,0,0,가상 출력 코일 - 컨베이어1 모터 기동 지령 통합 출력
+SIG_CNV_02X,BIT,M0012D,0,0,가상 출력 코일 - 컨베이어2 모터 기동 지령 통합 출력
+SIG_01_IN,WORD,M0014,1,0,가상 입력 채널 1 통합 워드 데이터 레지스터
+SIG_CYL_02Y_F,BIT,M00140,1,0,가상 센서 입력 - 배출부2 Y축 실린더 전진 완료 리드스위치 통합 신호
+SIG_CYL_02Y_R,BIT,M00141,1,0,가상 센서 입력 - 배출부2 Y축 실린더 후진 완료 리드스위치 통합 신호
+SIG_CYL_02Z_F,BIT,M00142,1,0,가상 센서 입력 - 배출부2 Z축 실린더 전진 완료 리드스위치 통합 신호
+SIG_CYL_02Z_R,BIT,M00143,1,0,가상 센서 입력 - 배출부2 Z축 실린더 후진 완료 리드스위치 통합 신호
+SIG_GET_POS_W2,BIT,M00144,1,0,가상 센서 입력 - 배출구2 자재 도착 감지 통합 신호 (BY4M-PDT)
+SIG_GET_POS_EX,BIT,M00145,1,0,가상 센서 입력 - 배출구3 자재 도착 감지 통합 신호 (BY4M-PDT)
+SIG_GET_BOX_1,BIT,M00146,1,0,가상 센서 입력 - 배출구1 수거박스 안착 감지 통합 신호
+SIG_GET_BOX_2,BIT,M00147,1,0,가상 센서 입력 - 배출구2 수거박스 안착 감지 통합 신호
+SIG_GET_BOX_3,BIT,M00148,1,0,가상 센서 입력 - 배출구3 수거박스 안착 감지 통합 신호
+SIG_MOD_INSP,BIT,M0014C,1,0,
+SIG_INIT,BIT,M0014D,1,0,가상 제어 입력 - 수치 초기화
+SIG_RESET,BIT,M0014E,1,0,가상 제어 입력 - 시스템 초기화(RESET) 제어 통합 신호
+SIG_PAUSE,BIT,M0014F,1,0,가상 제어 입력 - 일시 정지(PAUSE) 제어 통합 신호
+HMI_00_IN,WORD,M0020,1,0,HMI 터치 입력 - HMI 운전 제어 채널 0 통합 레지스터 (기동/정지/모드 전환 등)
+HMI_00_OUT,WORD,M0022,1,0,HMI 터치 출력 - HMI 제어 출력 채널 0 통합 레지스터 (모니터링 신호 송출)
+HMI_01_IN,WORD,M0024,1,0,HMI 터치 입력 - HMI 조작 입력 채널 1 통합 레지스터 (MANUAL 개별 구동용)
+LAN_00_IN,WORD,M0030,1,0,통신 입력 - LAN(Modbus) 입력 채널 0 통합 레지스터 (원격 가동 및 운전 제어)
+LAN_00_OUT,WORD,M0032,1,0,통신 출력 - LAN(Modbus) 출력 채널 0 통합 레지스터 (상태 피드백 전송)
+LAN_01_IN,WORD,M0034,1,0,통신 입력 - LAN(Modbus) 입력 채널 1 통합 레지스터 (수동 세부 조작용)
+IDLE_OR_READY,BIT,M01000,1,0,상태 신호 조합 - 설비 비가동 및 기동 대기 (IDLE | READY) 플래그
+RUN_OR_DRAIN,BIT,M01001,1,0,상태 신호 조합 - 라인 내 물류 가공 및 이송 동작 진행 (RUN | DRAIN) 플래그
+RUN_OR_DRAIN_OR_PAUSE,BIT,M01002,1,0,상태 신호 조합 - 설비 기동 중 및 수동 일시 정지 (RUN | DRAIN | PAUSE) 플래그
+LD_CanEx,BIT,M02000,1,0,제어 조건 - 분류 영역 잔여 수량 진입 가능(최대 적재한도 미만) 확인 플래그 (LD_CanEx)
+LD_ZeroItem,BIT,M02001,1,0,제어 조건 - 분류/배출 영역 적재 수량 0 (완전히 비워짐) 확인 플래그 (LD_ZeroItem)
+IS_CheckNoItem,BIT,M02002,1,0,제어 조건 - 측정부 미동작/미측정 상태 플래그 (IS_CheckNoItem)
+DATA_Regist,BIT,M02003,1,0,등록완료 플래그
+FLAG_DetectMode_QR,BIT,M02004,1,0,
+LD_QR_Err,BIT,M03002,0,0,
+ULD1_EX,BIT,M03100,1,0,배출부1 자재 밀어내기 완료 감지 및 카운트 트리거 펄스 (ULD1_EX)
+ULD1_IN,BIT,M03101,1,0,측정부 소형 자재 판정 및 배출부1 진입 조건 비트 (ULD1_IN)
+ULD1_QR,BIT,M03102,1,0,
+ULD2_EX,BIT,M03200,1,0,배출부2 자재 밀어내기 완료 감지 및 카운트 트리거 펄스 (ULD2_EX)
+ULD2_IN,BIT,M03201,1,0,측정부 중형 자재 판정 및 배출부2 진입 조건 비트 (ULD2_IN)
+ULD2_QR,BIT,M03202,1,0,
+ULD3_EX,BIT,M03300,1,0,배출부3 배출 완료 감지 및 수량 카운트 트리거 펄스 (ULD3_EX)
+ULD3_IN,BIT,M03301,1,0,측정부 대형 자재 판정 및 배출부3 진입 조건 비트 (ULD3_IN)
+ULD3_QR,BIT,M03302,1,0,
+TempFlag0,BIT,M10000,1,0,데이터 가공용 유효성 검사 및 서브루틴 가동 임시 플래그 (TempFlag0)
+_00_IN,WORD,P0000,1,0,입력 접점
+_00_IN00,BIT,P00000,0,0,입력 접점 00
+_00_IN01,BIT,P00001,0,0,입력 접점 01
+_00_IN02,BIT,P00002,0,0,입력 접점 02
+_00_IN03,BIT,P00003,0,0,입력 접점 03
+_00_IN04,BIT,P00004,0,0,입력 접점 04
+_00_IN05,BIT,P00005,0,0,입력 접점 05
+_00_IN06,BIT,P00006,0,0,입력 접점 06
+_00_IN07,BIT,P00007,0,0,입력 접점 07
+_00_IN08,BIT,P00008,0,0,입력 접점 08
+_00_IN09,BIT,P00009,0,0,입력 접점 09
+_00_IN10,BIT,P0000A,0,0,입력 접점 10
+_00_IN11,BIT,P0000B,0,0,입력 접점 11
+_00_IN12,BIT,P0000C,0,0,입력 접점 12
+_00_IN13,BIT,P0000D,0,0,입력 접점 13
+_00_IN14,BIT,P0000E,0,0,입력 접점 14
+_00_IN15,BIT,P0000F,0,0,입력 접점 15
+_00_OUT,WORD,P0002,1,0,출력 접점
+_00_OUT00,BIT,P00020,0,0,출력 접점 00
+_00_OUT01,BIT,P00021,0,0,출력 접점 01
+_00_OUT02,BIT,P00022,0,0,출력 접점 02
+_00_OUT03,BIT,P00023,0,0,출력 접점 03
+_00_OUT04,BIT,P00024,0,0,출력 접점 04
+_00_OUT05,BIT,P00025,0,0,출력 접점 05
+_00_OUT06,BIT,P00026,0,0,출력 접점 06
+_00_OUT07,BIT,P00027,0,0,출력 접점 07
+_00_OUT08,BIT,P00028,0,0,출력 접점 08
+_00_OUT09,BIT,P00029,0,0,출력 접점 09
+_00_OUT10,BIT,P0002A,0,0,출력 접점 10
+_00_OUT11,BIT,P0002B,0,0,출력 접점 11
+_00_OUT12,BIT,P0002C,0,0,출력 접점 12
+_00_OUT13,BIT,P0002D,0,0,출력 접점 13
+_00_OUT14,BIT,P0002E,0,0,출력 접점 14
+_00_OUT15,BIT,P0002F,0,0,출력 접점 15
+_01_IN,WORD,P0004,1,0,입력 접점
+_01_IN00,BIT,P00040,0,0,입력 접점 00
+_01_IN01,BIT,P00041,0,0,입력 접점 01
+_01_IN02,BIT,P00042,0,0,입력 접점 02
+_01_IN03,BIT,P00043,0,0,입력 접점 03
+_01_IN04,BIT,P00044,0,0,입력 접점 04
+_01_IN05,BIT,P00045,0,0,입력 접점 05
+_01_IN06,BIT,P00046,0,0,입력 접점 06
+_01_IN07,BIT,P00047,0,0,입력 접점 07
+_01_IN08,BIT,P00048,0,0,입력 접점 08
+_01_IN09,BIT,P00049,0,0,입력 접점 09
+_01_IN10,BIT,P0004A,0,0,입력 접점 10
+_01_IN11,BIT,P0004B,0,0,입력 접점 11
+_01_IN12,BIT,P0004C,0,0,입력 접점 12
+_01_IN13,BIT,P0004D,0,0,입력 접점 13
+_01_IN14,BIT,P0004E,0,0,입력 접점 14
+_01_IN15,BIT,P0004F,0,0,입력 접점 15
+SAFE,BIT,S000.00,1,0,시스템 안전 상태 - 정상 운전 가능 (SAFE) 상태 스텝
+EMERGENCY,BIT,S000.01,1,0,시스템 비상 상태 - 비상정지 스위치 활성화 (EMERGENCY) 상태 스텝
+AUTO,BIT,S001.00,1,0,전역 운전 모드 - 자동 운전 모드 (AUTO) 스텝
+MANUAL,BIT,S001.01,1,0,전역 운전 모드 - 수동 제어 모드 (MANUAL) 스텝
+STATE_IDLE,BIT,S002.00,1,0,시스템 운전 상태 - 무부하 초기 대기 (IDLE) 상태 스텝
+STATE_READY,BIT,S002.01,1,0,시스템 운전 상태 - 자동 기동 조건 충족 및 대기 (READY) 상태 스텝
+STATE_RUN,BIT,S002.02,1,0,시스템 운전 상태 - 자동 운전 가동 (RUN) 상태 스텝
+STATE_DRAIN,BIT,S002.03,1,0,시스템 운전 상태 - 라인 내 잔류 물류 소진 및 정지 작업 (DRAIN) 상태 스텝
+STATE_FAULT,BIT,S002.04,1,0,시스템 운전 상태 - 중알람 에러 감지 및 가동 중단 (FAULT) 상태 스텝
+STATE_RESET,BIT,S002.05,1,0,시스템 운전 상태 - 원점 복귀 및 메모리 리셋 (RESET) 상태 스텝
+STATE_JOG,BIT,S002.06,1,0,시스템 운전 상태 - 수동 및 조그 제어 (JOG) 상태 스텝
+STATE_PAUSE,BIT,S002.07,1,0,시스템 운전 상태 - 일시 정지 (PAUSE) 상태 스텝
+CHK_00_NA,BIT,S021.00,1,0,제품 길이 측정 완료 및 스텝 리셋 스텝
+CHK_01_Length,BIT,S021.01,1,0,제품 길이 측정 시퀀스 동작 개시 및 측정 진행 스텝
+CHK_02_KeepFlag,BIT,S021.02,1,0,제품 길이 측정 시퀀스 플래그값 확정
+LD_00_CylZDw,BIT,S022.00,1,0,측정부 배출 완료 확인 및 시퀀스 원점 복귀 종료 스텝
+LD_01_GetItem,BIT,S022.01,1,0,측정부 자재 진입로 도착 감지 스텝
+LD_02_CylZup,BIT,S022.02,1,0,측정부 Z축 스토퍼실린더 하강(자재 정지 및 측정 대기) 동작 스텝
+LD_03_ExitItem,BIT,S022.03,1,0,측정부 제품 크기 판정 완료 및 FIFO 트래킹 데이터 등록(DATA_ADD) 스텝
+LD_04_KeepUp,BIT,S022.04,1,0,측정부 Z축 스토퍼실린더 상승(자재 통과 허용) 동작 스텝
+QR_00_NA,BIT,S023.00,1,0,
+QR_01_Length,BIT,S023.01,1,0,
+QR_02_KeepFlag,BIT,S023.02,1,0,
+ULD1_00_CylZUp,BIT,S031.00,1,0,배출부1 Z축 스토퍼실린더 상승 완료 및 시퀀스 종료 스텝
+ULD1_01_GetItem,BIT,S031.01,1,0,배출부1 도착 자재 감지 및 트래킹 데이터 판정 스텝
+ULD1_02_CylZDw,BIT,S031.02,1,0,배출부1 Z축 스토퍼실린더 하강 동작 스텝
+ULD1_03_KeepDw,BIT,S031.03,1,0,배출부1 Z축 스토퍼실린더 하강 및 대기 스텝
+ULD1_04_SizChk,BIT,S031.04,1,0,배출부1 도착 자재 크기 재검사 및 대상 판정 스텝
+ULD1_05_CylYAct,BIT,S031.05,1,0,배출부1 Y축 배출실린더 전진(제품 밀어내기 및 배출 완료 카운트) 스텝
+ULD1_06_CylYBack,BIT,S031.06,1,0,배출부1 Y축 배출실린더 후진 동작 스텝
+ULD2_00_CylZUp,BIT,S032.00,1,0,배출부2 Z축 스토퍼실린더 상승 완료 및 시퀀스 종료 스텝
+ULD2_01_GetItem,BIT,S032.01,1,0,배출부2 도착 자재 감지 및 트래킹 데이터 판정 스텝
+ULD2_02_CylZDw,BIT,S032.02,1,0,배출부2 Z축 스토퍼실린더 하강 동작 스텝
+ULD2_03_KeepDw,BIT,S032.03,1,0,배출부2 Z축 스토퍼실린더 하강 및 대기 스텝
+ULD2_04_SizChk,BIT,S032.04,1,0,배출부2 도착 자재 크기 재검사 및 대상 판정 스텝
+ULD2_05_CylYAct,BIT,S032.05,1,0,배출부2 Y축 배출실린더 전진(제품 밀어내기 및 배출 완료 카운트) 스텝
+ULD2_06_CylYBack,BIT,S032.06,1,0,배출부2 Y축 배출실린더 후진 동작 스텝
+ULD3_00_NA,BIT,S033.00,1,0,배출부3 완료 및 시퀀스 종료 대기 스텝
+ULD3_01_GetItem,BIT,S033.01,1,0,배출부3 자재 배출 위치 도착 감지 및 완료 대기 스텝
+CVTR_T_LIM,BIT/WORD,T0200,1,0,승계구간 컨베이어 제품 걸림 감지 타이머 (설정시간 30.0초)
+LD_T_LIM,BIT/WORD,T0300,1,0,측정부(로더) 동작 이상 감지 제한시간 타이머 (동작시간 초과 FAULT 트리거)
+LD_Delay1,BIT/WORD,T0301,1,0,측정부(로더) 공정 지연용 스텝 전환 버퍼 타이머
+ULD1_T_LIM,BIT/WORD,T0310,1,0,배출부1 동작 이상 감지 제한시간 타이머 (동작시간 초과 FAULT 트리거)
+ULD1_Delay1,BIT/WORD,T0311,1,0,배출구1 공정 지연용 스텝 전환 버퍼 타이머
+ULD1_SensorON,BIT/WORD,T0312,1,0,배출구1 자재 도착 필터용 타이머 (채터링 및 오감지 감시용)
+ULD2_T_LIM,BIT/WORD,T0320,1,0,배출부2 동작 이상 감지 제한시간 타이머 (동작시간 초과 FAULT 트리거)
+ULD2_Delay1,BIT/WORD,T0321,1,0,배출구2 공정 지연용 스텝 전환 버퍼 타이머
+ULD2_SensorON,BIT/WORD,T0322,1,0,배출구2 자재 도착 필터용 타이머 (채터링 및 오감지 감시용)
+ULD3_Delay1,BIT/WORD,T0331,1,0,배출구3 공정 완료 지연 버퍼 타이머
+ULD3_SensorON,BIT/WORD,T0332,1,0,배출구3 자재 도착 필터용 타이머 (채터링 및 오감지 감시용)
+idx0,WORD,Z000,1,0,주소 간접 인덱스
+idx1,WORD,Z001,1,0,주소 간접 인덱스
+idx2,WORD,Z002,1,0,주소 간접 인덱스

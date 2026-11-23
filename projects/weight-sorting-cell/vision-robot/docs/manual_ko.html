@@ -1,0 +1,321 @@
+<title>로봇 + 3D 카메라 매뉴얼</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: 한 줄 읽기 칼럼(최대 980px), 장마다 분류 색상
+   (하드웨어, 소프트웨어, 원리, 보정, 사용법, 설정, 안전). */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5b6577;
+  --line: #dde2ea;
+  --code-bg: #eef1f5;
+  --hw: #1f6feb;        --hw-soft: #e3edfd;
+  --sw: #7c4dcc;        --sw-soft: #efe8fb;
+  --me: #0e8a8a;        --me-soft: #ddf3f2;
+  --ca: #b7791f;        --ca-soft: #fbf0dc;
+  --op: #2f8a3e;        --op-soft: #e2f3e5;
+  --se: #c2410c;        --se-soft: #fde9df;
+  --wa: #c62828;        --wa-soft: #fde4e4;
+  --robot: #f08a24;
+  --display: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --body: "Noto Sans KR", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, "Noto Sans KR", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #181e27; --fg: #e6eaf1; --muted: #9aa5b8; --line: #2a3340; --code-bg: #1f2733;
+    --hw: #6ea8ff; --hw-soft: #18263d; --sw: #b393f0; --sw-soft: #251d38; --me: #4fc9c4; --me-soft: #12302f;
+    --ca: #e3b25a; --ca-soft: #33280f; --op: #6ccf7c; --op-soft: #15301b; --se: #f08c5c; --se-soft: #36200f;
+    --wa: #ff7b7b; --wa-soft: #3a1717; --robot: #f5a04a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #181e27; --fg: #e6eaf1; --muted: #9aa5b8; --line: #2a3340; --code-bg: #1f2733;
+  --hw: #6ea8ff; --hw-soft: #18263d; --sw: #b393f0; --sw-soft: #251d38; --me: #4fc9c4; --me-soft: #12302f;
+  --ca: #e3b25a; --ca-soft: #33280f; --op: #6ccf7c; --op-soft: #15301b; --se: #f08c5c; --se-soft: #36200f;
+  --wa: #ff7b7b; --wa-soft: #3a1717; --robot: #f5a04a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.7 var(--body); word-break: keep-all; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; text-wrap: balance; margin: 0; line-height: 1.3; }
+h1 { font-size: clamp(26px, 5vw, 38px); letter-spacing: -0.02em; }
+h2 { font-size: 21px; font-weight: 700; }
+h3 { font-size: 16px; font-weight: 700; margin-top: 6px; }
+p { margin: 0; max-width: 70ch; }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+pre { margin: 0; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; overflow-x: auto;
+  font: 13.5px/1.6 var(--mono); }
+header { display: grid; gap: 14px; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--robot); }
+.lede { color: var(--muted); font-size: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 700 12px/1 var(--body);
+  padding: 6px 10px; border-radius: 999px; background: var(--c-soft); color: var(--c); white-space: nowrap; }
+.chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.hw { --c: var(--hw); --c-soft: var(--hw-soft); }
+.sw { --c: var(--sw); --c-soft: var(--sw-soft); }
+.me { --c: var(--me); --c-soft: var(--me-soft); }
+.ca { --c: var(--ca); --c-soft: var(--ca-soft); }
+.op { --c: var(--op); --c-soft: var(--op-soft); }
+.se { --c: var(--se); --c-soft: var(--se-soft); }
+.wa { --c: var(--wa); --c-soft: var(--wa-soft); }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 8px;
+  padding: 12px; display: grid; gap: 4px; min-width: 0; }
+.step b { font-size: 15px; }
+.step span { color: var(--muted); font-size: 13px; }
+.step .n { font: 600 11px/1 var(--mono); color: var(--c); letter-spacing: 0.08em; }
+section.ch { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ch-head { background: var(--c-soft); padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); }
+.ch-head .tag { font: 700 12px/1 var(--body); color: var(--c); }
+.ch-body { padding: 16px 18px 20px; display: grid; gap: 14px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.box { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
+.box h3 { margin: 0; color: var(--c); }
+ul, ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 700 12.5px/1.3 var(--body); color: var(--muted); background: var(--code-bg); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-family: var(--mono); white-space: nowrap; }
+td .chip { font-size: 11px; padding: 4px 8px; }
+.num { font-variant-numeric: tabular-nums; }
+.note { border-radius: 8px; padding: 12px 14px; background: var(--c-soft); display: grid; gap: 4px; }
+.note b { color: var(--c); }
+kbd { font: 600 12px/1 var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px;
+  padding: 3px 6px; background: var(--surface); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Weight Sorting Project · Robot+3DCamera</div>
+  <h1>로봇 + 3D 카메라 매뉴얼</h1>
+  <p class="lede">Intel RealSense D455 카메라가 작업판 위의 파란 블록(쌓인 블록 포함)을 찾고, WLKATA Mirobot이
+    카메라가 알려준 위치에서 블록을 집어 지정된 놓는 위치(드롭 위치)로 옮깁니다. 모든 기능은 파이썬 파일
+    하나, <code>d455_pick_place.py</code>로 동작하며 보정(캘리브레이션)도 자동으로 합니다.</p>
+  <div class="legend" aria-label="색상 구분">
+    <span class="chip hw">하드웨어</span>
+    <span class="chip sw">소프트웨어</span>
+    <span class="chip me">동작 원리</span>
+    <span class="chip ca">보정</span>
+    <span class="chip op">사용법</span>
+    <span class="chip se">설정값</span>
+    <span class="chip wa">안전 / 문제 해결</span>
+  </div>
+</header>
+
+<div class="flow" aria-label="한 번의 집기 과정">
+  <div class="step hw"><span class="n">CAMERA</span><b>촬영</b><span>컬러 + 깊이 영상, 640×480 · 15 fps</span></div>
+  <div class="step me"><span class="n">DETECT</span><b>파란 윗면 찾기</b><span>가장 높은 윗면의 중심과 높이</span></div>
+  <div class="step op"><span class="n">WAIT</span><b>2초 정지 확인</b><span>손이나 움직임이 없을 때까지 대기</span></div>
+  <div class="step ca"><span class="n">CONVERT</span><b>카메라 → 로봇 좌표</b><span>저장된 보정값으로 X/Y/Z(mm) 계산</span></div>
+  <div class="step op"><span class="n">PICK</span><b>흡착</b><span>위로 접근 → 내려가기 → 들어올리기</span></div>
+  <div class="step hw"><span class="n">PLACE</span><b>드롭 위치</b><span>관절 −70, 37, 15, 0, −50, 0</span></div>
+</div>
+
+<section class="ch hw">
+  <div class="ch-head"><h2>사용한 장비 (하드웨어)</h2><span class="tag">하드웨어</span></div>
+  <div class="ch-body">
+    <div class="tbl"><table>
+      <thead><tr><th>장비</th><th>내용</th><th>참고</th></tr></thead>
+      <tbody>
+        <tr><td><b>Intel RealSense D455</b></td><td>스테레오 깊이 + RGB + IMU, 펌웨어 5.17.3.10</td>
+          <td><b>USB 2.1</b>로 동작 (이 PC의 BIOS에서 USB 3.0이 꺼져 있음) → 640×480 · 15 fps 사용</td></tr>
+        <tr><td><b>WLKATA Mirobot</b></td><td>6축 로봇팔 + 흡착컵, 시리얼 G-code 제어</td>
+          <td>포트 <code>COM4</code> (CH340 USB-시리얼), 115200 baud</td></tr>
+        <tr><td><b>PC</b></td><td>Intel i7-4800MQ, RAM 8 GB, Windows 10</td><td>성능 충분, GPU 불필요</td></tr>
+        <tr><td><b>작업판</b></td><td>타공 금속판, 로봇 기준 J1 ≈ 55° 방향</td><td>작업판 높이 = 로봇 Z ≈ 36.7 mm</td></tr>
+        <tr><td><b>파란 블록</b></td><td>두께 32 mm, 쌓을 수 있음</td><td>3단 쌓기 측정값 ≈ 95 mm</td></tr>
+        <tr><td><b>카메라 거치</b></td><td>작업판 위 약 33–45 cm, 아래를 향함</td><td>이 높이에서는 근거리 깊이 모드가 필요</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="ch sw">
+  <div class="ch-head"><h2>사용한 프로그램 (소프트웨어)</h2><span class="tag">소프트웨어</span></div>
+  <div class="ch-body">
+    <div class="tbl"><table>
+      <thead><tr><th>패키지</th><th>버전</th><th>용도</th></tr></thead>
+      <tbody>
+        <tr><td><b>Python</b></td><td class="num">3.12 (64비트)</td><td>필수. <code>pyrealsense2</code>는 3.14를 지원하지 않으며, 이 PC의 <code>python</code>은 32비트 3.12임</td></tr>
+        <tr><td><b>pyrealsense2</b></td><td class="num">2.59.1</td><td>카메라 영상, 깊이 정렬, 필터, 근거리 모드</td></tr>
+        <tr><td><b>opencv-contrib-python</b></td><td class="num">4.14</td><td>색 검출, 도형 계산, 화면 창, <code>solvePnPRansac</code></td></tr>
+        <tr><td><b>numpy</b></td><td class="num">2.5</td><td>3D 계산, 평면 추정</td></tr>
+        <tr><td><b>pyserial</b></td><td class="num">3.5</td><td>Mirobot에 G-code 전송</td></tr>
+        <tr><td><b>VS Code</b></td><td>Python 확장 포함</td><td><code>.vscode/launch.json</code>의 실행 버튼</td></tr>
+      </tbody>
+    </table></div>
+    <pre>py -3.12 -m pip install -r requirements.txt</pre>
+  </div>
+</section>
+
+<section class="ch sw">
+  <div class="ch-head"><h2>폴더 구성</h2><span class="tag">소프트웨어</span></div>
+  <div class="ch-body">
+<pre>Robot+3DCamera/
+├── d455_pick_place.py      메인 프로그램: 카메라, 보정, 집기/놓기
+├── d455_calib.json         저장된 카메라-로봇 보정값 (스크립트와 같은 폴더에 둘 것)
+├── d455_calib_backup.json  이전 보정값
+├── requirements.txt        필요한 파이썬 패키지
+├── README.md               간단 안내
+├── docs/manual.html        영어 매뉴얼
+├── docs/manual_ko.html     이 한국어 매뉴얼
+├── tools/
+│   ├── camera_check.py       카메라 연결, USB 속도, 영상, IMU 확인
+│   ├── blue_blocks_viewer.py 파란 블록 실시간 보기 (로봇 없이)
+│   └── height_check.py       블록/쌓은 블록 높이 측정 (로봇 없이)
+└── .vscode/                실행 버튼 + Python 3.12 설정</pre>
+  </div>
+</section>
+
+<section class="ch me">
+  <div class="ch-head"><h2>동작 원리</h2><span class="tag">동작 원리</span></div>
+  <div class="ch-body">
+    <div class="grid2">
+      <div class="box me"><h3>1 · 카메라 영상</h3>
+        <p>깊이 영상을 컬러 영상에 맞춰 정렬하고, RealSense 공간/시간 필터로 다듬은 뒤 mm 단위로 바꿉니다.
+          <b>근거리 모드</b>(disparity shift 50)로 약 20–70 cm 거리를 측정합니다.</p></div>
+      <div class="box me"><h3>2 · 작업판 평면</h3>
+        <p>깊이 점들에 RANSAC 평면 추정을 하여 작업판을 찾습니다. 그다음 모든 화소의 작업판 위 높이(mm)를 계산합니다.</p></div>
+      <div class="box me"><h3>3 · 파란 블록 찾기</h3>
+        <p>HSV 색 범위로 파란 영역을 찾고, 그 안에서 <b>가장 높은 윗면</b>만 사용합니다. 붙어 있는 더미도
+          분리되고, 가장 높은 블록부터 집습니다.</p></div>
+      <div class="box me"><h3>4 · 정확한 중심</h3>
+        <p>중심 = 윗면을 둘러싼 사각형의 가운데를 윗면 높이 평면에 투영한 점. 깊이가 빠진 화소가 있어도 치우치지
+          않습니다. 집기 직전에 8장을 평균하여 다시 측정합니다.</p></div>
+      <div class="box me"><h3>5 · 정지 상태 대기</h3>
+        <p>영상 간 움직임을 감지합니다. 2초 동안 아무것도 움직이지 않고 블록이 5 mm 이내로 유지될 때만 집습니다.</p></div>
+      <div class="box me"><h3>6 · 집기와 놓기</h3>
+        <p>카메라 좌표를 보정값으로 로봇 X/Y/Z로 바꾼 뒤 G-code로 이동합니다:
+          위 +40 mm → 흡착 ON → 윗면보다 2 mm 아래까지 하강 → 상승 → 드롭 위치 → 놓기 → 대기 자세.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="ch ca">
+  <div class="ch-head"><h2>자동 보정 (캘리브레이션)</h2><span class="tag">보정</span></div>
+  <div class="ch-body">
+    <p>보정은 카메라가 로봇에 대해 어디에 있는지를 계산하는 과정입니다. 클릭하거나 블록을 들고 있을 필요가 없습니다.</p>
+    <ol>
+      <li><b>작업판을 비워야 합니다.</b> 블록이 보이면 프로그램이 시작하지 않습니다.</li>
+      <li>로봇이 흡착 공구를 작업판 위 <b>12개 위치 × 3개 높이</b>(팁 높이 150, 105, 65 mm)로 움직입니다.</li>
+      <li>각 위치에서 카메라가 컬러 영상에서 <b>주황색 팔 끝의 흰색 캡</b>을 찾습니다.</li>
+      <li><code>solvePnPRansac</code>으로 카메라 자세를 계산하며, 잘못 찾은 점(다른 흰색 부분)은 제외합니다.</li>
+      <li>높이는 <b>티칭한 집기 자세</b>(55, 40, 10, 0, −35, −45)를 기준으로 맞춥니다. 이 자세에서 팁은 블록(32–33 mm)
+        윗면, Z 69.7 mm에 있습니다.</li>
+      <li>결과는 <code>d455_calib.json</code>에 저장됩니다. 마지막 보정: 34점 중 23점 사용, 평균 오차 0.9 mm.</li>
+    </ol>
+    <div class="note ca"><b>다시 보정해야 할 때</b><p>카메라를 옮기거나 부딪혔을 때마다 합니다. VS Code의
+      <b>Recalibrate (camera moved)</b>를 실행하거나 <code>py -3.12 d455_pick_place.py autocal</code>을 실행합니다.
+      보정 파일이 없으면 <code>auto</code> 실행 시 먼저 자동으로 보정합니다.</p></div>
+  </div>
+</section>
+
+<section class="ch op">
+  <div class="ch-head"><h2>사용 방법</h2><span class="tag">사용법</span></div>
+  <div class="ch-body">
+    <ol>
+      <li><b>WLKATA Studio를 닫습니다.</b> COM4는 한 프로그램만 사용할 수 있습니다.</li>
+      <li>VS Code에서 <code>Robot+3DCamera</code> 폴더를 열고, 실행 및 디버그에서 <b>Pick &amp; Place - AUTO</b>를
+        선택한 뒤 <kbd>F5</kbd>를 누릅니다. 또는 <code>d455_pick_place.py</code>를 열고 ▶를 누르면 AUTO로 실행됩니다.</li>
+      <li>블록을 작업판에 놓고 손을 치웁니다. 화면에 <b>WAIT</b> → <b>READY</b>가 표시된 뒤 집습니다.</li>
+    </ol>
+    <div class="tbl"><table>
+      <thead><tr><th>명령</th><th>기능</th></tr></thead>
+      <tbody>
+        <tr><td class="k">py -3.12 d455_pick_place.py auto</td><td>일반 사용: 검출, 집기, 놓기. 필요하면 먼저 보정</td></tr>
+        <tr><td class="k">py -3.12 d455_pick_place.py autocal</td><td>보정만 실행 (작업판 비우기), 끝나면 대기 자세</td></tr>
+        <tr><td class="k">py -3.12 d455_pick_place.py run --dry</td><td>카메라만 사용, 로봇 명령은 출력만 하고 움직이지 않음</td></tr>
+        <tr><td class="k">py -3.12 d455_pick_place.py calibrate</td><td>수동 보정 (클릭 + 조그), 선택 사항</td></tr>
+        <tr><td class="k">py -3.12 tools\height_check.py</td><td>블록/쌓은 블록의 높이 표시</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid2">
+      <div class="box op"><h3>카메라 창의 키</h3>
+        <ul>
+          <li><kbd>q</kbd> 정지: 흡착 OFF, 로봇 대기 자세</li>
+          <li><kbd>a</kbd> 자동 집기 켜기 / 끄기</li>
+          <li><kbd>g</kbd> 선택한 블록 바로 집기</li>
+          <li><kbd>n</kbd> 다음 블록 선택</li>
+          <li><kbd>c</kbd> 완료 목록 지우기 (제자리 놓기 모드)</li>
+        </ul></div>
+      <div class="box op"><h3>창의 상자 색</h3>
+        <ul>
+          <li><span class="chip op">초록</span> 집을 수 있음</li>
+          <li><span class="chip se">주황</span> 블록에 깊이 값 없음</li>
+          <li><span class="chip wa">빨강</span> 로봇 작업 범위 밖</li>
+          <li><span class="chip sw">회색</span> 이미 완료 (제자리 놓기 모드)</li>
+        </ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="ch se">
+  <div class="ch-head"><h2>d455_pick_place.py 상단 설정값</h2><span class="tag">설정값</span></div>
+  <div class="ch-body">
+    <div class="tbl"><table>
+      <thead><tr><th>분류</th><th>설정</th><th>값</th><th>의미</th></tr></thead>
+      <tbody>
+        <tr><td><span class="chip hw">로봇</span></td><td class="k">PORT</td><td class="k">"COM4"</td><td>로봇 시리얼 포트</td></tr>
+        <tr><td><span class="chip hw">로봇</span></td><td class="k">SPEED</td><td class="k num">2000</td><td>이동 속도</td></tr>
+        <tr><td><span class="chip op">놓기</span></td><td class="k">PLACE_MODE</td><td class="k">"taught"</td><td><code>"taught"</code> = 드롭 위치, <code>"same_spot"</code> = 제자리에 조금 높게</td></tr>
+        <tr><td><span class="chip op">놓기</span></td><td class="k">PLACE_JOINTS</td><td class="k num">(−70, 37, 15, 0, −50, 0)</td><td>WLKATA Studio의 드롭 위치 J1–J6</td></tr>
+        <tr><td><span class="chip op">놓기</span></td><td class="k">PLACE_UP_MM</td><td class="k num">15</td><td>제자리 모드에서만: 집은 높이보다 몇 mm 위에서 놓을지</td></tr>
+        <tr><td><span class="chip op">집기</span></td><td class="k">TIP_VISIBLE_OFFSET</td><td class="k num">−15</td><td>집는 높이 보정 mm (음수가 클수록 더 낮게)</td></tr>
+        <tr><td><span class="chip op">집기</span></td><td class="k">APPROACH_HEIGHT</td><td class="k num">40</td><td>내려가기 전 블록 위 높이 mm</td></tr>
+        <tr><td><span class="chip op">집기</span></td><td class="k">PRESS_DEPTH</td><td class="k num">2</td><td>블록 윗면을 누르는 깊이 mm</td></tr>
+        <tr><td><span class="chip me">대기</span></td><td class="k">STABLE_SEC</td><td class="k num">2.0</td><td>집기 전 움직임이 없어야 하는 시간(초)</td></tr>
+        <tr><td><span class="chip me">대기</span></td><td class="k">STABLE_MM</td><td class="k num">5</td><td>대기 중 블록이 움직여도 되는 거리 mm</td></tr>
+        <tr><td><span class="chip me">대기</span></td><td class="k">MOTION_FRACTION</td><td class="k num">0.003</td><td>움직임으로 판단하는 변화 화소 비율</td></tr>
+        <tr><td><span class="chip me">카메라</span></td><td class="k">DISPARITY_SHIFT</td><td class="k num">50</td><td>근거리 깊이 모드, <code>0</code> = 일반 모드</td></tr>
+        <tr><td><span class="chip me">카메라</span></td><td class="k">BLUE_LO / BLUE_HI</td><td class="k num">(95,120,50) / (130,255,255)</td><td>블록 색의 HSV 범위</td></tr>
+        <tr><td><span class="chip ca">보정</span></td><td class="k">AUTOCAL_Z</td><td class="k num">[150, 105, 65]</td><td>보정에 쓰는 팁 높이</td></tr>
+        <tr><td><span class="chip ca">보정</span></td><td class="k">TAUGHT_PICK_JOINTS</td><td class="k num">(55, 40, 10, 0, −35, −45)</td><td>높이 기준 자세</td></tr>
+        <tr><td><span class="chip ca">보정</span></td><td class="k">REF_BLOCK_HEIGHT</td><td class="k num">33</td><td>기준 자세 아래 블록 높이 mm</td></tr>
+        <tr><td><span class="chip wa">안전</span></td><td class="k">REACH_MIN / REACH_MAX</td><td class="k num">120 / 270</td><td>로봇 베이스로부터 허용 거리 mm</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="ch wa">
+  <div class="ch-head"><h2>해결한 문제와 다시 생길 때 조치</h2><span class="tag">안전 / 문제 해결</span></div>
+  <div class="ch-body">
+    <div class="tbl"><table>
+      <thead><tr><th>증상</th><th>원인</th><th>조치</th></tr></thead>
+      <tbody>
+        <tr><td><code>No module named 'pyrealsense2'</code></td><td>잘못된 파이썬 (3.14 또는 32비트)</td><td>스크립트가 자동으로 Python 3.12로 전환. 또는 VS Code에서 Python312 선택</td></tr>
+        <tr><td>VS Code ▶를 눌러도 아무 일 없음</td><td>실행 모드를 주지 않음</td><td>수정됨: 인수 없이 실행하면 AUTO</td></tr>
+        <tr><td>깊이 영상이 거의 검정 / 틀림</td><td>카메라가 너무 가까움, 타공판</td><td>33–65 cm 높이에 거치, 근거리 모드 켜기</td></tr>
+        <tr><td>쌓은 블록 높이가 낮게 측정 (64 대신 50 mm)</td><td>더미 윗면이 일반 깊이 모드에는 너무 가까움</td><td>근거리 모드 (<code>DISPARITY_SHIFT = 50</code>)</td></tr>
+        <tr><td>흡착컵이 블록 위에서 멈춤</td><td>집는 높이가 너무 높음</td><td><code>TIP_VISIBLE_OFFSET</code> −15 (조정 완료)</td></tr>
+        <tr><td>흡착컵이 중심에서 벗어남</td><td>블록 높이 근처의 보정점이 없었음</td><td>3단 높이 보정 + RANSAC</td></tr>
+        <tr><td>손이 아직 있을 때 집으려 함</td><td>첫 영상으로 바로 판단</td><td>2초 정지 대기 후 8장 평균으로 재측정</td></tr>
+        <tr><td>새 블록인데 "no block to pick"</td><td>완료 목록이 그 위치를 막음</td><td>완료 목록은 제자리 모드에서만 사용</td></tr>
+        <tr><td><code>Could not start the D455</code></td><td>다른 프로그램이 카메라 사용 중</td><td>다른 프로그램 종료. 카메라는 한 프로그램만 사용 가능</td></tr>
+        <tr><td>로봇이 응답하지 않음</td><td>COM4 사용 중</td><td>WLKATA Studio 또는 실행 중인 다른 복사본 종료</td></tr>
+      </tbody>
+    </table></div>
+    <div class="note wa"><b>안전 수칙</b><ul>
+      <li>설정을 바꾼 뒤 처음 실행할 때는 로봇 전원 스위치 가까이에 손을 두세요.</li>
+      <li>항상 <kbd>q</kbd>로 정지하세요. 흡착이 꺼지고 로봇이 대기 자세로 갑니다.</li>
+      <li>보정 전에는 블록을 모두 치우세요. 공구가 작업판 약 3 cm까지 내려갑니다.</li>
+      <li>카메라를 옮긴 뒤에는 집기 전에 반드시 다시 보정하세요.</li>
+    </ul></div>
+  </div>
+</section>
+
+<footer>Robot+3DCamera · D455 + WLKATA Mirobot · 보정 오차 0.9 mm · 블록 32 mm · 드롭 위치 (−70, 37, 15, 0, −50, 0)</footer>
+</div>

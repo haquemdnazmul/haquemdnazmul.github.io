@@ -1,0 +1,1840 @@
+﻿//============================================================================
+//  1조 2축 무게분류기 (2-axis weight sorter) - CLEAN SINGLE-PROGRAM LISTING
+//  Source : 1조_2축_무게분류기_20261117.xgwx  (XG5000, XGB/XGK instruction set)
+//  Merged : Basic_Operation, Coord_Address_Set, Operation, Error,
+//           Manual_Operation, Lamp  ->  ONE program, same scan order
+//============================================================================
+//
+//  HOW TO READ
+//   * Each block below is one ladder rung written as IL (mnemonic).
+//   * Text after "//" is a comment: the variable name from the project's
+//     variable table, or the original rung comment. Not part of the code.
+//   * Program order = original task order, so scan behaviour is unchanged.
+//   * To build it in XG5000: add one new scan program, switch it to IL view,
+//     and enter the instructions; XG5000 redraws the ladder automatically.
+//
+//  CLEAN-UP APPLIED (logic is otherwise 1:1 with the original)
+//   * 6 programs merged into 1, grouped into numbered sections.
+//   * Branches re-factored: common contacts written once, then MPUSH/MLOAD/MPOP.
+//   * Repeated contacts in one series path removed (X AND X = X).
+//   * Basic_Operation: duplicate "FN MOV,1,D00000" removed
+//   * Basic_Operation: duplicate "RST M00502" removed
+//   * Operation: 9 unfinished rung(s) removed - contacts with no output
+//     (P00001, P00002, P00003, P00004, P00005, P00006, P00007, P00008, P00009)
+//
+//  !! REVIEW - NOT CHANGED, PLEASE CHECK (probable bugs found while decoding)
+//   * P00024 (L_GL) has 3 OUT coils - only the last one counts
+//   * P00022 (L_RL) has 2 OUT coils - only the last one counts
+//   * P00023 (L_YL) has 2 OUT coils - only the last one counts
+//     Fix idea: build one condition per lamp (OR the cases together) and keep
+//     a single OUT per output; use internal M relays for the intermediate cases.
+//   * [028] SET R_STOP_ERR (M00501) when D_ERR_CODE = 0, i.e. when there is NO
+//     error. Section 4 also sets it when D_ERR_CODE <> 0, so M00501 is always
+//     ON. Was this meant to be RST?
+//   * [080] At STEP_SORT = 8 the XCHGP swaps are not gated by SG_PLACE_DONE
+//     (M00053), unlike the three other swap blocks, so the weight table is
+//     swapped as soon as the place starts.
+//   * [040] OUT M00001 / M00002 (HMI buttons B_SV_OFF / B_SV_CLR) inside the
+//     factory-reset rung: the PLC forces these HMI bits OFF every scan when
+//     factory reset is not pressed.
+//
+//----------------------------------------------------------------------------
+//  DEVICE TABLE (devices used in this program that have a name)
+//----------------------------------------------------------------------------
+//  D00000     D_OP_MODE              Operation mode
+//  D00009     D_LOAD_ITEM_NO         Number of the item being loaded
+//  D00010     STEP_MOVE              
+//  D00011     STEP_SORT              
+//  D00012     STEP_PICK_PLACE        Step: pick and place
+//  D00013     STEP_INIT              Step: initialization
+//  D00020     D_POS_PLACE_NO         Position: place number
+//  D00021     D_POS_RACK_ITEM        Position: item to be moved to the rack
+//  D00022     D_POS_RACK_NO          Position: holding rack number
+//  D00023     D_POS_EMPTY_ITEM       Position: item assigned to the empty slot
+//  D00025     D_POS_EMPTY            Position: empty slot
+//  D00026     D_ADDR_INIT            Address initialization
+//  D00027     D_DONE_COUNT           Completed item count
+//  D00030     D_IN_WORK_QTY          Input: work quantity
+//  D00080     D_WT_PICKING           Weight of item being picked up
+//  D00100     D_X2                   
+//  D00102     D_Y2                   
+//  D00104     D_X3                   
+//  D00106     D_Y3                   
+//  D00108     D_PICK_Y               Pickup position Y
+//  D00110     D_PICK_X               Pickup position X
+//  D00200     D_WT_1                 Weight of the item at position 1
+//  D00202     D_WT_2                 Weight of the item at position 2
+//  D00204     D_WT_3                 Weight of the item at position 3
+//  D00206     D_WT_4                 Weight of the item at position 4
+//  D00208     D_WT_5                 Weight of the item at position 5
+//  D00210     D_WT_6                 Weight of the item at position 6
+//  D00212     D_WT_7                 Weight of the item at position 7
+//  D00214     D_WT_8                 Weight of the item at position 8
+//  D00216     D_WT_9                 Weight of the item at position 9
+//  D00220     D_WT_1_SORT            Sorted weight 1
+//  D00222     D_WT_2_SORT            Sorted weight 2
+//  D00224     D_WT_3_SORT            Sorted weight 3
+//  D00226     D_WT_4_SORT            Sorted weight 4
+//  D00228     D_WT_5_SORT            Sorted weight 5
+//  D00230     D_WT_6_SORT            Sorted weight 6
+//  D00232     D_WT_7_SORT            Sorted weight 7
+//  D00234     D_WT_8_SORT            Sorted weight 8
+//  D00245     D_SORT_WT_DONE         Sorted weight values (complete)
+//  D00400     D_LC_WEIGHT            Loadcell weight value
+//  D00401     D_ERR_CODE             Error code
+//  D00410     D_LC_ERR_CODE          Loadcell error code
+//  D00411     SG_ERR1                Signal: error 1
+//  D00412     SG_ERR2                Signal: error 2
+//  D00413     SG_ERR3                Signal: error 3
+//  D00414     SG_ERR4                Signal: error 4
+//  D00415     SG_ERR5                Signal: error 5
+//  D00416     SG_ERR6                Signal: error 6
+//  D00417     SG_ERR7                Signal: error 7
+//  D00418     SG_ERR8                Signal: error 8
+//  D00419     SG_ERR9                Signal: error 9
+//  D01004     D_SV_AX1_CUR_POS       Servo axis 1 current position
+//  D02004     D_SV_AX2_CUR_POS       Servo axis 2 current position
+//  D01000.2   SG_SV_POS_DONE         Signal: servo positioning complete
+//  F00093     _T1S                   System: 1 s clock
+//  F00099     _ON                    System: always ON
+//  F0009B     _1ON                   System: ON for the first scan only
+//  M00000     B_SV_CONNECT           Button: servo connect
+//  M00001     B_SV_OFF               Button: servo OFF
+//  M00002     B_SV_CLR               Button: servo error clear
+//  M00003     B_SV_HOME              Button: servo return to origin
+//  M00005     B_SV_STAGE_1           Button: servo stage 1
+//  M00006     B_SV_STAGE_2           Button: servo stage 2
+//  M00007     B_SV_STAGE_3           Button: servo stage 3
+//  M00008     B_SV_STAGE_4           Button: servo stage 4
+//  M00009     B_SV_STAGE_5           Button: servo stage 5
+//  M0000C     B_SV_AX1_CW            Button: servo axis 1 CW
+//  M0000D     B_SV_AX1_CCW           Button: servo axis 1 CCW
+//  M0000E     B_SV_AX2_CW            Button: servo axis 2 CW
+//  M0000F     B_SV_AX2_CCW           Button: servo axis 2 CCW
+//  M00010     B_SET_PLACE_POS        Button: set place position
+//  M00020     B_SET_PICK_POS         Button: set pickup position
+//  M00021     SG_PICK_POS_SET        Signal: pickup position set
+//  M00022     SG_LOAD_POS_SET        Signal: load position set
+//  M00024     B_SORT                 Button: sort
+//  M00025     B_FACTORY_RESET        Button: factory reset
+//  M00026     B_MAN_PICK             Button: manual pickup
+//  M00027     B_MAN_PLACE            Button: manual place
+//  M00028     B_EMG_HMI              Button: emergency stop (HMI)
+//  M00029     B_INIT                 Button: initialize
+//  M0002A     B_START                Button: start
+//  M0002B     B_ERR_RESET            Button: error reset
+//  M0002C     B_AUTO_MODE            Button: auto mode
+//  M0002D     B_MANUAL_MODE          Button: manual mode
+//  M0002E     B_PAUSE                Button: pause
+//  M0002F     B_RESTART              Button: restart
+//  M00030     SG_LOAD_DONE           Signal: loading complete
+//  M00032     SG_ITEM_READY          Signal: item ready
+//  M00033     SG_CAL_SAVE_DONE       Signal: calibration value saved
+//  M0003A     S_RACK_ON              Holding rack sensor ON
+//  M00040     R_SORT                 SORT command
+//  M00041     SG_SORT_DONE           Signal: sort complete
+//  M00044     SG_REARR_DONE          Signal: SORT rearrangement complete
+//  M00045     R_INIT                 Initialize
+//  M00046     R_FACTORY_RESET        Factory reset
+//  M00050     R_PICK                 Pickup command
+//  M00051     SG_PICK_DONE           Pickup complete signal
+//  M00052     R_PLACE                Place command
+//  M00053     SG_PLACE_DONE          Place complete signal
+//  M00054     SG_CYL_OFF             Signal: cylinder OFF
+//  M00060     B_MAN_PICK_POS         Button: manual move to pickup position
+//  M00061     B_MAN_POS_1            Button: manual move to position 1
+//  M00062     B_MAN_POS_2            Button: manual move to position 2
+//  M00063     B_MAN_POS_3            Button: manual move to position 3
+//  M00064     B_MAN_POS_4            Button: manual move to position 4
+//  M00065     B_MAN_POS_5            Button: manual move to position 5
+//  M00066     B_MAN_POS_6            Button: manual move to position 6
+//  M00067     B_MAN_POS_7            Button: manual move to position 7
+//  M00068     B_MAN_POS_8            Button: manual move to position 8
+//  M00069     B_MAN_POS_9            Button: manual move to position 9
+//  M00099     Emergency              
+//  M00100     R_LAMP_LOAD_OK         Lamp: ready to load item
+//  M00301     B_LC_2PT_CAL           Button: loadcell 2-point calibration
+//  M00302     B_LC_ZERO_CAL          Button: loadcell zero calibration
+//  M00303     B_LC_SPAN_CAL          Button: loadcell span calibration
+//  M00304     B_LC_CAL_SAVE          Button: loadcell save calibration value
+//  M00306     B_LC_CAL_DONE          Button: loadcell calibration complete
+//  M00500     M_STOP                 Stop
+//  M00501     R_STOP_ERR             Stop by error
+//  M00502     R_STOP_BTN             Stop by button
+//  P00001     S_POS_1                Proximity sensor No. 1
+//  P00002     S_POS_2                Proximity sensor No. 2
+//  P00003     S_POS_3                Proximity sensor No. 3
+//  P00004     S_POS_4                Proximity sensor No. 4
+//  P00005     S_POS_5                Proximity sensor No. 5
+//  P00006     S_POS_6                Proximity sensor No. 6
+//  P00007     S_POS_7                Proximity sensor No. 7
+//  P00008     S_POS_8                Proximity sensor No. 8
+//  P00009     S_POS_9                Proximity sensor No. 9
+//  P0000C     B_EMG_PHYSICAL         Button: emergency stop (physical)
+//  P0000D     S_CYL_FWD              Cylinder forward sensor
+//  P0000E     S_CYL_BWD              Cylinder backward sensor
+//  P0000F     S_SUCTION              Suction sensor
+//  P00020     P_CYL_FWD_CMD          Cylinder forward command
+//  P00021     P_SUCTION_CMD          Suction command
+//  P00022     L_RL                   
+//  P00023     L_YL                   
+//  P00024     L_GL                   
+//  S001.00    STEP_SET_LOADPOS       Step: set load position
+//  T0001      T_PICK_PLACE           Timer: pick and place
+//  T0002      T_ERR_CYL_FWD          Timer: cylinder forward error
+//  T0003      T_ERR_CYL_BWD          Timer: cylinder backward error
+//  T0004      T_ERR_SUCTION          Timer: suction error
+//  T1000      T_SET_LOAD_POS         Timer for load position input
+//  T1001      T_FACTORY_RESET        Timer: factory reset
+//  U03.06     _03_CH0_GWDATA_L       Loadcell input module: CH0 gross weight value (low)
+//  U02.00.0   _02_A1_RDY             Positioning module: Axis 1 Ready
+//  U02.00.1   _02_A2_RDY             Positioning module: Axis 2 Ready
+//  U02.01.0   _02_A1_JOG_CW          Positioning module: Axis 1 forward jog
+//  U02.01.1   _02_A1_JOG_CCW         Positioning module: Axis 1 reverse jog
+//  U02.01.4   _02_A2_JOG_CW          Positioning module: Axis 2 forward jog
+//  U02.01.5   _02_A2_JOG_CCW         Positioning module: Axis 2 reverse jog
+//  U03.00.0   _03_ERR                Loadcell input module: Module error
+//  U03.00.F   _03_RDY                Loadcell input module: Module Ready
+//  U03.01.0   _03_CH0_RUN            Loadcell input module: CH0 running
+//  U03.01.8   _03_CH0_CALMOD         Loadcell input module: CH0 calibration mode
+//  U03.01.E   _03_CH0_ERR            Loadcell input module: CH0 error
+//  U03.02.0   _03_CH0_STBL           Loadcell input module: CH0 stable status
+//  U03.03.0   _03_CH0_ZCALEND        Loadcell input module: CH0 zero calibration complete
+//  U03.03.2   _03_CH0_SCALEND        Loadcell input module: CH0 span calibration complete
+//  U03.03.4   _03_CH0_CALEND         Loadcell input module: CH0 calibration save complete
+//  U03.29.2   _03_CH0_CAL2REQ        Loadcell input module: CH0 2-point calibration mode request
+//  U03.30.0   _03_CH0_ZCALREQ        Loadcell input module: CH0 zero calibration command
+//  U03.30.2   _03_CH0_SCALREQ        Loadcell input module: CH0 span calibration command
+//  U03.30.4   _03_CH0_CALSTORE       Loadcell input module: CH0 save calibration value command
+
+
+//############################################################################
+//  SECTION 1. BASIC OPERATION
+//############################################################################
+
+// [001] Emergercy Stop
+LOAD      P0000C                  // B_EMG_PHYSICAL
+OR        M00028                  // B_EMG_HMI
+OUT       M00099                  // Emergency
+XDCON     2 1
+RST       M00003                  // B_SV_HOME
+
+// [002]
+LOAD      M00099                  // Emergency
+AND NOT   T0998
+TON       T0999 10
+TON       T0998 20
+MOV       0 D00010                // STEP_MOVE
+MOV       0 D00011                // STEP_SORT
+MOV       0 D00013                // STEP_INIT
+
+// [003]
+LOAD      F00099                  // _ON
+MOV       P0000 M0051
+MOV       P0002 M0052
+
+// [004] Servo_Data load
+LOAD NOT  M00099                  // Emergency
+AND       F00099                  // _ON
+XSRD      2 1 D01000
+XSRD      2 2 D02000
+
+// [005] Servo_System
+LOAD NOT  M00099                  // Emergency
+MPUSH     
+AND       M00000                  // B_SV_CONNECT
+XECON     2 1
+MLOAD     
+AND       U02.00.0                // _02_A1_RDY
+XSVON     2 1
+MLOAD     
+AND       U02.00.1                // _02_A2_RDY
+XSVON     2 2
+MLOAD     
+AND       M00001                  // B_SV_OFF
+XDCON     2 1
+MPOP      
+AND       M00002                  // B_SV_CLR
+XCLR      2 1 0
+XCLR      2 1 1
+XCLR      2 2 0
+XCLR      2 2 1
+
+// [006]
+LOAD NOT  M00099                  // Emergency
+AND       M00003                  // B_SV_HOME
+AND=      D00010 0                // STEP_MOVE
+XORG      2 1
+XORG      2 2
+
+// [007] Servo_Jog
+LOAD      M0000C                  // B_SV_AX1_CW
+OUT       U02.01.0                // _02_A1_JOG_CW
+
+// [008]
+LOAD      M0000D                  // B_SV_AX1_CCW
+OUT       U02.01.1                // _02_A1_JOG_CCW
+
+// [009]
+LOAD      M0000E                  // B_SV_AX2_CW
+OUT       U02.01.4                // _02_A2_JOG_CW
+
+// [010]
+LOAD      M0000F                  // B_SV_AX2_CCW
+OUT       U02.01.5                // _02_A2_JOG_CCW
+
+// [011]
+LOAD      M00005                  // B_SV_STAGE_1
+XSMP      2 1 100000 2 0
+XSMP      2 2 100000 2 0
+
+// [012]
+LOAD      M00006                  // B_SV_STAGE_2
+XSMP      2 1 300000 2 0
+XSMP      2 2 300000 2 0
+
+// [013]
+LOAD      M00007                  // B_SV_STAGE_3
+XSMP      2 1 500000 2 0
+XSMP      2 2 500000 2 0
+
+// [014]
+LOAD      M00008                  // B_SV_STAGE_4
+XSMP      2 1 1000000 2 0
+XSMP      2 2 1000000 2 0
+
+// [015]
+LOAD      M00009                  // B_SV_STAGE_5
+XSMP      2 1 1500000 2 0
+XSMP      2 2 1500000 2 0
+
+// [016] Loadcell_Parameters
+LOAD NOT  M00099                  // Emergency
+AND       F0009B                  // _1ON
+PUT       3 0 1 1
+PUT       3 62 1000 1
+PUT       3 64 200 1
+PUT       3 66 h0067 1
+PUT       3 67 0 1
+PUT       3 68 0 1
+PUT       3 69 2000 1
+
+// [017] Loadcell_Error code
+LOAD      F00099                  // _ON
+GET       3 76 D00410 1           // D_LC_ERR_CODE
+
+// [018] Loadcell_2-point calibration
+LOADP     M00301                  // B_LC_2PT_CAL
+SET       U03.29.2                // _03_CH0_CAL2REQ
+
+// [019]
+LOAD      U03.01.8                // _03_CH0_CALMOD
+ANDP      M00302                  // B_LC_ZERO_CAL
+SET       U03.30.0                // _03_CH0_ZCALREQ
+
+// [020]
+LOAD      U03.03.0                // _03_CH0_ZCALEND
+ANDP      M00303                  // B_LC_SPAN_CAL
+SET       U03.30.2                // _03_CH0_SCALREQ
+
+// [021]
+LOAD      U03.03.2                // _03_CH0_SCALEND
+ANDP      M00304                  // B_LC_CAL_SAVE
+SET       U03.30.4                // _03_CH0_CALSTORE
+
+// [022]
+LOADP     U03.03.4                // _03_CH0_CALEND
+ORP       M00306                  // B_LC_CAL_DONE
+RST       U03.29.2                // _03_CH0_CAL2REQ
+RST       U03.30.0                // _03_CH0_ZCALREQ
+RST       U03.30.2                // _03_CH0_SCALREQ
+RST       U03.30.4                // _03_CH0_CALSTORE
+
+// [023]
+LOADP     U03.03.4                // _03_CH0_CALEND
+SET       M00033                  // SG_CAL_SAVE_DONE
+
+// [024] Loadcell_Weight value
+LOAD NOT  M00601
+AND NOT   U03.01.E                // _03_CH0_ERR
+AND NOT   U03.00.0                // _03_ERR
+AND       U03.02.0                // _03_CH0_STBL
+AND       U03.01.0                // _03_CH0_RUN
+MOV       U03.06 D00400           // _03_CH0_GWDATA_L, D_LC_WEIGHT
+
+// [025] Change operation state
+LOAD NOT  M00099                  // Emergency
+MPUSH     
+LOAD      F0009B                  // _1ON
+OR        M0002C                  // B_AUTO_MODE
+AND LOAD  
+MOV       1 D00000                // D_OP_MODE
+MLOAD     
+AND       M0002D                  // B_MANUAL_MODE
+MOV       2 D00000                // D_OP_MODE
+MPOP      
+AND       M0002E                  // B_PAUSE
+MOV       3 D00000                // D_OP_MODE
+XSTP      2 1 100
+XSTP      2 2 100
+SET       M00502                  // R_STOP_BTN
+
+// [026]
+LOAD      M00502                  // R_STOP_BTN
+OR<>      D00000 1                // D_OP_MODE
+OUT       M00500                  // M_STOP
+
+// [027]
+LOAD NOT  M00099                  // Emergency
+AND=      D00000 3                // D_OP_MODE
+AND       M0002F                  // B_RESTART
+MOV       1 D00000                // D_OP_MODE
+RST       M00502                  // R_STOP_BTN
+
+// [028]
+LOAD=     0 D00401                // D_ERR_CODE
+SET       M00501                  // R_STOP_ERR
+
+// [029] Restart and initialize while stopped
+//       - Init 1 : clear data
+//       - Init 2 : clear loaded items
+LOAD NOT  M00099                  // Emergency
+AND=      D00000 3                // D_OP_MODE
+LOAD      M00029                  // B_INIT
+OR        M00025                  // B_FACTORY_RESET
+AND LOAD  
+SET       M00045                  // R_INIT
+FMOV      0 D00009 80             // D_LOAD_ITEM_NO
+FMOV      0 D00200 36             // D_WT_1
+RST       M00040                  // R_SORT
+
+// [030]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 0                // STEP_INIT
+AND       M00045                  // R_INIT
+MPUSH     
+TON       T0010 20
+MPOP      
+AND       T0010
+AND<      D00400 20               // D_LC_WEIGHT
+MPUSH     
+AND NOT   P00021                  // P_SUCTION_CMD
+MOV       3 D00013                // STEP_INIT
+MPOP      
+AND       P00021                  // P_SUCTION_CMD
+MOV       1 D00013                // STEP_INIT
+
+// [031]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 1                // STEP_INIT
+MPUSH     
+XIST      2 1 10
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       2 D00013                // STEP_INIT
+
+// [032]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 2                // STEP_INIT
+MPUSH     
+SET       M00052                  // R_PLACE
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MOV       2 D00013                // STEP_INIT
+
+// [033]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 3                // STEP_INIT
+MPUSH     
+TON       T0011 10
+MPOP      
+AND       T0011
+AND<      D00400 20               // D_LC_WEIGHT
+MPUSH     
+AND       P00001                  // S_POS_1
+MOV       1 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00002                  // S_POS_2
+MOV       2 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00003                  // S_POS_3
+MOV       3 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00004                  // S_POS_4
+MOV       4 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00005                  // S_POS_5
+MOV       5 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00006                  // S_POS_6
+MOV       6 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00007                  // S_POS_7
+MOV       7 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00008                  // S_POS_8
+MOV       8 D00026                // D_ADDR_INIT
+MLOAD     
+AND       P00009                  // S_POS_9
+MOV       9 D00026                // D_ADDR_INIT
+MPOP      
+MOV       4 D00013                // STEP_INIT
+
+// [034]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 4                // STEP_INIT
+MPUSH     
+XIST      2 1 D00026              // D_ADDR_INIT
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       5 D00013                // STEP_INIT
+
+// [035]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 5                // STEP_INIT
+MPUSH     
+SET       M00050                  // R_PICK
+MPOP      
+AND       M00051                  // SG_PICK_DONE
+RST       M00050                  // R_PICK
+RST       M00051                  // SG_PICK_DONE
+MOV       6 D00013                // STEP_INIT
+
+// [036]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 6                // STEP_INIT
+MPUSH     
+XIST      2 1 10
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       7 D00013                // STEP_INIT
+
+// [037]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 7                // STEP_INIT
+MPUSH     
+SET       M00052                  // R_PLACE
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MOV       8 D00013                // STEP_INIT
+
+// [038]
+LOAD NOT  M00099                  // Emergency
+AND=      D00013 8                // STEP_INIT
+MPUSH     
+LOAD      P00001                  // S_POS_1
+OR        P00002                  // S_POS_2
+OR        P00003                  // S_POS_3
+OR        P00004                  // S_POS_4
+OR        P00005                  // S_POS_5
+OR        P00006                  // S_POS_6
+OR        P00007                  // S_POS_7
+OR        P00008                  // S_POS_8
+OR        P00009                  // S_POS_9
+AND LOAD  
+MOV       3 D00013                // STEP_INIT
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+AND NOT   P00006                  // S_POS_6
+AND NOT   P00007                  // S_POS_7
+AND NOT   P00008                  // S_POS_8
+AND NOT   P00009                  // S_POS_9
+MOV       0 D00013                // STEP_INIT
+RST       M00045                  // R_INIT
+XORG      2 1
+XORG      2 2
+MOV       3 D00013                // STEP_INIT
+
+// [039] Admin mode factory reset
+LOAD NOT  M00099                  // Emergency
+AND       M00025                  // B_FACTORY_RESET
+MPUSH     
+SET       M00046                  // R_FACTORY_RESET
+MPOP      
+AND       M00046                  // R_FACTORY_RESET
+TOFF      T1001 15                // T_FACTORY_RESET
+
+// [040]
+LOAD      M00025                  // B_FACTORY_RESET
+XSMD      2 1 0 1 1 0
+XSMD      2 2 0 1 1 0
+XSMD      2 1 0 1 2 0
+XSMD      2 2 0 1 2 0
+XSMD      2 1 0 1 3 0
+XSMD      2 2 0 1 3 0
+XSMD      2 1 0 1 4 0
+XSMD      2 2 0 1 4 0
+XSMD      2 1 0 1 5 0
+XSMD      2 2 0 1 5 0
+XSMD      2 1 0 1 6 0
+XSMD      2 2 0 1 6 0
+XSMD      2 1 0 1 7 0
+XSMD      2 2 0 1 7 0
+XSMD      2 1 0 1 8 0
+XSMD      2 2 0 1 8 0
+XSMD      2 1 0 1 9 0
+XSMD      2 2 0 1 9 0
+XSMD      2 1 0 1 10 0
+XSMD      2 2 0 1 10 0
+RST       M00033                  // SG_CAL_SAVE_DONE
+FMOV      0 D00100 12             // D_X2
+OUT       M00002                  // B_SV_CLR
+OUT       M00001                  // B_SV_OFF
+XDCON     2 1
+RST       M00022                  // SG_LOAD_POS_SET
+RST       M00021                  // SG_PICK_POS_SET
+MOV       0 D00030                // D_IN_WORK_QTY
+MOV       0 D00027                // D_DONE_COUNT
+MOV       0 D00010                // STEP_MOVE
+RST       M00050                  // R_PICK
+RST       M00052                  // R_PLACE
+RST       P00020                  // P_CYL_FWD_CMD
+TOFF      T0099 60
+TOFF      T0098 40
+
+// [041]
+LOAD NOT  M00099                  // Emergency
+AND NOT   M00025                  // B_FACTORY_RESET
+AND       T0099
+MPUSH     
+XECON     2 1
+XSVON     2 1
+XSVON     2 2
+MLOAD     
+AND NOT   T0098
+XORG      2 1
+MLOAD     
+AND NOT   T0098
+XORG      2 2
+MPOP      
+SET       M00003                  // B_SV_HOME
+
+//############################################################################
+//  SECTION 2. COORD ADDRESS SET
+//############################################################################
+
+// [042] Set coordinates_Pickup position
+LOADP     M00020                  // B_SET_PICK_POS
+XSMD      2 1 D01004 1 10 0       // D_SV_AX1_CUR_POS
+XSMD      2 2 D02004 1 10 0       // D_SV_AX2_CUR_POS
+DMOV      D01004 D00108           // D_SV_AX1_CUR_POS, D_PICK_Y
+DMOV      D02004 D00110           // D_SV_AX2_CUR_POS, D_PICK_X
+
+// [043]
+LOADN     M00020                  // B_SET_PICK_POS
+XSMD      2 1 800000 3 10 0
+XSMD      2 2 800000 3 10 0
+SET       M00021                  // SG_PICK_POS_SET
+
+// [044] Set coordinates_Load position
+LOAD      S001.00                 // STEP_SET_LOADPOS
+ANDP      M00010                  // B_SET_PLACE_POS
+SET       S001.01
+DADD      -1000000 D01004 D00102  // D_SV_AX1_CUR_POS, D_Y2
+DADD      -2000000 D01004 D00106  // D_SV_AX1_CUR_POS, D_Y3
+DADD      -1200000 D02004 D00100  // D_SV_AX2_CUR_POS, D_X2
+DADD      -2400000 D02004 D00104  // D_SV_AX2_CUR_POS, D_X3
+
+// [045]
+LOAD      S001.01
+MPUSH     
+TON       T1000 10                // T_SET_LOAD_POS
+MLOAD     
+AND=      T1000 1                 // T_SET_LOAD_POS
+XSMD      2 2 D02004 1 1 0        // D_SV_AX2_CUR_POS
+XSMD      2 1 D01004 1 1 0        // D_SV_AX1_CUR_POS
+MLOAD     
+AND=      T1000 2                 // T_SET_LOAD_POS
+XSMD      2 2 D00100 1 2 0        // D_X2
+XSMD      2 1 D01004 1 2 0        // D_SV_AX1_CUR_POS
+MLOAD     
+AND=      T1000 3                 // T_SET_LOAD_POS
+XSMD      2 2 D00104 1 3 0        // D_X3
+XSMD      2 1 D01004 1 3 0        // D_SV_AX1_CUR_POS
+MLOAD     
+AND=      T1000 4                 // T_SET_LOAD_POS
+XSMD      2 2 D02004 1 4 0        // D_SV_AX2_CUR_POS
+XSMD      2 1 D00102 1 4 0        // D_Y2
+MLOAD     
+AND=      T1000 5                 // T_SET_LOAD_POS
+XSMD      2 2 D00100 1 5 0        // D_X2
+XSMD      2 1 D00102 1 5 0        // D_Y2
+MLOAD     
+AND=      T1000 6                 // T_SET_LOAD_POS
+XSMD      2 2 D00104 1 6 0        // D_X3
+XSMD      2 1 D00102 1 6 0        // D_Y2
+MLOAD     
+AND=      T1000 7                 // T_SET_LOAD_POS
+XSMD      2 2 D02004 1 7 0        // D_SV_AX2_CUR_POS
+XSMD      2 1 D00106 1 7 0        // D_Y3
+MLOAD     
+AND=      T1000 8                 // T_SET_LOAD_POS
+XSMD      2 2 D00100 1 8 0        // D_X2
+XSMD      2 1 D00106 1 8 0        // D_Y3
+MLOAD     
+AND=      T1000 9                 // T_SET_LOAD_POS
+XSMD      2 2 D00104 1 9 0        // D_X3
+XSMD      2 1 D00106 1 9 0        // D_Y3
+MPOP      
+ANDP      T1000                   // T_SET_LOAD_POS
+SET       S001.00                 // STEP_SET_LOADPOS
+SET       M00022                  // SG_LOAD_POS_SET
+
+// [046] Set address_D21 : item to move to the holding rack during rearrangement
+LOAD<>    D00214 D00234           // D_WT_8, D_WT_8_SORT
+MOV       8 D00021                // D_POS_RACK_ITEM
+
+// [047]
+LOAD<>    D00212 D00232           // D_WT_7, D_WT_7_SORT
+MOV       7 D00021                // D_POS_RACK_ITEM
+
+// [048]
+LOAD<>    D00210 D00230           // D_WT_6, D_WT_6_SORT
+MOV       6 D00021                // D_POS_RACK_ITEM
+
+// [049]
+LOAD<>    D00208 D00228           // D_WT_5, D_WT_5_SORT
+MOV       5 D00021                // D_POS_RACK_ITEM
+
+// [050]
+LOAD<>    D00206 D00226           // D_WT_4, D_WT_4_SORT
+MOV       4 D00021                // D_POS_RACK_ITEM
+
+// [051]
+LOAD<>    D00204 D00224           // D_WT_3, D_WT_3_SORT
+MOV       3 D00021                // D_POS_RACK_ITEM
+
+// [052]
+LOAD<>    D00202 D00222           // D_WT_2, D_WT_2_SORT
+MOV       2 D00021                // D_POS_RACK_ITEM
+
+// [053]
+LOAD<>    D00200 D00220           // D_WT_1, D_WT_1_SORT
+MOV       1 D00021                // D_POS_RACK_ITEM
+
+// [054] Set address_D22 : rack position
+LOAD      F00099                  // _ON
+AND<=3    1 D00030 8              // D_IN_WORK_QTY
+AND=      D00010 0                // STEP_MOVE
+ADD       1 D00030 D00022         // D_IN_WORK_QTY, D_POS_RACK_NO
+
+// [055] Set address_D23 : current address of the item whose weight equals { the weight of the item that belongs in the empty slot (D25) }
+LOAD=     D00025 8                // D_POS_EMPTY
+DSCH      D00234 D00200 D00023 9  // D_WT_8_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [056]
+LOAD=     D00025 7                // D_POS_EMPTY
+DSCH      D00232 D00200 D00023 9  // D_WT_7_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [057]
+LOAD=     D00025 6                // D_POS_EMPTY
+DSCH      D00230 D00200 D00023 9  // D_WT_6_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [058]
+LOAD=     D00025 5                // D_POS_EMPTY
+DSCH      D00228 D00200 D00023 9  // D_WT_5_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [059]
+LOAD=     D00025 4                // D_POS_EMPTY
+DSCH      D00226 D00200 D00023 9  // D_WT_4_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [060]
+LOAD=     D00025 3                // D_POS_EMPTY
+DSCH      D00224 D00200 D00023 9  // D_WT_3_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [061]
+LOAD=     D00025 2                // D_POS_EMPTY
+DSCH      D00222 D00200 D00023 9  // D_WT_2_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [062]
+LOAD=     D00025 1                // D_POS_EMPTY
+DSCH      D00220 D00200 D00023 9  // D_WT_1_SORT, D_WT_1, D_POS_EMPTY_ITEM
+
+// [063] Set address_D25 : position of the currently empty slot
+//       D30 = 8
+LOAD=     D00030 8                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND NOT   P00008                  // S_POS_8
+MOV       8 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND NOT   P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       7 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND NOT   P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       6 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       5 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       4 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+AND       P00008                  // S_POS_8
+MOV       1 D00025                // D_POS_EMPTY
+
+// [064] D30 = 7
+LOAD=     D00030 7                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND NOT   P00007                  // S_POS_7
+MOV       7 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND NOT   P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       6 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       5 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       4 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+AND       P00007                  // S_POS_7
+MOV       1 D00025                // D_POS_EMPTY
+
+// [065] D30 = 6
+LOAD=     D00030 6                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND NOT   P00006                  // S_POS_6
+MOV       6 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+MOV       5 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+MOV       4 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+AND       P00006                  // S_POS_6
+MOV       1 D00025                // D_POS_EMPTY
+
+// [066] D30 = 5
+LOAD=     D00030 5                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+MOV       5 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+MOV       4 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+AND       P00005                  // S_POS_5
+MOV       1 D00025                // D_POS_EMPTY
+
+// [067] D30 = 4
+LOAD=     D00030 4                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+MOV       4 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+AND       P00004                  // S_POS_4
+MOV       1 D00025                // D_POS_EMPTY
+
+// [068] D30 = 3
+LOAD=     D00030 3                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+MOV       3 D00025                // D_POS_EMPTY
+MLOAD     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+AND       P00003                  // S_POS_3
+MOV       1 D00025                // D_POS_EMPTY
+
+// [069] D30 = 2
+LOAD=     D00030 2                // D_IN_WORK_QTY
+MPUSH     
+AND       P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+MOV       2 D00025                // D_POS_EMPTY
+MPOP      
+AND NOT   P00001                  // S_POS_1
+AND       P00002                  // S_POS_2
+MOV       1 D00025                // D_POS_EMPTY
+
+// [070] D30 = 1
+LOAD=     D00030 1                // D_IN_WORK_QTY
+AND NOT   P00001                  // S_POS_1
+MOV       1 D00025                // D_POS_EMPTY
+
+//############################################################################
+//  SECTION 3. OPERATION
+//############################################################################
+
+// [071]
+LOAD      M00099                  // Emergency
+RST       P00020                  // P_CYL_FWD_CMD
+RST       P00021                  // P_SUCTION_CMD
+
+// [072] Pick&Place command : cylinder, suction operation
+LOAD NOT  M00099                  // Emergency
+LOAD NOT  M00500                  // M_STOP
+OR        M00045                  // R_INIT
+OR=       D00000 2                // D_OP_MODE
+AND LOAD  
+MPUSH     
+AND=      D00012 0                // STEP_PICK_PLACE
+LOAD      M00050                  // R_PICK
+OR        M00052                  // R_PLACE
+AND LOAD  
+MOV       1 D00012                // STEP_PICK_PLACE
+MLOAD     
+AND=      D00012 1                // STEP_PICK_PLACE
+MPUSH     
+SET       P00020                  // P_CYL_FWD_CMD
+MPOP      
+AND       P0000D                  // S_CYL_FWD
+MOV       2 D00012                // STEP_PICK_PLACE
+MLOAD     
+AND=      D00012 2                // STEP_PICK_PLACE
+MPUSH     
+AND       M00050                  // R_PICK
+MPUSH     
+SET       P00021                  // P_SUCTION_CMD
+MPOP      
+AND       P0000F                  // S_SUCTION
+MOV       3 D00012                // STEP_PICK_PLACE
+MPOP      
+AND       M00052                  // R_PLACE
+MPUSH     
+RST       P00021                  // P_SUCTION_CMD
+MLOAD     
+AND NOT   P0000F                  // S_SUCTION
+TON       T0001 5                 // T_PICK_PLACE
+MPOP      
+AND       T0001                   // T_PICK_PLACE
+MOV       3 D00012                // STEP_PICK_PLACE
+MLOAD     
+AND=      D00012 3                // STEP_PICK_PLACE
+MPUSH     
+RST       P00020                  // P_CYL_FWD_CMD
+MPOP      
+AND       P0000E                  // S_CYL_BWD
+MOV       4 D00012                // STEP_PICK_PLACE
+MPOP      
+AND=      D00012 4                // STEP_PICK_PLACE
+MPUSH     
+AND       M00050                  // R_PICK
+MPUSH     
+SET       M00051                  // SG_PICK_DONE
+MPOP      
+AND       M00051                  // SG_PICK_DONE
+MOV       0 D00012                // STEP_PICK_PLACE
+MPOP      
+AND       M00052                  // R_PLACE
+MPUSH     
+SET       M00053                  // SG_PLACE_DONE
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+MOV       0 D00012                // STEP_PICK_PLACE
+
+// [073] MOVE : 1. Load
+LOAD NOT  M00500                  // M_STOP
+MPUSH     
+AND=      D00010 0                // STEP_MOVE
+ANDP      M0002A                  // B_START
+MOV       1 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 12               // STEP_MOVE
+ANDP      M0002A                  // B_START
+OUT       M00098
+TOFF      T0097 3
+MLOAD     
+AND       T0097
+MOV       1 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 1                // STEP_MOVE
+MPUSH     
+AND<>     D00401 0                // D_ERR_CODE
+MOV       0 D00010                // STEP_MOVE
+MLOAD     
+SET       M00100                  // R_LAMP_LOAD_OK
+MPOP      
+AND NOT   U03.00.0                // _03_ERR
+AND NOT   U03.01.E                // _03_CH0_ERR
+AND       U03.00.F                // _03_RDY
+AND       U03.02.0                // _03_CH0_STBL
+AND>      D00400 20               // D_LC_WEIGHT
+AND       M00100                  // R_LAMP_LOAD_OK
+SET       M00032                  // SG_ITEM_READY
+MOV       2 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 2                // STEP_MOVE
+AND       M00032                  // SG_ITEM_READY
+MPUSH     
+XIST      2 1 10
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+INCP      D00009                  // D_LOAD_ITEM_NO
+RST       M00032                  // SG_ITEM_READY
+MOV       3 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 3                // STEP_MOVE
+MPUSH     
+SET       M00050                  // R_PICK
+MPOP      
+AND       M00051                  // SG_PICK_DONE
+DXCHG     D00400 D00080           // D_LC_WEIGHT, D_WT_PICKING
+RST       M00050                  // R_PICK
+RST       M00051                  // SG_PICK_DONE
+RST       M00100                  // R_LAMP_LOAD_OK
+MOV       4 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 4                // STEP_MOVE
+MPUSH     
+XIST      2 1 D00009              // D_LOAD_ITEM_NO
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       5 D00010                // STEP_MOVE
+MLOAD     
+AND=      D00010 5                // STEP_MOVE
+MPUSH     
+SET       M00052                  // R_PLACE
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+MPUSH     
+AND=      D00009 1                // D_LOAD_ITEM_NO
+XCHGP     D00200 D00080           // D_WT_1, D_WT_PICKING
+MLOAD     
+AND=      D00009 2                // D_LOAD_ITEM_NO
+XCHGP     D00202 D00080           // D_WT_2, D_WT_PICKING
+MLOAD     
+AND=      D00009 3                // D_LOAD_ITEM_NO
+XCHGP     D00204 D00080           // D_WT_3, D_WT_PICKING
+MLOAD     
+AND=      D00009 4                // D_LOAD_ITEM_NO
+XCHGP     D00206 D00080           // D_WT_4, D_WT_PICKING
+MLOAD     
+AND=      D00009 5                // D_LOAD_ITEM_NO
+XCHGP     D00208 D00080           // D_WT_5, D_WT_PICKING
+MLOAD     
+AND=      D00009 6                // D_LOAD_ITEM_NO
+XCHGP     D00210 D00080           // D_WT_6, D_WT_PICKING
+MLOAD     
+AND=      D00009 7                // D_LOAD_ITEM_NO
+XCHGP     D00212 D00080           // D_WT_7, D_WT_PICKING
+MLOAD     
+AND=      D00009 8                // D_LOAD_ITEM_NO
+XCHGP     D00214 D00080           // D_WT_8, D_WT_PICKING
+MPOP      
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MOV       D00009 D00027           // D_LOAD_ITEM_NO, D_DONE_COUNT
+SET       M00100                  // R_LAMP_LOAD_OK
+MOV       6 D00010                // STEP_MOVE
+MPOP      
+AND=      D00010 6                // STEP_MOVE
+MPUSH     
+AND<      D00009 D00030           // D_LOAD_ITEM_NO, D_IN_WORK_QTY
+MOV       1 D00010                // STEP_MOVE
+MPOP      
+AND=      D00009 D00030           // D_LOAD_ITEM_NO, D_IN_WORK_QTY
+MOV       7 D00010                // STEP_MOVE
+SET       M00030                  // SG_LOAD_DONE
+MOV       0 D00009                // D_LOAD_ITEM_NO
+MOV       0 D00027                // D_DONE_COUNT
+RST       M00100                  // R_LAMP_LOAD_OK
+
+// [074] MOVE : 2. Sort weight values for comparison
+LOAD NOT  M00500                  // M_STOP
+MPUSH     
+AND=      D00010 7                // STEP_MOVE
+GMOV      D00200 D00220 15        // D_WT_1, D_WT_1_SORT
+MOV       8 D00010                // STEP_MOVE
+MPOP      
+AND=      D00010 8                // STEP_MOVE
+MPUSH     
+DSORT     D00220 D00030 3 D00245 D00246  // D_WT_1_SORT, D_IN_WORK_QTY, D_SORT_WT_DONE
+RST       M00030                  // SG_LOAD_DONE
+MPOP      
+AND<>     D00245 0                // D_SORT_WT_DONE
+MOV       10 D00010               // STEP_MOVE
+
+// [075]
+LOAD>=    D00010 10               // STEP_MOVE
+LOAD=     D00200 D00220           // D_WT_1, D_WT_1_SORT
+OR=       D00202 D00222           // D_WT_2, D_WT_2_SORT
+OR=       D00204 D00224           // D_WT_3, D_WT_3_SORT
+OR=       D00206 D00226           // D_WT_4, D_WT_4_SORT
+OR=       D00208 D00228           // D_WT_5, D_WT_5_SORT
+OR=       D00210 D00230           // D_WT_6, D_WT_6_SORT
+OR=       D00212 D00232           // D_WT_7, D_WT_7_SORT
+OR=       D00214 D00234           // D_WT_8, D_WT_8_SORT
+AND LOAD  
+INCP      D00027                  // D_DONE_COUNT
+
+// [076] MOVE : 3. Rearrange operation and initialization
+LOAD NOT  M00500                  // M_STOP
+MPUSH     
+AND=      D00010 10               // STEP_MOVE
+ANDP      M00024                  // B_SORT
+MPUSH     
+SET       M00040                  // R_SORT
+MPOP      
+AND       M00040                  // R_SORT
+MOV       11 D00010               // STEP_MOVE
+MPOP      
+AND=      D00010 11               // STEP_MOVE
+AND       M00044                  // SG_REARR_DONE
+RST       M00040                  // R_SORT
+RST       M00041                  // SG_SORT_DONE
+RST       M00044                  // SG_REARR_DONE
+MOV       12 D00010               // STEP_MOVE
+MOV       0 D00030                // D_IN_WORK_QTY
+MOV       0 D00027                // D_DONE_COUNT
+
+// [077]
+LOAD      M00098
+AND=      D00010 12               // STEP_MOVE
+ORP       M00025                  // B_FACTORY_RESET
+FMOV      0 D00020 10             // D_POS_PLACE_NO
+FMOV      0 D00200 50             // D_WT_1
+MOV       0 D00080                // D_WT_PICKING
+MOV       0 D00010                // STEP_MOVE
+MOV       0 D00027                // D_DONE_COUNT
+
+// [078] MOVE : 2-1. SORT- rearrangement complete signal
+LOAD      M00040                  // R_SORT
+AND=      D00200 D00220           // D_WT_1, D_WT_1_SORT
+AND=      D00202 D00222           // D_WT_2, D_WT_2_SORT
+AND=      D00204 D00224           // D_WT_3, D_WT_3_SORT
+AND=      D00206 D00226           // D_WT_4, D_WT_4_SORT
+AND=      D00208 D00228           // D_WT_5, D_WT_5_SORT
+AND=      D00210 D00230           // D_WT_6, D_WT_6_SORT
+AND=      D00212 D00232           // D_WT_7, D_WT_7_SORT
+AND=      D00214 D00234           // D_WT_8, D_WT_8_SORT
+SET       M00041                  // SG_SORT_DONE
+
+// [079] MOVE : 2-2. SORT - rearrange operation
+LOAD NOT  M00500                  // M_STOP
+MPUSH     
+AND=      D00011 0                // STEP_SORT
+ANDP      M00040                  // R_SORT
+MOV       1 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 1                // STEP_SORT
+MPUSH     
+XIST      2 1 D00021              // D_POS_RACK_ITEM
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       2 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 2                // STEP_SORT
+MPUSH     
+SET       M00050                  // R_PICK
+MPOP      
+AND       M00051                  // SG_PICK_DONE
+MPUSH     
+AND=      D00021 1                // D_POS_RACK_ITEM
+XCHGP     D00200 D00080           // D_WT_1, D_WT_PICKING
+MLOAD     
+AND=      D00021 2                // D_POS_RACK_ITEM
+XCHGP     D00202 D00080           // D_WT_2, D_WT_PICKING
+MLOAD     
+AND=      D00021 3                // D_POS_RACK_ITEM
+XCHGP     D00204 D00080           // D_WT_3, D_WT_PICKING
+MLOAD     
+AND=      D00021 4                // D_POS_RACK_ITEM
+XCHGP     D00206 D00080           // D_WT_4, D_WT_PICKING
+MLOAD     
+AND=      D00021 5                // D_POS_RACK_ITEM
+XCHGP     D00208 D00080           // D_WT_5, D_WT_PICKING
+MLOAD     
+AND=      D00021 6                // D_POS_RACK_ITEM
+XCHGP     D00210 D00080           // D_WT_6, D_WT_PICKING
+MLOAD     
+AND=      D00021 7                // D_POS_RACK_ITEM
+XCHGP     D00212 D00080           // D_WT_7, D_WT_PICKING
+MLOAD     
+AND=      D00021 8                // D_POS_RACK_ITEM
+XCHGP     D00214 D00080           // D_WT_8, D_WT_PICKING
+MLOAD     
+AND=      D00021 9                // D_POS_RACK_ITEM
+XCHGP     D00216 D00080           // D_WT_9, D_WT_PICKING
+MLOAD     
+RST       M00050                  // R_PICK
+RST       M00051                  // SG_PICK_DONE
+MPOP      
+AND<>     D00080 0                // D_WT_PICKING
+MOV       3 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 3                // STEP_SORT
+MPUSH     
+XIST      2 1 D00022              // D_POS_RACK_NO
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       4 D00011                // STEP_SORT
+MPOP      
+AND=      D00011 4                // STEP_SORT
+MPUSH     
+SET       M00052                  // R_PLACE
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+MPUSH     
+AND=      D00022 1                // D_POS_RACK_NO
+XCHGP     D00200 D00080           // D_WT_1, D_WT_PICKING
+MLOAD     
+AND=      D00022 2                // D_POS_RACK_NO
+XCHGP     D00202 D00080           // D_WT_2, D_WT_PICKING
+MLOAD     
+AND=      D00022 3                // D_POS_RACK_NO
+XCHGP     D00204 D00080           // D_WT_3, D_WT_PICKING
+MLOAD     
+AND=      D00022 4                // D_POS_RACK_NO
+XCHGP     D00206 D00080           // D_WT_4, D_WT_PICKING
+MLOAD     
+AND=      D00022 5                // D_POS_RACK_NO
+XCHGP     D00208 D00080           // D_WT_5, D_WT_PICKING
+MLOAD     
+AND=      D00022 6                // D_POS_RACK_NO
+XCHGP     D00210 D00080           // D_WT_6, D_WT_PICKING
+MLOAD     
+AND=      D00022 7                // D_POS_RACK_NO
+XCHGP     D00212 D00080           // D_WT_7, D_WT_PICKING
+MLOAD     
+AND=      D00022 8                // D_POS_RACK_NO
+XCHGP     D00214 D00080           // D_WT_8, D_WT_PICKING
+MLOAD     
+AND=      D00022 9                // D_POS_RACK_NO
+XCHGP     D00216 D00080           // D_WT_9, D_WT_PICKING
+MLOAD     
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MPOP      
+AND=      D00080 0                // D_WT_PICKING
+MOV       5 D00011                // STEP_SORT
+
+// [080]
+LOAD NOT  M00500                  // M_STOP
+MPUSH     
+AND=      D00011 5                // STEP_SORT
+MPUSH     
+XIST      2 1 D00023              // D_POS_EMPTY_ITEM
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       6 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 6                // STEP_SORT
+MPUSH     
+SET       M00050                  // R_PICK
+MPOP      
+AND       M00051                  // SG_PICK_DONE
+MPUSH     
+AND=      D00023 1                // D_POS_EMPTY_ITEM
+XCHGP     D00200 D00080           // D_WT_1, D_WT_PICKING
+MLOAD     
+AND=      D00023 2                // D_POS_EMPTY_ITEM
+XCHGP     D00202 D00080           // D_WT_2, D_WT_PICKING
+MLOAD     
+AND=      D00023 3                // D_POS_EMPTY_ITEM
+XCHGP     D00204 D00080           // D_WT_3, D_WT_PICKING
+MLOAD     
+AND=      D00023 4                // D_POS_EMPTY_ITEM
+XCHGP     D00206 D00080           // D_WT_4, D_WT_PICKING
+MLOAD     
+AND=      D00023 5                // D_POS_EMPTY_ITEM
+XCHGP     D00208 D00080           // D_WT_5, D_WT_PICKING
+MLOAD     
+AND=      D00023 6                // D_POS_EMPTY_ITEM
+XCHGP     D00210 D00080           // D_WT_6, D_WT_PICKING
+MLOAD     
+AND=      D00023 7                // D_POS_EMPTY_ITEM
+XCHGP     D00212 D00080           // D_WT_7, D_WT_PICKING
+MLOAD     
+AND=      D00023 8                // D_POS_EMPTY_ITEM
+XCHGP     D00214 D00080           // D_WT_8, D_WT_PICKING
+MLOAD     
+AND=      D00023 9                // D_POS_EMPTY_ITEM
+XCHGP     D00216 D00080           // D_WT_9, D_WT_PICKING
+MLOAD     
+RST       M00050                  // R_PICK
+RST       M00051                  // SG_PICK_DONE
+MPOP      
+AND<>     D00080 0                // D_WT_PICKING
+MOV       7 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 7                // STEP_SORT
+MPUSH     
+XIST      2 1 D00025              // D_POS_EMPTY
+MPOP      
+ANDP      D01000.2                // SG_SV_POS_DONE
+MOV       8 D00011                // STEP_SORT
+MLOAD     
+AND=      D00011 8                // STEP_SORT
+MPUSH     
+SET       M00052                  // R_PLACE
+MLOAD     
+AND=      D00025 1                // D_POS_EMPTY
+XCHGP     D00200 D00080           // D_WT_1, D_WT_PICKING
+MLOAD     
+AND=      D00025 2                // D_POS_EMPTY
+XCHGP     D00202 D00080           // D_WT_2, D_WT_PICKING
+MLOAD     
+AND=      D00025 3                // D_POS_EMPTY
+XCHGP     D00204 D00080           // D_WT_3, D_WT_PICKING
+MLOAD     
+AND=      D00025 4                // D_POS_EMPTY
+XCHGP     D00206 D00080           // D_WT_4, D_WT_PICKING
+MLOAD     
+AND=      D00025 5                // D_POS_EMPTY
+XCHGP     D00208 D00080           // D_WT_5, D_WT_PICKING
+MLOAD     
+AND=      D00025 6                // D_POS_EMPTY
+XCHGP     D00210 D00080           // D_WT_6, D_WT_PICKING
+MLOAD     
+AND=      D00025 7                // D_POS_EMPTY
+XCHGP     D00212 D00080           // D_WT_7, D_WT_PICKING
+MLOAD     
+AND=      D00025 8                // D_POS_EMPTY
+XCHGP     D00214 D00080           // D_WT_8, D_WT_PICKING
+MLOAD     
+AND=      D00025 9                // D_POS_EMPTY
+XCHGP     D00216 D00080           // D_WT_9, D_WT_PICKING
+MPOP      
+AND       M00053                  // SG_PLACE_DONE
+MPUSH     
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MPOP      
+AND=      D00080 0                // D_WT_PICKING
+MOV       9 D00011                // STEP_SORT
+MPOP      
+AND=      D00011 9                // STEP_SORT
+MPUSH     
+AND NOT   M00041                  // SG_SORT_DONE
+MPUSH     
+AND       M0003A                  // S_RACK_ON
+MOV       5 D00011                // STEP_SORT
+MPOP      
+AND NOT   M0003A                  // S_RACK_ON
+MOV       1 D00011                // STEP_SORT
+MPOP      
+AND       M00041                  // SG_SORT_DONE
+SET       M00044                  // SG_REARR_DONE
+MOV       0 D00011                // STEP_SORT
+FMOV      0 D00220 15             // D_WT_1_SORT
+
+// [081] MOVE : 2-3. Rack sensor ON/OFF
+LOAD=     D00022 3                // D_POS_RACK_NO
+AND       P00003                  // S_POS_3
+LOAD=     D00022 4                // D_POS_RACK_NO
+AND       P00004                  // S_POS_4
+OR LOAD   
+LOAD=     D00022 5                // D_POS_RACK_NO
+AND       P00005                  // S_POS_5
+OR LOAD   
+LOAD=     D00022 6                // D_POS_RACK_NO
+AND       P00006                  // S_POS_6
+OR LOAD   
+LOAD=     D00022 7                // D_POS_RACK_NO
+AND       P00007                  // S_POS_7
+OR LOAD   
+LOAD=     D00022 8                // D_POS_RACK_NO
+AND       P00008                  // S_POS_8
+OR LOAD   
+LOAD=     D00022 9                // D_POS_RACK_NO
+AND       P00009                  // S_POS_9
+OR LOAD   
+OUT       M0003A                  // S_RACK_ON
+
+//############################################################################
+//  SECTION 4. ERROR
+//############################################################################
+
+// [082] Error stop and initialization
+LOAD<>    D00401 0                // D_ERR_CODE
+SET       M00501                  // R_STOP_ERR
+
+// [083]
+LOAD      M0002B                  // B_ERR_RESET
+RST       M00501                  // R_STOP_ERR
+MOV       0 D00401                // D_ERR_CODE
+FMOV      0 D00411 10             // SG_ERR1
+
+// [084] < Error 1 > Work quantity not entered
+LOAD=     D00030 0                // D_IN_WORK_QTY
+ANDP      M0002A                  // B_START
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       1 D00401                // D_ERR_CODE
+MOV       1 D00411                // SG_ERR1
+
+// [085] < Error 2 > Work quantity out of range
+LOAD<     D00030 1                // D_IN_WORK_QTY
+OR>       D00030 8                // D_IN_WORK_QTY
+ANDP      M0002A                  // B_START
+AND NOT   D00411.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       2 D00401                // D_ERR_CODE
+MOV       1 D00412                // SG_ERR2
+
+// [086] < Error 3 > Pickup position not set
+LOADD<3   -1300000 D00108 -800000  // D_PICK_Y
+ANDD<3    1250000 D00110 1600000  // D_PICK_X
+NOT       
+ANDP      M0002A                  // B_START
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       3 D00401                // D_ERR_CODE
+MOV       1 D00413                // SG_ERR3
+
+// [087] < Error 4 > Load position not set
+LOAD=3    D00100 D00104 0         // D_X2, D_X3
+OR=3      D00102 D00106 0         // D_Y2, D_Y3
+ANDP      M0002A                  // B_START
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       4 D00401                // D_ERR_CODE
+MOV       1 D00414                // SG_ERR4
+
+// [088] < Error 5 > Loadcell 2-point calibration not done
+LOAD NOT  M00033                  // SG_CAL_SAVE_DONE
+ANDP      M0002A                  // B_START
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       5 D00401                // D_ERR_CODE
+MOV       1 D00415                // SG_ERR5
+
+// [089] < Error 6 > An item is already at the load location
+LOAD NOT  P00001                  // S_POS_1
+AND NOT   P00002                  // S_POS_2
+AND NOT   P00003                  // S_POS_3
+AND NOT   P00004                  // S_POS_4
+AND NOT   P00005                  // S_POS_5
+AND NOT   P00006                  // S_POS_6
+AND NOT   P00007                  // S_POS_7
+AND NOT   P00008                  // S_POS_8
+AND NOT   P00009                  // S_POS_9
+NOT       
+ANDP      M0002A                  // B_START
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MOV       6 D00401                // D_ERR_CODE
+MOV       1 D00416                // SG_ERR6
+
+// [090] < Error 7 > Cylinder forward failed
+LOAD      P00020                  // P_CYL_FWD_CMD
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00418.0
+AND NOT   D00419.0
+MPUSH     
+AND NOT   P0000D                  // S_CYL_FWD
+TON       T0002 100               // T_ERR_CYL_FWD
+MPOP      
+AND       T0002                   // T_ERR_CYL_FWD
+MOV       7 D00401                // D_ERR_CODE
+MOV       1 D00417                // SG_ERR7
+
+// [091] < Error 8 > Cylinder backward failed
+LOADN     P00020                  // P_CYL_FWD_CMD
+SET       M00054                  // SG_CYL_OFF
+
+// [092]
+LOAD      M00054                  // SG_CYL_OFF
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00419.0
+MPUSH     
+AND NOT   P0000E                  // S_CYL_BWD
+TON       T0003 100               // T_ERR_CYL_BWD
+MPOP      
+AND       T0003                   // T_ERR_CYL_BWD
+MOV       8 D00401                // D_ERR_CODE
+MOV       1 D00418                // SG_ERR8
+RST       M00054                  // SG_CYL_OFF
+
+// [093] < Error 9 > Suction failed
+LOAD      P00021                  // P_SUCTION_CMD
+AND NOT   D00411.0
+AND NOT   D00412.0
+AND NOT   D00413.0
+AND NOT   D00414.0
+AND NOT   D00415.0
+AND NOT   D00416.0
+AND NOT   D00417.0
+AND NOT   D00418.0
+MPUSH     
+AND NOT   P0000F                  // S_SUCTION
+TON       T0004 100               // T_ERR_SUCTION
+MPOP      
+AND       T0004                   // T_ERR_SUCTION
+MOV       9 D00401                // D_ERR_CODE
+MOV       1 D00419                // SG_ERR9
+
+//############################################################################
+//  SECTION 5. MANUAL OPERATION
+//############################################################################
+
+// [094]
+LOAD      M00500                  // M_STOP
+OR=       D00000 2                // D_OP_MODE
+MPUSH     
+ANDP      M00026                  // B_MAN_PICK
+SET       M00050                  // R_PICK
+MLOAD     
+AND       M00051                  // SG_PICK_DONE
+RST       M00050                  // R_PICK
+RST       M00051                  // SG_PICK_DONE
+MLOAD     
+ANDP      M00027                  // B_MAN_PLACE
+SET       M00052                  // R_PLACE
+MLOAD     
+AND       M00053                  // SG_PLACE_DONE
+RST       M00052                  // R_PLACE
+RST       M00053                  // SG_PLACE_DONE
+MLOAD     
+AND       M00060                  // B_MAN_PICK_POS
+XIST      2 1 10
+MLOAD     
+AND       M00061                  // B_MAN_POS_1
+XIST      2 1 1
+MLOAD     
+AND       M00062                  // B_MAN_POS_2
+XIST      2 1 2
+MLOAD     
+AND       M00063                  // B_MAN_POS_3
+XIST      2 1 3
+MLOAD     
+AND       M00064                  // B_MAN_POS_4
+XIST      2 1 4
+MLOAD     
+AND       M00065                  // B_MAN_POS_5
+XIST      2 1 5
+MLOAD     
+AND       M00066                  // B_MAN_POS_6
+XIST      2 1 6
+MLOAD     
+AND       M00067                  // B_MAN_POS_7
+XIST      2 1 7
+MLOAD     
+AND       M00068                  // B_MAN_POS_8
+XIST      2 1 8
+MPOP      
+AND       M00069                  // B_MAN_POS_9
+XIST      2 1 9
+
+//############################################################################
+//  SECTION 6. LAMP
+//############################################################################
+
+// [095]
+LOAD      M00100                  // R_LAMP_LOAD_OK
+OUT       P00024                  // L_GL
+
+// [096]
+LOAD<>    D00010 0                // STEP_MOVE
+OUT       P00022                  // L_RL
+
+// [097]
+LOAD      M00501                  // R_STOP_ERR
+OUT       P00023                  // L_YL
+
+// [098]
+LOAD=     D00401 6                // D_ERR_CODE
+OR=       D00401 7                // D_ERR_CODE
+OR=       D00401 8                // D_ERR_CODE
+OR=       D00401 9                // D_ERR_CODE
+LOAD      M00099                  // Emergency
+AND NOT   T0999
+OR LOAD   
+OUT       P00022                  // L_RL
+
+// [099]
+LOAD<>    D00013 0                // STEP_INIT
+OR<>      D00010 0                // STEP_MOVE
+OR<>      D00011 0                // STEP_SORT
+OR        U02.01.1                // _02_A1_JOG_CCW
+OR        U02.01.0                // _02_A1_JOG_CW
+OR        U02.01.5                // _02_A2_JOG_CCW
+OR        U02.01.4                // _02_A2_JOG_CW
+LOAD      M00400
+AND       F00093                  // _T1S
+OR LOAD   
+AND NOT   M00500                  // M_STOP
+AND NOT   P00022                  // L_RL
+AND NOT   P00023                  // L_YL
+OUT       P00024                  // L_GL
+
+// [100]
+LOAD      M00003                  // B_SV_HOME
+AND NOT   D01000.4
+AND NOT   D02000.4
+OUT       K04215
+OUT       K04415
+SET       M00400
+
+// [101]
+LOAD      D01000.4
+AND       D02000.4
+OR        M00099                  // Emergency
+RST       M00400
+RST       M00003                  // B_SV_HOME
+
+// [102]
+LOAD=     D00401 1                // D_ERR_CODE
+OR=       D00401 2                // D_ERR_CODE
+OR=       D00401 3                // D_ERR_CODE
+OR=       D00401 4                // D_ERR_CODE
+OR=       D00401 5                // D_ERR_CODE
+OR        M00500                  // M_STOP
+AND NOT   M00099                  // Emergency
+AND NOT   P00024                  // L_GL
+OUT       P00023                  // L_YL
+
+// [103]
+LOAD      D01000.4
+AND NOT   D01000.0
+AND       D01018.2
+AND       D02000.4
+AND NOT   D02000.0
+AND       D02018.2
+OUT       P00024                  // L_GL
+
+END

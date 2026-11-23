@@ -1,0 +1,6 @@
+# Python 3.12 64-bit  (pyrealsense2 has no build for Python 3.14 yet)
+# install:  py -3.12 -m pip install -r requirements.txt
+pyrealsense2
+opencv-contrib-python
+numpy
+pyserial

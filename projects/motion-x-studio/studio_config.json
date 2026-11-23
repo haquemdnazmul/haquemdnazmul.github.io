@@ -1,0 +1,14 @@
+{
+  "face_camera_index": 0,
+  "match_threshold": 0.42,
+  "match_margin": 0.05,
+  "login_frames": 5,
+  "scan_photos": 20,
+  "auto_lock_minutes": 10,
+  "first_admins": [
+    "Nazmul",
+    "Jiwoo"
+  ],
+  "use_plc": true,
+  "language": "en"
+}

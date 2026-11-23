@@ -1,0 +1,778 @@
+<title>Integrated Line SCADA</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: ISA-101 style operator overview. Neutral grey plant, colour only for state.
+   Top bar = plant status, two station panels side by side, alarm list + tag monitor below. */
+:root{
+  --bg:#dfe2e5; --panel:#eef0f2; --well:#e6e9ec; --line:#b8bfc6; --fg:#1c232a; --muted:#5b6570;
+  --accent:#2d5f92; --accent-fg:#ffffff;
+  --run:#2e8b4d; --warn:#c88a00; --alarm:#c62828;
+  --lamp-off:#7d858d; --lamp-off-2:#5f676f;
+  --steel:#9aa3ac; --steel-2:#c9cfd5; --item:#b9a27a; --item-edge:#7c6a48;
+  --font-head:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,Segoe UI,sans-serif;
+  --font-mono:"IBM Plex Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14181c; --panel:#1c2126; --well:#171b20; --line:#353c44; --fg:#e2e6ea; --muted:#97a1ab;
+  --accent:#6c9fd3; --accent-fg:#0d1216;
+  --run:#4cc276; --warn:#e8b53c; --alarm:#ef5350;
+  --lamp-off:#3d444b; --lamp-off-2:#2c3238;
+  --steel:#6b747d; --steel-2:#424a52; --item:#a48d64; --item-edge:#d4bf95; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14181c; --panel:#1c2126; --well:#171b20; --line:#353c44; --fg:#e2e6ea; --muted:#97a1ab;
+  --accent:#6c9fd3; --accent-fg:#0d1216;
+  --run:#4cc276; --warn:#e8b53c; --alarm:#ef5350;
+  --lamp-off:#3d444b; --lamp-off-2:#2c3238;
+  --steel:#6b747d; --steel-2:#424a52; --item:#a48d64; --item-edge:#d4bf95; color-scheme:dark}
+
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--font-body);font-size:14px;line-height:1.4}
+*{box-sizing:border-box}
+.mono,.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--font-head);font-weight:600;letter-spacing:.02em;margin:0;text-wrap:balance}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 24px;display:grid;gap:14px;max-width:1500px;margin:0 auto}
+.lbl{font-family:var(--font-head);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* top bar */
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 14px}
+.brand{display:flex;flex-direction:column;gap:0;margin-right:auto;min-width:0}
+.brand h1{font-size:24px;line-height:1.05}
+.brand span{font-size:12px;color:var(--muted)}
+.link{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.link b{font-weight:600}
+.clock{font-size:20px;font-weight:500}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* state pill */
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-head);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:2px 10px;border-radius:3px;border:1px solid var(--line);color:var(--muted);background:var(--well)}
+.pill.run{color:var(--run);border-color:var(--run)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.pill.alarm{color:#fff;background:var(--alarm);border-color:var(--alarm);animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:.55}}
+
+/* lamps: OFF = unlit dull, ON = lit, glow kept inside the border */
+.lamp{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--lamp-off),var(--lamp-off-2));border:1px solid var(--line);flex:none}
+.lamp.on{background:radial-gradient(circle at 35% 35%,#fff 0 12%,var(--c,var(--run)) 55%);box-shadow:inset 0 0 4px rgba(255,255,255,.6)}
+.lamp.g{--c:var(--run)} .lamp.y{--c:var(--warn)} .lamp.r{--c:var(--alarm)} .lamp.b{--c:var(--accent)}
+
+/* buttons */
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:32px;padding:4px 12px;border:1px solid var(--line);border-radius:4px;background:linear-gradient(var(--panel),var(--well));font-family:var(--font-head);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.btn:hover{border-color:var(--accent)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.stop{border-color:var(--alarm);color:var(--alarm)}
+.btn.estop{background:var(--alarm);color:#fff;border-color:var(--alarm)}
+.btn.estop.latched{box-shadow:inset 0 0 0 3px #fff8;animation:blink 1s steps(2,start) infinite}
+.btn small{font-family:var(--font-mono);font-size:10px;font-weight:400;opacity:.75;letter-spacing:0;text-transform:none}
+.btn.toggle[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lampbtn{position:relative;width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:radial-gradient(circle at 40% 35%,var(--lamp-off),var(--lamp-off-2));color:#e9ecef;font-family:var(--font-head);font-weight:700;font-size:16px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.lampbtn.on{background:radial-gradient(circle at 40% 35%,#fff7d6 0 10%,#f4c542 50%,#d99a00);color:#3a2a00;box-shadow:inset 0 0 6px rgba(255,255,255,.7)}
+.lampbtn.sm{width:24px;height:24px;font-size:12px;border-width:1px}
+select,input[type=number]{font:inherit;font-family:var(--font-mono);background:var(--well);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:4px 6px;min-height:32px}
+
+/* station panels */
+.stations{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-width:0}
+.phead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.phead h2{font-size:20px}
+.phead .sub{font-size:12px;color:var(--muted);margin-right:auto}
+.pbody{padding:14px;display:grid;gap:14px}
+.split{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+.well{background:var(--well);border:1px solid var(--line);border-radius:4px}
+
+/* readouts */
+.ro{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px}
+.ro div{background:var(--well);border:1px solid var(--line);border-radius:3px;padding:5px 8px;display:flex;flex-direction:column;min-width:0}
+.ro .k{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro .v{font-family:var(--font-mono);font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+.ro .a{font-family:var(--font-mono);font-size:10px;color:var(--muted)}
+.io{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 10px}
+.io span{display:flex;align-items:center;gap:7px;font-size:12px;min-width:0}
+.io span i{font-style:normal;font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-left:auto}
+
+/* elevator shaft */
+.shaft{--rowH:50px;display:grid;grid-template-columns:34px 92px 28px;column-gap:8px;position:relative}
+.floorlbl{height:var(--rowH);display:flex;align-items:center;justify-content:flex-end;font-family:var(--font-head);font-weight:700;font-size:20px;color:var(--muted)}
+.floorlbl.here{color:var(--fg)}
+.well-col{position:relative;grid-row:1/span 6;grid-column:2;background:repeating-linear-gradient(to bottom,transparent 0 calc(var(--rowH) - 1px),var(--line) calc(var(--rowH) - 1px) var(--rowH)),var(--well);border:1px solid var(--line);border-radius:3px}
+.well-col::before,.well-col::after{content:"";position:absolute;top:0;bottom:0;width:3px;background:var(--steel)}
+.well-col::before{left:8px}.well-col::after{right:8px}
+.car{position:absolute;left:16px;right:16px;height:calc(var(--rowH) - 8px);border:2px solid var(--fg);background:var(--panel);border-radius:2px;overflow:hidden;display:flex}
+.car .leaf{height:100%;background:repeating-linear-gradient(90deg,var(--steel) 0 2px,var(--steel-2) 2px 6px);transition:none}
+.car .gap{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:700;font-size:13px;color:var(--muted)}
+.car.board .gap{color:var(--run)}
+.hall{display:flex;flex-direction:column;justify-content:center;gap:2px;height:var(--rowH)}
+.sens{position:absolute;right:-6px;width:5px;height:10px;border-radius:1px;background:var(--lamp-off)}
+.sens.on{background:var(--run)}
+.cop{display:grid;grid-template-columns:repeat(2,38px);gap:8px;justify-content:start}
+.dir{font-family:var(--font-head);font-weight:700;font-size:44px;line-height:1;display:flex;align-items:center;gap:6px}
+.dir .arr{color:var(--lamp-off);transition:color .2s}
+.dir .arr.on{color:var(--run)}
+.bigfloor{font-family:var(--font-mono);font-size:44px;font-weight:600;line-height:1}
+
+/* sorter */
+.ws-grid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:14px;align-items:start}
+.svgbox{overflow-x:auto}
+svg text{font-family:var(--font-mono)}
+.tower{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0}
+.tower .seg{width:34px;height:22px;border-radius:3px;border:1px solid var(--line);background:linear-gradient(90deg,var(--lamp-off-2),var(--lamp-off),var(--lamp-off-2))}
+.tower .seg.on{background:linear-gradient(90deg,var(--c),#fff9 50%,var(--c));box-shadow:inset 0 0 6px rgba(255,255,255,.5)}
+.tower .r{--c:var(--alarm)}.tower .y{--c:var(--warn)}.tower .g{--c:var(--run)}
+.tower .pole{width:6px;height:16px;background:var(--steel)}
+.side{display:grid;gap:10px;min-width:0}
+.side select,.side input{width:100%;min-width:0}
+.ws-grid>*{min-width:0}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+.wtable{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.wtable th,.wtable td{border:1px solid var(--line);padding:3px 6px;text-align:center}
+.wtable th{font-family:var(--font-head);font-weight:600;letter-spacing:.04em;color:var(--muted);background:var(--well)}
+.wtable td{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.wtable td.ok{color:var(--run);font-weight:600}
+.wtable td.bad{color:var(--warn)}
+.tablebox{overflow-x:auto}
+
+/* bottom */
+.bottom{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:14px}
+.alist{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px}
+.alist th{position:sticky;top:0;background:var(--well);text-align:left;font-family:var(--font-head);font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-size:12px;padding:5px 8px;border-bottom:1px solid var(--line)}
+.alist td{padding:4px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.alist tr.active.unack td:first-child{box-shadow:inset 4px 0 0 var(--alarm)}
+.alist tr.active td.st{color:var(--alarm);font-weight:600}
+.alist tr.ev td{color:var(--muted)}
+.sev{font-family:var(--font-head);font-weight:700;font-size:12px;padding:0 6px;border-radius:2px;border:1px solid currentColor}
+.sev.hi{color:var(--alarm)} .sev.ev{color:var(--muted)}
+.scroll{max-height:260px;overflow:auto}
+.tabs{display:flex;gap:4px;margin-right:auto}
+.tabs button{border:1px solid var(--line);background:var(--well);padding:3px 12px;border-radius:3px;font-family:var(--font-head);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tags{width:100%;border-collapse:collapse;font-size:12.5px}
+.tags td{padding:3px 8px;border-bottom:1px solid var(--line)}
+.tags td:first-child{font-family:var(--font-mono);color:var(--muted);width:78px}
+.tags td:last-child{font-family:var(--font-mono);text-align:right;font-weight:500}
+.tags td.hot{color:var(--run)}
+.note{font-size:12px;color:var(--muted)}
+
+@media (max-width:1100px){.stations,.bottom{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){
+  .split,.ws-grid{grid-template-columns:minmax(0,1fr)}
+  .brand h1{font-size:21px}
+}
+@media (prefers-reduced-motion:reduce){.pill.alarm,.btn.estop.latched{animation:none}}
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Integrated Line SCADA</h1>
+      <span>Station 1 · 6-floor elevator &nbsp;|&nbsp; Station 2 · 2-axis weight sorter</span>
+    </div>
+    <div class="link"><span class="lamp g on" id="lnkElv"></span><span><b>ELV PLC</b> LS XGB</span></div>
+    <div class="link"><span class="lamp g on" id="lnkWs"></span><span><b>WS PLC</b> XBM-DN32H2</span></div>
+    <div class="link"><span class="lbl">Alarms</span><span class="pill" id="almCount">0 active</span></div>
+    <div class="ctrls">
+      <button class="btn toggle" id="demoBtn" aria-pressed="true" title="Simulated passengers and operator">Demo traffic</button>
+      <button class="btn" id="langBtn" data-noi18n title="Language / 언어">한국어</button>
+      <select id="speedSel" aria-label="Simulation speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select>
+    </div>
+    <div class="clock num" id="clock">--:--:--</div>
+  </header>
+
+  <section class="stations">
+    <!-- ================= ELEVATOR ================= -->
+    <article class="panel" id="elvPanel">
+      <div class="phead">
+        <h2>ST1 · Elevator</h2><span class="sub">AC motor + pneumatic door · 6 floors</span>
+        <span class="pill" id="elvState">Idle</span>
+      </div>
+      <div class="pbody">
+        <div class="split">
+          <div class="shaft" id="shaft"></div>
+          <div style="display:grid;gap:14px;min-width:0">
+            <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+              <div><div class="lbl">Current floor</div><div class="bigfloor" id="elvFloor">1F</div></div>
+              <div class="dir" aria-label="Travel direction"><span class="arr" id="arrUp">▲</span><span class="arr" id="arrDn">▼</span></div>
+              <div><div class="lbl">Door</div><div class="num" style="font-size:18px" id="elvDoor">Closed</div></div>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+              <div>
+                <div class="lbl" style="margin-bottom:6px">Car panel</div>
+                <div class="cop" id="cop"></div>
+              </div>
+              <div class="ro" style="flex:1;min-width:200px" id="elvRo"></div>
+            </div>
+            <div class="io" id="elvIo"></div>
+            <div class="btnrow">
+              <button class="btn estop" id="elvEstop">E-Stop <small>M00023</small></button>
+              <button class="btn" id="elvAck">Error ack <small>M00400</small></button>
+              <select id="elvFault" aria-label="Elevator fault to simulate">
+                <option value="1">Err 1 Motor not running</option>
+                <option value="2">Err 2 Motor power off</option>
+                <option value="3">Err 3 Door failed to open</option>
+                <option value="4">Err 4 Door failed to close</option>
+                <option value="5">Err 5 Stopped between floors</option>
+              </select>
+              <button class="btn stop" id="elvInject">Simulate fault</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================= WEIGHT SORTER ================= -->
+    <article class="panel" id="wsPanel">
+      <div class="phead">
+        <h2>ST2 · Weight Sorter</h2><span class="sub">Load cell → 3×3 slots → rearranged by weight</span>
+        <span class="pill" id="wsState">Idle</span>
+      </div>
+      <div class="pbody">
+        <div class="ws-grid">
+          <div class="svgbox well">
+            <svg id="wsSvg" viewBox="0 0 540 330" width="100%" style="min-width:420px;display:block" role="img" aria-label="Top view of the gantry, load cell and 3 by 3 slot grid"></svg>
+          </div>
+          <div class="side">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div class="tower" aria-label="Tower lamp">
+                <div class="seg r" id="lampR" title="L_RL P00022 · running"></div>
+                <div class="seg y" id="lampY" title="L_YL P00023 · error"></div>
+                <div class="seg g" id="lampG" title="L_GL P00024 · load next item"></div>
+                <div class="pole"></div>
+              </div>
+              <div style="display:grid;gap:6px;flex:1">
+                <div><div class="lbl">Live weight · D00400</div><div class="num" style="font-size:28px;font-weight:600" id="wsWeight">0 g</div></div>
+                <div><div class="lbl">Mode · D00000</div><div class="num" id="wsMode">1 Auto</div></div>
+              </div>
+            </div>
+            <label class="lbl" for="wsQty">Work quantity · D00030 (3–8)</label>
+            <input type="number" id="wsQty" min="0" max="9" value="5">
+            <div class="btnrow">
+              <button class="btn primary" id="wsStart">Start <small>M0002A</small></button>
+              <button class="btn" id="wsSort">Sort <small>M00024</small></button>
+              <button class="btn" id="wsPause">Pause <small>M0002E</small></button>
+              <button class="btn" id="wsRestart">Restart <small>M0002F</small></button>
+              <button class="btn" id="wsReset">Err reset <small>M0002B</small></button>
+              <button class="btn estop" id="wsEstop">E-Stop <small>M00028</small></button>
+            </div>
+            <div class="btnrow">
+              <select id="wsFault" aria-label="Sorter fault to simulate">
+                <option value="7">Err 7 Cylinder did not operate</option>
+                <option value="8">Err 8 Cylinder did not return</option>
+                <option value="9">Err 9 Suction did not hold</option>
+              </select>
+              <button class="btn stop" id="wsInject">Simulate fault</button>
+            </div>
+          </div>
+        </div>
+        <div class="ro" id="wsRo"></div>
+        <div class="tablebox"><table class="wtable" id="wsTable"></table></div>
+      </div>
+    </article>
+  </section>
+
+  <section class="bottom">
+    <article class="panel">
+      <div class="phead"><h2>Alarms &amp; events</h2><span class="sub">Both stations · newest first</span><button class="btn" id="ackAll">Acknowledge all</button></div>
+      <div class="scroll"><table class="alist"><thead><tr><th>Time</th><th>Stn</th><th>Type</th><th>Code</th><th>Message</th><th>State</th></tr></thead><tbody id="alBody"></tbody></table></div>
+    </article>
+    <article class="panel">
+      <div class="phead">
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab="elv" id="tabElv">ELV tags</button>
+          <button role="tab" aria-selected="false" data-tab="ws" id="tabWs">WS tags</button>
+        </div>
+        <span class="note">Live PLC values</span>
+      </div>
+      <div class="scroll"><table class="tags" id="tagTable"></table></div>
+    </article>
+  </section>
+  <p class="note">Simulation for illustration: values follow the device lists and ladder manuals of both projects (elevator: XG5000 device list; sorter: 3rd Group Weight Sorter manual). Connect real tags in the SCADA tool to replace the simulator.</p>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const now=()=>new Date().toLocaleTimeString('en-GB',{hour12:false});
+let demo=true, speed=2;
+
+/* ---------- language: English / 한국어 ---------- */
+const KR={
+ 'Integrated Line SCADA':'통합 라인 SCADA','Alarms':'경보','Demo traffic':'데모 운전',
+ 'ST1 · Elevator':'ST1 · 엘리베이터','AC motor + pneumatic door · 6 floors':'AC 모터 + 공압 도어 · 6층',
+ 'Idle':'대기','Current floor':'현재 층','Door':'도어','Closed':'닫힘','Opening':'열리는 중','Open':'열림','Closing':'닫히는 중',
+ 'Car panel':'카 조작반','E-Stop':'비상정지','Error ack':'에러 확인','Simulate fault':'고장 시뮬레이션',
+ 'Err 1 Motor not running':'에러 1 모터 미작동','Err 2 Motor power off':'에러 2 모터 전원 꺼짐',
+ 'Err 3 Door failed to open':'에러 3 도어 열림 실패','Err 4 Door failed to close':'에러 4 도어 닫힘 실패',
+ 'Err 5 Stopped between floors':'에러 5 층간 정지',
+ 'ST2 · Weight Sorter':'ST2 · 무게 분류기','Load cell → 3×3 slots → rearranged by weight':'로드셀 → 3×3 슬롯 → 무게순 재배열',
+ 'Live weight · D00400':'현재 무게 · D00400','Mode · D00000':'모드 · D00000','Work quantity · D00030 (3–8)':'작업 수량 · D00030 (3–8)',
+ 'Start':'시작','Sort':'정렬','Pause':'일시정지','Restart':'재시작','Err reset':'에러 리셋',
+ 'Err 7 Cylinder did not operate':'에러 7 실린더 미작동','Err 8 Cylinder did not return':'에러 8 실린더 미복귀',
+ 'Err 9 Suction did not hold':'에러 9 흡착 실패',
+ 'Alarms & events':'경보 및 이벤트','Both stations · newest first':'두 스테이션 · 최신순','Acknowledge all':'전체 확인',
+ 'Time':'시간','Stn':'스테이션','Type':'유형','Code':'코드','Message':'메시지','State':'상태',
+ 'ELV tags':'ELV 태그','WS tags':'WS 태그','Live PLC values':'실시간 PLC 값',
+ 'Simulation for illustration: values follow the device lists and ladder manuals of both projects (elevator: XG5000 device list; sorter: 3rd Group Weight Sorter manual). Connect real tags in the SCADA tool to replace the simulator.':
+   '설명용 시뮬레이션입니다. 값은 두 프로젝트의 디바이스 리스트와 래더 매뉴얼을 따릅니다 (엘리베이터: XG5000 디바이스 리스트, 분류기: 3조 무게 분류기 매뉴얼). 실제 PLC에 연결하려면 SCADA 툴에서 실제 태그로 바꾸세요.',
+ 'Trips':'운행 횟수','counter':'카운터',
+ 'Motor power':'모터 전원','Motor up CW':'모터 상승 CW','Motor down CCW':'모터 하강 CCW','Door cylinder':'도어 실린더',
+ 'Door open sensor':'도어 열림 센서','Door closed sensor':'도어 닫힘 센서','Boarding sensor':'탑승 센서','E-stop relay':'비상정지 릴레이',
+ 'Item no. (slot)':'물품 번호 (슬롯)','Holding rack':'임시 거치대','Error code':'에러 코드','Axis 1 (Y) mm':'1축 (Y) mm',
+ 'Axis 2 (X) mm':'2축 (X) mm','Cylinder':'실린더','Suction':'흡착','Moves done':'이동 완료','Cycles':'사이클',
+ 'FWD':'전진','BWD':'후진','moving':'이동 중','1 Auto':'1 자동','2 Manual':'2 수동','3 Stopped':'3 정지',
+ 'Slot':'슬롯','Sorted target':'정렬 목표','RACK':'거치대','LOAD CELL':'로드셀','pos 10':'위치 10',
+ 'Running up':'상승 운행','Running down':'하강 운행','Door opening':'도어 열리는 중','Door open':'도어 열림',
+ 'Door closing':'도어 닫히는 중','E-stop':'비상정지',
+ 'Load · waiting item':'적재 · 물품 대기','Load · weighing':'적재 · 계량 중','Load · to load cell':'적재 · 로드셀로 이동',
+ 'Load · pick':'적재 · 픽업','Load · to slot':'적재 · 슬롯으로 이동','Load · place':'적재 · 내려놓기','Load · next':'적재 · 다음 물품',
+ 'Data sort':'데이터 정렬','Waiting for Sort':'정렬 대기','Rearranging':'재배열 중','Complete':'완료',
+ 'Active':'발생','Cleared':'해제','No alarms or events yet.':'아직 경보나 이벤트가 없습니다.',
+ 'Motor not running':'모터 미작동','Motor power off':'모터 전원 꺼짐','Door failed to open':'도어 열림 실패',
+ 'Door failed to close':'도어 닫힘 실패','Stopped between floors':'층간 정지','Out of range':'범위 초과',
+ 'Please enter the work quantity.':'작업 수량을 입력하세요.','Please enter a value between 3 and 8.':'3~8 사이의 값을 입력하세요.',
+ 'Please set the pickup position.':'픽업 위치를 설정하세요.','Please set the load position.':'적재 위치를 설정하세요.',
+ 'Zero and span calibration have not been done.':'영점 및 스팬 교정이 되지 않았습니다.',
+ 'The load location is not empty.':'적재 위치가 비어 있지 않습니다.','The cylinder did not operate.':'실린더가 작동하지 않았습니다.',
+ 'The cylinder did not return.':'실린더가 복귀하지 않았습니다.','Suction did not hold the item.':'흡착이 물품을 잡지 못했습니다.',
+ 'Emergency stop pressed':'비상정지 버튼 눌림','Load complete · DSORT done':'적재 완료 · DSORT 완료',
+ 'Sort pressed · rearranging':'정렬 버튼 눌림 · 재배열 시작','Operator unloaded the slots':'작업자가 슬롯을 비움',
+ 'Error reset (M0002B)':'에러 리셋 (M0002B)','Paused (M0002E)':'일시정지 (M0002E)','Restart (M0002F)':'재시작 (M0002F)',
+ 'E-stop released · press Restart':'비상정지 해제 · 재시작을 누르세요','E-stop released':'비상정지 해제',
+ 'Error acknowledged (M00400)':'에러 확인 (M00400)','Demo traffic on':'데모 운전 켜짐','Demo traffic off':'데모 운전 꺼짐',
+ 'SCADA runtime started · both PLC links OK':'SCADA 런타임 시작 · 두 PLC 통신 정상'
+};
+const RULES=[
+ [/^Station 1 · 6-floor elevator\s*\|\s*Station 2 · 2-axis weight sorter$/,()=>'스테이션 1 · 6층 엘리베이터  |  스테이션 2 · 2축 무게 분류기'],
+ [/^Error (\d+)$/,(m,a)=>'에러 '+a],[/^Step (\d+)$/,(m,a)=>'스텝 '+a],
+ [/^Paused · (.+)$/,(m,a)=>'일시정지 · '+T(a)],
+ [/^(\d+) active(?: · (\d+) unack)?$/,(m,a,b)=>a+'건 발생'+(b?' · '+b+'건 미확인':'')],
+ [/^(Active|Cleared) · Unack$/,(m,a)=>T(a)+' · 미확인'],
+ [/^Arrived (\d)F$/,(m,a)=>a+'층 도착'],
+ [/^Start · work quantity (\d+)$/,(m,a)=>'시작 · 작업 수량 '+a],
+ [/^Rearrangement finished · (\d+) moves$/,(m,a)=>'재배열 완료 · '+a+'회 이동']
+];
+let lang='en';
+try{ lang=localStorage.getItem('scadaLang')||'en'; }catch(e){}
+function T(s){
+  if(lang!=='kr'||!s) return s;
+  const k=String(s).trim(); if(!k) return s;
+  if(KR[k]) return String(s).replace(k,KR[k]);
+  for(const [re,f] of RULES){ if(re.test(k)) return String(s).replace(k,k.replace(re,f)); }
+  return s;
+}
+const i18nOrig=new WeakMap(), i18nOut=new WeakMap();
+function i18n(){
+  const root=document.querySelector('.wrap'); if(!root) return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); let n;
+  while((n=w.nextNode())){
+    if(!n.nodeValue.trim()) continue;
+    const p=n.parentNode; if(p.closest&&p.closest('[data-noi18n],#tagTable,script,style')) continue;
+    if(i18nOut.get(n)!==n.nodeValue) i18nOrig.set(n,n.nodeValue);     // new text written by the app
+    const out=T(i18nOrig.get(n)); if(n.nodeValue!==out) n.nodeValue=out; i18nOut.set(n,out);
+  }
+  document.documentElement.lang = lang==='kr'?'ko':'en';
+  document.title = lang==='kr'?'통합 라인 SCADA':'Integrated Line SCADA';
+  const b=document.getElementById('langBtn'); if(b) b.textContent = lang==='kr'?'English':'한국어';
+}
+
+/* ---------- alarm / event log ---------- */
+const log=[];
+function addEvent(stn,msg){log.unshift({t:now(),stn,type:'EVENT',code:'',msg,active:false,acked:true});trimLog();}
+function raise(stn,code,msg){
+  if(log.some(a=>a.type==='ALARM'&&a.active&&a.stn===stn&&a.code===code))return;
+  log.unshift({t:now(),stn,type:'ALARM',code,msg,active:true,acked:false});trimLog();
+}
+function clearAlarms(stn){log.forEach(a=>{if(a.stn===stn&&a.type==='ALARM'&&a.active)a.active=false;});}
+function trimLog(){if(log.length>60)log.length=60;}
+
+/* ================= ELEVATOR ================= */
+const ELV_ERR={1:'Motor not running',2:'Motor power off',3:'Door failed to open',4:'Door failed to close',5:'Stopped between floors',6:'Out of range'};
+const el={pos:1,dir:0,lastDir:1,power:true,hallUp:new Set(),hallDn:new Set(),car:new Set(),
+  door:0,doorState:'closed',dwell:0,board:false,boardT:0,err:0,estop:false,trips:0,demoT:3,arrivedFlag:false};
+const SPEED=0.55; // floors per second
+
+// build shaft
+const shaft=$('#shaft');
+for(let f=6;f>=1;f--){
+  const r=7-f;
+  const l=document.createElement('div');l.className='floorlbl';l.id='fl'+f;l.textContent=f+'F';l.style.gridRow=r;l.style.gridColumn=1;shaft.appendChild(l);
+  const h=document.createElement('div');h.className='hall';h.style.gridRow=r;h.style.gridColumn=3;
+  if(f<6){const b=document.createElement('button');b.className='lampbtn sm';b.textContent='▲';b.id='hu'+f;b.title=`${f}F hall up · P0000${(f*2-1).toString(16).toUpperCase()}`;b.onclick=()=>hallCall(f,1);h.appendChild(b);}
+  if(f>1){const b=document.createElement('button');b.className='lampbtn sm';b.textContent='▼';b.id='hd'+f;b.title=`${f}F hall down`;b.onclick=()=>hallCall(f,-1);h.appendChild(b);}
+  shaft.appendChild(h);
+}
+const wcol=document.createElement('div');wcol.className='well-col';
+wcol.innerHTML='<div class="car" id="car"><div class="leaf" id="leafL"></div><div class="gap" id="carGap"></div><div class="leaf" id="leafR"></div></div>';
+for(let f=1;f<=6;f++){['u','l'].forEach(k=>{const s=document.createElement('span');s.className='sens';s.id='s'+k+f;wcol.appendChild(s);});}
+shaft.appendChild(wcol);
+const cop=$('#cop');
+[5,6,3,4,1,2].forEach(f=>{const b=document.createElement('button');b.className='lampbtn';b.textContent=f;b.id='cb'+f;b.title=`Car ${f}F · M0001${f}`;b.onclick=()=>carCall(f);cop.appendChild(b);});
+const bo=document.createElement('button');bo.className='lampbtn';bo.textContent='◀▶';bo.style.fontSize='12px';bo.id='cbOpen';bo.title='Door open · M00021';bo.onclick=()=>{if(el.doorState==='closing'||(el.doorState==='closed'&&atFloor()&&el.dir===0)){el.doorState='opening';}else if(el.doorState==='open')el.dwell=Math.max(el.dwell,2);};
+const bc=document.createElement('button');bc.className='lampbtn';bc.textContent='▶◀';bc.style.fontSize='12px';bc.id='cbClose';bc.title='Door close · M00020';bc.onclick=()=>{if(el.doorState==='open')el.dwell=0;};
+cop.append(bo,bc);
+
+function sensorGeo(){const rowH=50;for(let f=1;f<=6;f++){const top=(6-f)*rowH;$('#su'+f).style.top=(top+8)+'px';$('#sl'+f).style.top=(top+rowH-18)+'px';}}
+sensorGeo();
+
+function hallCall(f,d){if(el.err||el.estop)return;(d>0?el.hallUp:el.hallDn).add(f);}
+function carCall(f){if(el.err||el.estop)return;el.car.add(f);}
+function atFloor(){return Math.abs(el.pos-Math.round(el.pos))<0.005;}
+function callsAt(f){return el.hallUp.has(f)||el.hallDn.has(f)||el.car.has(f);}
+function anyCall(pred){for(let f=1;f<=6;f++)if(pred(f)&&callsAt(f))return true;return false;}
+function nextTarget(){
+  const p=el.pos;
+  if(el.dir>0){for(let f=Math.ceil(p);f<=6;f++)if(callsAt(f))return f;}
+  if(el.dir<0){for(let f=Math.floor(p);f>=1;f--)if(callsAt(f))return f;}
+  let best=null,bd=9;for(let f=1;f<=6;f++)if(callsAt(f)&&Math.abs(f-p)<bd){bd=Math.abs(f-p);best=f;}return best;
+}
+function elvFault(code){
+  if(el.err)return;el.err=code;el.dir=0;
+  if(code===2)el.power=false;
+  if(code===5&&atFloor()){el.pos+=0.45;el.pos=clamp(el.pos,1,6);}
+  raise('ELV',code,ELV_ERR[code]);
+}
+function elvTick(dt){
+  if(demo){el.demoT-=dt;if(el.demoT<=0){el.demoT=4+Math.random()*5;const n=el.hallUp.size+el.hallDn.size+el.car.size;
+    if(n<3&&!el.err&&!el.estop){const f=1+Math.floor(Math.random()*6);
+      if(Math.random()<.5&&el.doorState!=='closed')carCall(1+Math.floor(Math.random()*6));
+      else if(f===1)hallCall(1,1);else if(f===6)hallCall(6,-1);else hallCall(f,Math.random()<.5?1:-1);}}
+    if(el.err&&el.errT===undefined)el.errT=6;
+  }
+  if(el.err||el.estop){el.dir=0;return;}
+  // door
+  if(el.doorState==='opening'){el.door=Math.min(1,el.door+dt/0.9);if(el.door>=1){el.doorState='open';el.dwell=2.6;el.board=demo&&Math.random()<.6;el.boardT=el.board?0.9:0;}return;}
+  if(el.doorState==='open'){el.dwell-=dt;if(el.board){el.boardT-=dt;if(el.boardT<=0){el.board=false;if(demo&&Math.random()<.5)carCall(1+Math.floor(Math.random()*6));}}
+    if(el.dwell<=0&&!el.board)el.doorState='closing';return;}
+  if(el.doorState==='closing'){el.door=Math.max(0,el.door-dt/0.9);if(el.door<=0){el.doorState='closed';}return;}
+  // moving / dispatch
+  if(el.dir===0){
+    if(atFloor()){const f=Math.round(el.pos);el.pos=f;
+      if(callsAt(f)){el.hallUp.delete(f);el.hallDn.delete(f);el.car.delete(f);el.doorState='opening';return;}}
+    const t=nextTarget();if(t===null)return;
+    el.dir=t>el.pos?1:-1;el.lastDir=el.dir;el.startFloor=Math.round(el.pos);
+  }else{
+    const prev=el.pos;el.pos=clamp(el.pos+el.dir*SPEED*dt,1,6);
+    // crossed or reached an integer floor?
+    const lo=Math.min(prev,el.pos),hi=Math.max(prev,el.pos);
+    for(let f=Math.ceil(lo-1e-9);f<=Math.floor(hi+1e-9);f++){
+      if(f===el.startFloor&&Math.abs(prev-f)<1e-6)continue;
+      const stopHere=callsAt(f)||(el.dir>0&&f===6)||(el.dir<0&&f===1);
+      if(stopHere){el.pos=f;el.dir=0;el.trips++;
+        if(!anyCall(x=>el.lastDir>0?x>f:x<f)){} // direction reverses next dispatch
+        addEvent('ELV',`Arrived ${f}F`);break;}
+    }
+  }
+}
+function curFloorWord(){return atFloor()?Math.round(el.pos)*10:Math.floor(el.pos)*10+5;}
+
+/* ================= WEIGHT SORTER ================= */
+const WS_ERR={1:'Please enter the work quantity.',2:'Please enter a value between 3 and 8.',3:'Please set the pickup position.',4:'Please set the load position.',5:'Zero and span calibration have not been done.',6:'The load location is not empty.',7:'The cylinder did not operate.',8:'The cylinder did not return.',9:'Suction did not hold the item.'};
+const POS={10:{x:78,y:165}};
+const GX=[250,345,440],GY=[70,165,260];
+for(let i=1;i<=9;i++)POS[i]={x:GX[(i-1)%3],y:GY[Math.floor((i-1)/3)]};
+const ws={mode:1,qty:5,stepMove:0,stepSort:0,stepPP:0,slots:Array(11).fill(null),lc:null,held:null,
+  head:{x:78,y:165},cyl:0,cylCmd:false,suction:false,lcW:0,lcTarget:0,stable:false,lampG:false,err:0,
+  stopBtn:false,estop:false,q:[],cur:null,sorted:[],loadNo:0,cycles:0,itemSeq:0,doneCount:0,rackNo:0,
+  wait10:0,wait12:0,pickPos:null};
+const SPEED_MM=260; // svg units / s
+
+function mStop(){return ws.stopBtn||ws.err>0||ws.estop||ws.mode!==1;}
+function itemAt(p){return p===10?ws.lc:ws.slots[p];}
+function setItemAt(p,v){if(p===10)ws.lc=v;else ws.slots[p]=v;}
+function Q(...a){ws.q.push(...a);}
+const mv=p=>({k:'move',p}), pk=()=>({k:'pick'}), pl=()=>({k:'place'}), wt=t=>({k:'wait',t}), fn=f=>({k:'fn',f});
+
+function wsStart(){
+  if(ws.stepMove!==0&&ws.stepMove!==12)return;
+  const q=parseInt($('#wsQty').value,10);
+  if(!q){wsError(1);return;} if(q<3||q>8){wsError(2);return;}
+  if(ws.stepMove===12)clearGrid();
+  ws.qty=q;ws.mode=1;ws.stopBtn=false;ws.sorted=[];ws.doneCount=0;ws.rackNo=q+1;ws.cycles++;
+  addEvent('WS',`Start · work quantity ${q}`);
+  loadNext(1);
+}
+function clearGrid(){for(let i=1;i<=9;i++)ws.slots[i]=null;ws.lc=null;ws.stepMove=0;ws.stepSort=0;ws.sorted=[];}
+function loadNext(n){
+  Q(fn(()=>{ws.stepMove=1;ws.lampG=true;ws.loadNo=n;}),
+    {k:'operator'},
+    fn(()=>{ws.stepMove=2;}), wt(0.9),
+    fn(()=>{ws.stepMove=3;ws.lampG=false;}), mv(10),
+    fn(()=>{ws.stepMove=4;}), pk(),
+    fn(()=>{ws.stepMove=5;}), mv(n),
+    fn(()=>{ws.stepMove=6;}), pl(),
+    fn(()=>{ws.stepMove=7;if(n<ws.qty)loadNext(n+1);else finishLoad();}));
+}
+function finishLoad(){
+  Q(fn(()=>{ws.stepMove=7;}),mv(10),wt(0.6),
+    fn(()=>{const arr=[];for(let i=1;i<=ws.qty;i++)arr.push(ws.slots[i]);
+      ws.sorted=arr.slice().sort((a,b)=>a.w-b.w||a.id-b.id);ws.stepMove=8;addEvent('WS','Load complete · DSORT done');}),
+    wt(0.6),fn(()=>{ws.stepMove=10;ws.wait10=3;}));
+}
+function wsSort(){
+  if(ws.stepMove!==10||mStop())return;
+  ws.stepMove=11;addEvent('WS','Sort pressed · rearranging');
+  const R=ws.qty+1,cur=ws.slots.slice(),want=[null,...ws.sorted.map(o=>o.id)],moves=[];
+  const doMove=(a,b)=>{moves.push([a,b]);cur[b]=cur[a];cur[a]=null;};
+  for(let guard=0;guard<40;guard++){
+    let i=0;for(let k=1;k<=ws.qty;k++)if(!cur[k]||cur[k].id!==want[k]){i=k;break;}
+    if(!i)break;
+    doMove(i,R);let empty=i;
+    for(let g2=0;g2<20;g2++){const need=want[empty];
+      if(cur[R]&&cur[R].id===need){doMove(R,empty);break;}
+      let j=0;for(let k=1;k<=ws.qty;k++)if(cur[k]&&cur[k].id===need)j=k;
+      doMove(j,empty);empty=j;}
+  }
+  moves.forEach(([a,b],idx)=>{
+    Q(fn(()=>{ws.stepSort=1;ws.fromSlot=a;ws.toSlot=b;}),mv(a),fn(()=>{ws.stepSort=3;}),pk(),
+      fn(()=>{ws.stepSort=5;}),mv(b),fn(()=>{ws.stepSort=7;}),pl(),fn(()=>{ws.stepSort=9;ws.doneCount=idx+1;}));
+  });
+  Q(fn(()=>{ws.stepSort=0;ws.fromSlot=ws.toSlot=null;}),mv(10),
+    fn(()=>{ws.stepMove=12;ws.wait12=5;addEvent('WS',`Rearrangement finished · ${moves.length} moves`);}));
+  ws.planMoves=moves.length;
+}
+function wsError(code){if(ws.err)return;ws.err=code;raise('WS',code,WS_ERR[code]);}
+
+function wsTick(dt){
+  // load cell weight (D00400) settles toward the item weight
+  ws.lcTarget=ws.lc?ws.lc.w:0;
+  const diff=ws.lcTarget-ws.lcW;ws.lcW+=diff*Math.min(1,dt*5);
+  ws.stable=Math.abs(diff)<0.6;
+  // cylinder travel
+  ws.cyl=clamp(ws.cyl+(ws.cylCmd?1:-1)*dt/0.35,0,1);
+  if(demo){
+    if(ws.err){ws.autoReset=(ws.autoReset??6)-dt;if(ws.autoReset<=0){ws.autoReset=undefined;wsReset();}}
+    if(ws.stepMove===0&&!ws.q.length&&!mStop()){ws.idleT=(ws.idleT??2)-dt;if(ws.idleT<=0){ws.idleT=undefined;$('#wsQty').value=3+Math.floor(Math.random()*6);wsStart();}}
+    if(ws.stepMove===10&&!mStop()){ws.wait10-=dt;if(ws.wait10<=0)wsSort();}
+    if(ws.stepMove===12&&!ws.q.length&&!mStop()){ws.wait12-=dt;if(ws.wait12<=0){clearGrid();addEvent('WS','Operator unloaded the slots');}}
+  }
+  if(mStop())return;
+  if(!ws.cur){ws.cur=ws.q.shift()||null;if(ws.cur)ws.cur.t0=0;}
+  const a=ws.cur;if(!a)return;
+  a.t0+=dt;
+  switch(a.k){
+    case 'fn':a.f();ws.cur=null;break;
+    case 'wait':if(a.t0>=a.t)ws.cur=null;break;
+    case 'operator':
+      if(a.t0>=(demo?1.3:1e9)||a.go){ws.lc={id:++ws.itemSeq,w:pickWeight()};ws.cur=null;}break;
+    case 'move':{
+      const t=POS[a.p],dx=t.x-ws.head.x,dy=t.y-ws.head.y,d=Math.hypot(dx,dy),s=SPEED_MM*dt;
+      if(d<=s){ws.head.x=t.x;ws.head.y=t.y;ws.at=a.p;ws.cur=null;}else{ws.head.x+=dx/d*s;ws.head.y+=dy/d*s;ws.at=null;}
+      break;}
+    case 'pick':case 'place':{
+      const ph=a.t0;
+      if(ph<0.4){ws.stepPP=1;ws.cylCmd=true;}
+      else if(ph<0.7){ws.stepPP=2;
+        if(a.k==='pick'&&!ws.held){ws.held=itemAt(ws.at);setItemAt(ws.at,null);ws.suction=true;}
+        if(a.k==='place'&&ws.held){setItemAt(ws.at,ws.held);ws.held=null;ws.suction=false;}}
+      else if(ph<1.1){ws.stepPP=3;ws.cylCmd=false;}
+      else {ws.stepPP=0;ws.cur=null;}
+      break;}
+  }
+}
+function pickWeight(){const used=new Set(ws.slots.filter(Boolean).map(o=>o.w));let w;do{w=20+Math.round(Math.random()*46)*10+Math.round(Math.random()*9);}while(used.has(w));return w;}
+function wsReset(){if(!ws.err)return;ws.err=0;clearAlarms('WS');addEvent('WS','Error reset (M0002B)');}
+
+/* ---------- sorter SVG ---------- */
+const svg=$('#wsSvg');const NS='http://www.w3.org/2000/svg';
+function el_(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e;}
+el_('rect',{x:14,y:14,width:512,height:302,rx:4,fill:'none',stroke:'var(--line)','stroke-width':1.5});
+el_('line',{x1:30,y1:22,x2:30,y2:308,stroke:'var(--steel)','stroke-width':5});
+el_('line',{x1:510,y1:22,x2:510,y2:308,stroke:'var(--steel)','stroke-width':5});
+el_('text',{x:30,y:322,'font-size':9,fill:'var(--muted)','text-anchor':'middle'}).textContent='AX1 (Y)';
+// load cell
+el_('rect',{x:46,y:133,width:64,height:64,rx:4,fill:'var(--panel)',stroke:'var(--fg)','stroke-width':1.5});
+el_('text',{x:78,y:212,'font-size':9.5,fill:'var(--muted)','text-anchor':'middle'}).textContent='LOAD CELL';
+el_('text',{x:78,y:124,'font-size':9,fill:'var(--muted)','text-anchor':'middle'}).textContent='pos 10';
+const slotEls={};
+for(let i=1;i<=9;i++){const p=POS[i];
+  const g=el_('g',{});
+  const r=el_('rect',{x:p.x-38,y:p.y-38,width:76,height:76,rx:4,fill:'var(--panel)',stroke:'var(--line)','stroke-width':1.5},g);
+  const t=el_('text',{x:p.x-32,y:p.y-26,'font-size':10,fill:'var(--muted)'},g);t.textContent=i;
+  const s=el_('circle',{cx:p.x+30,cy:p.y-30,r:3.5,fill:'var(--lamp-off)'},g);
+  const tag=el_('text',{x:p.x,y:p.y+33,'font-size':8.5,fill:'var(--muted)','text-anchor':'middle','data-noi18n':''},g);
+  slotEls[i]={r,s,tag};
+}
+const itemLayer=el_('g',{});
+const bridge=el_('line',{x1:30,y1:165,x2:510,y2:165,stroke:'var(--steel)','stroke-width':7,'stroke-linecap':'round','opacity':.85});
+const carriage=el_('rect',{x:62,y:149,width:32,height:32,rx:3,fill:'var(--well)',stroke:'var(--fg)','stroke-width':1.5});
+const cupRing=el_('circle',{cx:78,cy:165,r:11,fill:'none',stroke:'var(--fg)','stroke-width':2});
+const cupDot=el_('circle',{cx:78,cy:165,r:4,fill:'var(--lamp-off)'});
+const heldLayer=el_('g',{});
+function drawItem(layer,o,x,y,ok){
+  const rr=12+Math.min(10,o.w/50);
+  el_('circle',{cx:x,cy:y,r:rr,fill:'var(--item)',stroke:ok?'var(--run)':'var(--item-edge)','stroke-width':ok?3:1.5},layer);
+  const t=el_('text',{x:x,y:y+3.5,'font-size':10,'font-weight':600,fill:'var(--fg)','text-anchor':'middle'},layer);t.textContent=o.w;
+}
+
+/* ---------- static readout skeletons ---------- */
+function roHTML(list){return list.map(([k,a,id])=>`<div><span class="k">${k}</span><span class="v" id="${id}">–</span><span class="a">${a}</span></div>`).join('');}
+$('#elvRo').innerHTML=roHTML([['Current_Floor','D00010','roCur'],['Target_Floor','D00011','roTgt'],['Door_Step','D00020','roDs'],['Error_Code','D00002','roErr'],['Trips','counter','roTrips']]);
+$('#elvIo').innerHTML=[['Motor power','P00020','ioPwr'],['Motor up CW','P0002E','ioUp'],['Motor down CCW','P0002F','ioDn'],['Door cylinder','P00021','ioCyl'],['Door open sensor','P0004C','ioOs'],['Door closed sensor','P0004D','ioCs'],['Boarding sensor','P0004E','ioBd'],['E-stop relay','M00032','ioEs']]
+  .map(([n,a,id])=>`<span><b class="lamp" id="${id}"></b>${n}<i>${a}</i></span>`).join('');
+$('#wsRo').innerHTML=roHTML([['STEP_MOVE','D00010','rsMove'],['STEP_SORT','D00011','rsSort'],['STEP_PICK_PLACE','D00012','rsPP'],['Item no. (slot)','D00009','rsNo'],['Holding rack','D00022','rsRack'],['Error code','D00401','rsErr'],['Axis 1 (Y) mm','D01004','rsY'],['Axis 2 (X) mm','D02004','rsX'],['Cylinder','P0000D/E','rsCyl'],['Suction','P0000F','rsSuc'],['Moves done','D00027','rsDone'],['Cycles','counter','rsCyc']]);
+
+/* ---------- render ---------- */
+const setLamp=(id,on,cls)=>{const e=document.getElementById(id);if(!e)return;e.className='lamp'+(cls?' '+cls:'')+(on?' on':'');};
+const setTxt=(id,v)=>{const e=document.getElementById(id);v=T(String(v));if(e&&e.textContent!==v)e.textContent=v;};
+function pill(id,text,cls){const e=$(id);text=T(text);if(e.textContent!==text)e.textContent=text;e.className='pill'+(cls?' '+cls:'');}
+
+function renderElv(){
+  const rowH=50;
+  $('#car').style.top=((6-el.pos)*rowH+4)+'px';
+  const w=(1-el.door)*50;$('#leafL').style.width=w+'%';$('#leafR').style.width=w+'%';
+  $('#car').classList.toggle('board',el.board);
+  setTxt('carGap',el.door>0.5?(el.board?'IN':''):'');
+  const f=Math.round(el.pos);
+  for(let i=1;i<=6;i++){
+    $('#fl'+i).classList.toggle('here',atFloor()&&f===i);
+    const hu=$('#hu'+i),hd=$('#hd'+i);if(hu)hu.classList.toggle('on',el.hallUp.has(i));if(hd)hd.classList.toggle('on',el.hallDn.has(i));
+    $('#cb'+i).classList.toggle('on',el.car.has(i));
+    $('#su'+i).classList.toggle('on',el.pos>=i-0.02&&el.pos<=i+0.09);
+    $('#sl'+i).classList.toggle('on',el.pos>=i-0.09&&el.pos<=i+0.02);
+  }
+  $('#cbOpen').classList.toggle('on',el.doorState==='opening');
+  $('#cbClose').classList.toggle('on',el.doorState==='closing');
+  setTxt('elvFloor',atFloor()?f+'F':(Math.floor(el.pos)+'–'+(Math.floor(el.pos)+1)));
+  $('#arrUp').classList.toggle('on',el.dir>0);$('#arrDn').classList.toggle('on',el.dir<0);
+  setTxt('elvDoor',{closed:'Closed',opening:'Opening',open:'Open',closing:'Closing'}[el.doorState]);
+  const tgt=el.dir!==0?nextTarget():null;
+  setTxt('roCur',curFloorWord());setTxt('roTgt',tgt?tgt*10:0);
+  setTxt('roDs',{closed:0,opening:1,open:2,closing:3}[el.doorState]);
+  setTxt('roErr',el.err);setTxt('roTrips',el.trips);
+  setLamp('ioPwr',el.power,'g');setLamp('ioUp',el.dir>0,'g');setLamp('ioDn',el.dir<0,'g');
+  setLamp('ioCyl',el.doorState==='opening'||el.doorState==='open','g');
+  setLamp('ioOs',el.door>=1,'g');setLamp('ioCs',el.door<=0,'g');setLamp('ioBd',el.board,'y');setLamp('ioEs',el.estop,'r');
+  $('#elvEstop').classList.toggle('latched',el.estop);
+  if(el.estop)pill('#elvState','E-stop','alarm');
+  else if(el.err)pill('#elvState','Error '+el.err,'alarm');
+  else if(el.dir!==0)pill('#elvState',el.dir>0?'Running up':'Running down','run');
+  else if(el.doorState!=='closed')pill('#elvState','Door '+el.doorState,'run');
+  else pill('#elvState','Idle','');
+}
+function renderWs(){
+  // items
+  itemLayer.replaceChildren();heldLayer.replaceChildren();
+  const sortedPhase=ws.stepMove>=8&&ws.sorted.length;
+  for(let i=1;i<=9;i++){
+    const o=ws.slots[i];const se=slotEls[i];
+    se.s.setAttribute('fill',o?'var(--run)':'var(--lamp-off)');
+    const isRack=ws.stepMove>=10&&ws.stepMove<12&&i===ws.qty+1;
+    const active=ws.stepMove>0&&i<=ws.qty;
+    se.r.setAttribute('stroke',isRack?'var(--accent)':active?'var(--fg)':'var(--line)');
+    se.r.setAttribute('stroke-dasharray',isRack?'5 4':'');
+    se.tag.textContent=isRack?T('RACK'):(sortedPhase&&i<=ws.qty?'→ '+ws.sorted[i-1].w+' g':'');
+    if(o){const ok=sortedPhase&&i<=ws.qty&&ws.sorted[i-1].id===o.id;drawItem(itemLayer,o,POS[i].x,POS[i].y-2,ok);}
+  }
+  if(ws.lc)drawItem(itemLayer,ws.lc,78,165,false);
+  const hx=ws.head.x,hy=ws.head.y;
+  bridge.setAttribute('y1',hy);bridge.setAttribute('y2',hy);
+  carriage.setAttribute('x',hx-16);carriage.setAttribute('y',hy-16);
+  cupRing.setAttribute('cx',hx);cupRing.setAttribute('cy',hy);cupRing.setAttribute('r',11-ws.cyl*4);
+  cupDot.setAttribute('cx',hx);cupDot.setAttribute('cy',hy);cupDot.setAttribute('fill',ws.suction?'var(--accent)':'var(--lamp-off)');
+  if(ws.held)drawItem(heldLayer,ws.held,hx,hy,false);
+  // lamps
+  $('#lampR').classList.toggle('on',ws.stepMove!==0);
+  $('#lampY').classList.toggle('on',ws.err>0);
+  $('#lampG').classList.toggle('on',ws.lampG&&!ws.err);
+  setTxt('wsWeight',Math.round(ws.lcW)+' g');
+  const modeN=ws.mode;setTxt('wsMode',modeN+' '+({1:'Auto',2:'Manual',3:'Stopped'}[modeN]));
+  setTxt('rsMove',ws.stepMove);setTxt('rsSort',ws.stepSort);setTxt('rsPP',ws.stepPP);
+  setTxt('rsNo',ws.loadNo);setTxt('rsRack',ws.stepMove?ws.qty+1:0);setTxt('rsErr',ws.err);
+  setTxt('rsY',((hy-165)*1.6).toFixed(1));setTxt('rsX',((hx-78)*1.6).toFixed(1));
+  setTxt('rsCyl',ws.cyl>=1?'FWD':ws.cyl<=0?'BWD':'moving');setTxt('rsSuc',ws.suction?'ON':'OFF');
+  setTxt('rsDone',ws.stepMove>=11?`${ws.doneCount}/${ws.planMoves||0}`:'0');setTxt('rsCyc',ws.cycles);
+  $('#wsEstop').classList.toggle('latched',ws.estop);
+  const label={0:'Idle',1:'Load · waiting item',2:'Load · weighing',3:'Load · to load cell',4:'Load · pick',5:'Load · to slot',6:'Load · place',7:'Load · next',8:'Data sort',10:'Waiting for Sort',11:'Rearranging',12:'Complete'}[ws.stepMove]||('Step '+ws.stepMove);
+  if(ws.estop)pill('#wsState','E-stop','alarm');
+  else if(ws.err)pill('#wsState','Error '+ws.err,'alarm');
+  else if(ws.mode===3)pill('#wsState','Paused · '+label,'warn');
+  else if(ws.stepMove===10)pill('#wsState',label,'warn');
+  else pill('#wsState',label,ws.stepMove?'run':'');
+}
+let tabletick=0;
+function renderTables(){
+  // weights table
+  let h='<tr><th>Slot</th>';for(let i=1;i<=9;i++)h+=`<th>${i}</th>`;h+='</tr><tr><th>D_WT_n (g)</th>';
+  for(let i=1;i<=9;i++){const o=ws.slots[i];h+=`<td>${o?o.w:'–'}</td>`;}
+  h+='</tr><tr><th>Sorted target</th>';
+  for(let i=1;i<=9;i++){const s=ws.sorted[i-1];const o=ws.slots[i];
+    if(!s){h+='<td>–</td>';continue;}
+    const ok=o&&o.id===s.id;h+=`<td class="${ok?'ok':'bad'}">${s.w}${ok?' ✓':''}</td>`;}
+  h+='</tr>';
+  $('#wsTable').innerHTML=h;
+  // alarms
+  const act=log.filter(a=>a.type==='ALARM'&&a.active).length;
+  const unack=log.filter(a=>a.type==='ALARM'&&!a.acked).length;
+  pill('#almCount',act+' active'+(unack?` · ${unack} unack`:''),act?'alarm':(unack?'warn':''));
+  $('#alBody').innerHTML=log.map(a=>`<tr class="${a.type==='ALARM'?(a.active?'active':'')+(a.acked?'':' unack'):'ev'}">
+    <td class="num">${a.t}</td><td>${a.stn}</td><td><span class="sev ${a.type==='ALARM'?'hi':'ev'}">${a.type==='ALARM'?'ALM':'EVT'}</span></td>
+    <td class="num">${a.code?('E'+a.code):''}</td><td>${a.msg}</td>
+    <td class="st">${a.type==='ALARM'?(a.active?'Active':'Cleared')+(a.acked?'':' · Unack'):''}</td></tr>`).join('')||'<tr><td colspan="6" class="note">No alarms or events yet.</td></tr>';
+  // tags
+  const tags=tab==='elv'?[
+    ['D00010','Current_Floor',curFloorWord()],['D00011','Target_Floor',(el.dir?nextTarget():0)*10||0],['D00020','Door_Step',{closed:0,opening:1,open:2,closing:3}[el.doorState]],
+    ['D00002','Error_Code',el.err],['P00020','Motor_Power',+el.power],['P0002E','Motor_Up_CW',+(el.dir>0)],['P0002F','Motor_Down_CCW',+(el.dir<0)],
+    ['P00021','Door_Cyl_ON',+(el.doorState==='opening'||el.doorState==='open')],['P0004C','Door_Cyl_Open_Sensor',+(el.door>=1)],['P0004D','Door_Cyl_Close_Sensor',+(el.door<=0)],
+    ['P0004E','Door_Boarding_Sensor_ON',+el.board],['M00032','E-Stop_Relay',+el.estop],['M00405','_Error_Stop',+(el.err>0)],
+    ...[1,2,3,4,5,6].map(f=>['M0011'+f,'Target_'+f+'F',+callsAt(f)])
+  ]:[
+    ['D00000','D_OP_MODE',ws.mode],['D00010','STEP_MOVE',ws.stepMove],['D00011','STEP_SORT',ws.stepSort],['D00012','STEP_PICK_PLACE',ws.stepPP],
+    ['D00030','D_IN_WORK_QTY',ws.qty],['D00400','D_LC_WEIGHT',Math.round(ws.lcW)],['D00401','D_ERR_CODE',ws.err],
+    ['M00030','SG_LOAD_DONE',+(ws.stepMove>=8)],['M00040','R_SORT',+(ws.stepMove===11)],['M00044','SG_REARR_DONE',+(ws.stepMove===12)],
+    ['M00100','R_LAMP_LOAD_OK',+ws.lampG],['M00500','M_STOP',+mStop()],['P00020','P_CYL_FWD_CMD',+ws.cylCmd],['P00021','P_SUCTION_CMD',+ws.suction],
+    ['P0000F','S_SUCTION',+ws.suction],...[1,2,3,4,5,6,7,8,9].map(i=>['P0000'+i,'S_POS_'+i,+!!ws.slots[i]])
+  ];
+  $('#tagTable').innerHTML=tags.map(([a,n,v])=>`<tr><td>${a}</td><td>${n}</td><td class="${v&&String(v)!=='0'?'hot':''}">${v}</td></tr>`).join('');
+}
+
+/* ---------- controls ---------- */
+let tab='elv';
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderTables();});
+$('#demoBtn').onclick=()=>{demo=!demo;$('#demoBtn').setAttribute('aria-pressed',demo);addEvent('SYS',demo?'Demo traffic on':'Demo traffic off');};
+$('#speedSel').onchange=e=>{speed=+e.target.value;};
+$('#elvEstop').onclick=()=>{el.estop=!el.estop;if(el.estop){el.dir=0;raise('ELV','ES','Emergency stop pressed');}else{clearAlarms('ELV');addEvent('ELV','E-stop released');}};
+$('#elvAck').onclick=()=>{if(el.err){el.err=0;el.power=true;el.errT=undefined;clearAlarms('ELV');addEvent('ELV','Error acknowledged (M00400)');}log.forEach(a=>{if(a.stn==='ELV')a.acked=true;});};
+$('#elvInject').onclick=()=>elvFault(+$('#elvFault').value);
+$('#wsStart').onclick=()=>{if(ws.q.length&&ws.cur&&ws.cur.k==='operator'){ws.cur.go=true;return;}wsStart();};
+$('#wsSort').onclick=wsSort;
+$('#wsPause').onclick=()=>{if(ws.stepMove===0)return;ws.mode=3;ws.stopBtn=true;addEvent('WS','Paused (M0002E)');};
+$('#wsRestart').onclick=()=>{if(ws.mode!==3)return;ws.mode=1;ws.stopBtn=false;addEvent('WS','Restart (M0002F)');};
+$('#wsReset').onclick=()=>{wsReset();log.forEach(a=>{if(a.stn==='WS')a.acked=true;});};
+$('#wsEstop').onclick=()=>{ws.estop=!ws.estop;if(ws.estop){ws.mode=3;ws.stopBtn=true;raise('WS','ES','Emergency stop pressed');}else{clearAlarms('WS');addEvent('WS','E-stop released · press Restart');}};
+$('#wsInject').onclick=()=>{if(ws.stepMove===0){wsError(+$('#wsFault').value);return;}wsError(+$('#wsFault').value);};
+$('#ackAll').onclick=()=>{log.forEach(a=>a.acked=true);renderTables();i18n();};
+$('#langBtn').onclick=()=>{
+  lang = lang==='kr'?'en':'kr';
+  try{ localStorage.setItem('scadaLang',lang); }catch(e){}
+  // static texts were translated in place: restore originals when going back to English
+  renderTables(); i18n();
+};
+i18n();
+
+/* demo: auto-ack elevator faults after a while */
+function demoAutoRecover(dt){
+  if(!demo)return;
+  if(el.err){el.errT=(el.errT??6)-dt;if(el.errT<=0){$('#elvAck').click();}}
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function frame(t){
+  let dt=Math.min(0.1,(t-last)/1000)*speed;last=t;
+  const steps=Math.ceil(dt/0.02);for(let i=0;i<steps;i++){elvTick(dt/steps);wsTick(dt/steps);}
+  demoAutoRecover(dt);
+  renderElv();renderWs();
+  tabletick-=dt/speed;if(tabletick<=0){tabletick=0.25;renderTables();setTxt('clock',now());i18n();}
+  requestAnimationFrame(frame);
+}
+// opening state: a few calls registered and the sorter mid-cycle
+el.pos=2;hallCall(5,-1);carCall(4);hallCall(1,1);
+addEvent('SYS','SCADA runtime started · both PLC links OK');
+$('#wsQty').value=5;wsStart();
+requestAnimationFrame(frame);
+})();
+</script>
