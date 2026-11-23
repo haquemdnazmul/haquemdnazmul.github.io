@@ -9,6 +9,7 @@ This repository holds the source of that website and the project files.
 | **Website** | https://haquemdnazmul.github.io |
 | **3D weight sorter simulator** | https://haquemdnazmul.github.io/simulator/ |
 | **3D conveyor sorter simulator** | https://haquemdnazmul.github.io/conveyor-simulator/ |
+| **3D elevator simulator** | https://haquemdnazmul.github.io/elevator-simulator/ |
 | **Project files** | [projects/](projects/) |
 
 ## Projects

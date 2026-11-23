@@ -2,6 +2,8 @@
 
 A working 6-floor elevator model. An AC motor with a speed controller moves the car, a pneumatic cylinder acts as the door, and a sensor on each floor detects a flag on the car. The floor buttons, direction arrows and door buttons inside the car are on a touchscreen HMI.
 
+**▶ 3D simulator:** https://haquemdnazmul.github.io/elevator-simulator/ (built from the elevator's STEP assembly)
+
 ![Control flowchart](docs/Elevator_Control_Flowchart_KR.png)
 
 ## Folders

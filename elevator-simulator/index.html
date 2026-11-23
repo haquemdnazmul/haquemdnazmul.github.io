@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6-Floor Elevator Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: CAD elevator on the left, car HMI + hall buttons + status on the right; stacks on phones. Same family as the other two simulators. */
+:root {
+  --bg: #e7e9e6; --panel: #f5f6f3; --ink: #1c2024; --muted: #5d656c; --line: #cdd2cf;
+  --accent: #d2601a; --scene: #dde1df; --ok: #1d8f4e; --warn: #b77d00; --err: #c93030;
+  --call: #d23b30; --idle: #2d5fbf; --chip: #e2e5e1;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+    --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+    --call: #f05a4f; --idle: #4f86e8; --chip: #262c31; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171a; --panel: #1c2024; --ink: #e6e9eb; --muted: #98a1a8; --line: #2d343a;
+  --accent: #f08a3c; --scene: #22272c; --ok: #3cc97a; --warn: #e2a91f; --err: #f05252;
+  --call: #f05a4f; --idle: #4f86e8; --chip: #262c31; color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 12px; }
+.view { position: relative; min-width: 0; min-height: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--scene); }
+.view canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.hud { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.hud-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { font-family: var(--font-display); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); }
+.pill.run { color: var(--ok); border-color: var(--ok); }
+.pill.warn { color: var(--warn); border-color: var(--warn); }
+.pill.err { color: #fff; background: var(--err); border-color: var(--err); }
+.floorbox { font-family: var(--font-mono); font-size: 30px; font-weight: 600; padding: 2px 14px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); align-self: flex-start; font-variant-numeric: tabular-nums; }
+.floorbox small { display: block; font-family: var(--font-display); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.views { position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 60%; }
+.views button, .seg button { font-family: var(--font-display); font-weight: 600; letter-spacing: .05em; font-size: 13px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+.views button:hover, .seg button:hover { border-color: var(--accent); }
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.hint { position: absolute; left: 10px; bottom: 8px; font-size: 12px; color: var(--muted); }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; background: var(--scene); }
+.loading div { display: flex; flex-direction: column; gap: 8px; align-items: center; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bar { width: 220px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.panel { min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 2px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h2 span { font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.title h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: .02em; text-wrap: balance; }
+.title p { margin: 0; color: var(--muted); line-height: 1.45; }
+.carpanel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fbtn { font-family: var(--font-mono); font-size: 20px; font-weight: 600; padding: 8px 0; border-radius: 8px; border: 1px solid transparent; background: var(--idle); color: #fff; cursor: pointer; }
+.fbtn.on { background: var(--call); }
+.fbtn.here { outline: 2px solid var(--ok); outline-offset: 2px; }
+.dbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.btn { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: .05em; text-transform: uppercase; padding: 9px 6px; border-radius: 7px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.btn small { font-family: var(--font-mono); font-size: 10px; font-weight: 400; color: var(--muted); letter-spacing: 0; text-transform: none; }
+.btn:hover { border-color: var(--accent); }
+.btn.stop { background: var(--err); border-color: var(--err); color: #fff; }
+.btn.stop small { color: rgba(255,255,255,.8); }
+.btn.stop[aria-pressed="true"] { outline: 3px solid var(--err); outline-offset: 2px; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hall { display: grid; grid-template-columns: 40px 1fr 1fr; gap: 4px 6px; align-items: center; }
+.hall b { font-family: var(--font-display); font-size: 15px; letter-spacing: .04em; }
+.hbtn { font-family: var(--font-body); font-size: 13px; padding: 5px 0; border-radius: 6px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; }
+.hbtn.on { background: var(--call); color: #fff; border-color: var(--call); }
+.hbtn:disabled { visibility: hidden; }
+.hbtn small { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-left: 4px; }
+.hbtn.on small { color: rgba(255,255,255,.8); }
+.field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+.field label small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+input[type=range] { width: 150px; accent-color: var(--accent); }
+.speedval { font-family: var(--font-mono); font-size: 14px; font-weight: 600; min-width: 34px; text-align: right; }
+.stat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.stat div { border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; background: var(--bg); min-width: 0; }
+.stat small { display: block; font-family: var(--font-display); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.stat b { font-family: var(--font-mono); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.checks { display: flex; flex-direction: column; gap: 5px; }
+.checks label { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.checks label small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+.tests { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.tests li { display: grid; grid-template-columns: 26px 1fr; gap: 6px; }
+.tests li span { font-family: var(--font-mono); color: var(--muted); }
+.io-wrap { max-height: 280px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { position: sticky; top: 0; background: var(--panel); text-align: left; font-family: var(--font-display); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; padding: 5px 7px; border-bottom: 1px solid var(--line); }
+td { padding: 3px 7px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); white-space: nowrap; }
+td.d { color: var(--muted); }
+td.v { text-align: right; font-variant-numeric: tabular-nums; }
+tr.grp td { font-family: var(--font-display); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); background: var(--bg); }
+.on { color: var(--ok); font-weight: 600; }
+.log { margin: 0; padding: 0; list-style: none; max-height: 170px; overflow: auto; font-family: var(--font-mono); font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.log li { display: grid; grid-template-columns: 52px 1fr; gap: 6px; }
+.log li span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.log li.e { color: var(--err); } .log li.ok { color: var(--ok); } .log li.w { color: var(--warn); }
+.note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+@media (max-width: 880px) {
+  html, body { height: auto; }
+  .app { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .view { height: 66vh; min-height: 380px; }
+  .panel { overflow: visible; }
+  .views { max-width: 100%; top: auto; bottom: 30px; right: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="view" id="view">
+    <div class="hud">
+      <div class="hud-row"><span class="pill" id="state">Loading</span><span class="pill" id="door">Door closed</span></div>
+      <div class="floorbox"><small>Current floor · D00000</small><span id="floorHud">1F</span></div>
+    </div>
+    <div class="views" role="group" aria-label="Camera view">
+      <button type="button" data-v="front">Front</button><button type="button" data-v="iso">Iso</button><button type="button" data-v="car">Follow car</button><button type="button" data-v="top">Motor</button><button type="button" data-v="panel">Control panel</button>
+    </div>
+    <div class="hint">Click the hall buttons, the E-stop or the car's HMI in 3D · drag to orbit · scroll to zoom</div>
+    <div class="loading" id="loading"><div><span id="loadTxt">Loading CAD model…</span><span class="bar"><i id="loadBar"></i></span></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="card title">
+      <h1>6-Floor Elevator Simulator</h1>
+      <p>Built from the elevator's STEP assembly. An AC motor and timing belt move the car, horseshoe sensors on every floor read the flag on the car, the door is a pneumatic cylinder, and the car's floor buttons are on the TOP HMI. The logic follows the team's requirements and test report.</p>
+      <p class="note"><a href="../">← Back to the portfolio</a></p>
+    </div>
+
+    <section class="card">
+      <h2>Car HMI <span>M00001–M00006</span></h2>
+      <div class="carpanel" id="carpanel"></div>
+      <div class="dbtns">
+        <button class="btn" id="bOpen" type="button">◀▶ Open door<small>door open button</small></button>
+        <button class="btn" id="bClose" type="button">▶◀ Close door<small>door close button</small></button>
+      </div>
+      <p class="note">Red = the car will stop there, blue = it will not (requirements 4 and 5).</p>
+    </section>
+
+    <section class="card">
+      <h2>Hall buttons <span>P00040–P00049</span></h2>
+      <div class="hall" id="hall"></div>
+    </section>
+
+    <section class="card">
+      <h2>Status</h2>
+      <div class="stat">
+        <div><small>Position D00000</small><b id="sPos">10</b></div>
+        <div><small>Target D00001</small><b id="sTgt">–</b></div>
+        <div><small>Direction</small><b id="sDir">idle</b></div>
+        <div><small>Motor</small><b id="sMot">off</b></div>
+        <div><small>Car height</small><b id="sZ">0 mm</b></div>
+        <div><small>Speed</small><b id="sV">0 mm/s</b></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Machine <span>safety and tuning</span></h2>
+      <button class="btn stop" id="bEms" type="button" aria-pressed="false">Emergency stop<small>EMG button · Esc</small></button>
+      <div class="field"><label for="spd">Motor speed setting<small>recommended 3, limit 3.5 (test 04)</small></label>
+        <div class="row" style="display:flex;gap:8px;align-items:center"><input type="range" id="spd" min="1" max="5" step="0.5" value="3"><span class="speedval" id="spdVal">3.0</span></div>
+      </div>
+      <div class="checks"><label><input type="checkbox" id="block"> Someone stands in the doorway<small>Boarding sensor E3JK beam blocked: the door will not close</small></label></div>
+      <div class="field"><label>Sim speed</label>
+        <div class="seg" role="group" aria-label="Simulation speed" id="speed"><button type="button" data-s="1" aria-pressed="true">1×</button><button type="button" data-s="2" aria-pressed="false">2×</button><button type="button" data-s="4" aria-pressed="false">4×</button></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Test report <span>10 functional tests</span></h2>
+      <ul class="tests">
+        <li><span>01</span>Up / down buttons on every floor light and register</li>
+        <li><span>02</span>Floor sensors show the car's position</li>
+        <li><span>03</span>Motor runs forward (up) and reverse (down)</li>
+        <li><span>04</span>Speed setting 3 stops level; 4 or more overshoots the floor</li>
+        <li><span>05</span>Going up it stops for up calls, going down for down calls</li>
+        <li><span>06</span>Calls behind the car wait for the next trip</li>
+        <li><span>07</span>Door open button works at a stopped floor</li>
+        <li><span>08</span>Calls are served in travel order</li>
+        <li><span>09</span>The door never opens while the car moves</li>
+        <li><span>10</span>Boarding sensor stops the door from closing</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>I/O monitor <span>XG5000</span></h2>
+      <div class="io-wrap"><table><thead><tr><th>Signal</th><th>Device</th><th style="text-align:right">Value</th></tr></thead><tbody id="ioBody"></tbody></table></div>
+      <p class="note">P00021/P00022 (motor), D00000/D00001 and M00001–M00006 come from the team's program. The other addresses are placeholders for this simulator.</p>
+    </section>
+
+    <section class="card">
+      <h2>Event log</h2>
+      <ul class="log" id="log"></ul>
+    </section>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ================= Geometry, CAD frame (mm, Z up), from Elevator_ASM.stp =================
+const N = 6, PITCH = 230, Z0 = 115;                  // car bottom at 1F, floor pitch
+const zf = k => Z0 + (k - 1) * PITCH;                // car bottom when level at floor k
+const SENS = k => [zf(k) + 10, zf(k) + 140];         // BUP-30 lower / upper sensor heights
+const FLAG = [-5, 150];                              // flag on the car, relative to car bottom
+const BTN_X = 489.5, BTN_Y = 750, btnZ = (k, up) => 190 + (k - 1) * PITCH + (up ? 28 : -28);
+const BRAKE_C = 0.002;                               // braking distance = c·v² (motor has no decel ramp)
+const W = (x, y, z) => new THREE.Vector3(x - 200, z + 108, -y + 500);
+
+const sim = { t: 0, speed: 1, ready: false };
+const logEl = $('#log');
+function log(msg, cls) {
+  const li = document.createElement('li'); if (cls) li.className = cls;
+  li.innerHTML = `<span>${sim.t.toFixed(1)}s</span><div></div>`; li.lastChild.textContent = msg;
+  logEl.prepend(li); while (logEl.children.length > 80) logEl.lastChild.remove();
+}
+
+// ================= Scene =================
+const view = $('#view');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const setBg = () => { scene.background = new THREE.Color(css('--scene') || '#dde1df'); };
+setBg(); matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setBg);
+new MutationObserver(setBg).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+const camera = new THREE.PerspectiveCamera(36, 1, 10, 30000);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = Math.PI * 0.495; controls.minDistance = 150; controls.maxDistance = 7000;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(1800, 3000, 1200); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -1300, right: 1300, top: 1300, bottom: -1300, near: 100, far: 7000 }); sun.shadow.bias = -0.0005;
+scene.add(sun);
+const fillL = new THREE.DirectionalLight(0xffffff, 0.3); fillL.position.set(-1500, 900, -1200); scene.add(fillL);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(9000, 9000), new THREE.ShadowMaterial({ opacity: 0.16 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; root.position.set(-200, 108, 500); scene.add(root);
+const G = { static: new THREE.Group(), car: new THREE.Group() }; root.add(G.static); root.add(G.car);
+
+function canvasTex(w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; t.userData = { c, g: c.getContext('2d') }; return t;
+}
+
+async function loadModel() {
+  const bar = $('#loadBar'), txt = $('#loadTxt');
+  const meta = await (await fetch('sim3d/model.json')).json();
+  const resp = await fetch('sim3d/model.b64.txt');
+  const total = Number(resp.headers.get('Content-Length')) || 9969808;
+  let b64 = '';
+  if (resp.body && resp.body.getReader) {
+    const rd = resp.body.getReader(), dec = new TextDecoder(); const parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(dec.decode(value, { stream: true })); got += value.length; bar.style.width = Math.min(100, got / total * 100) + '%'; txt.textContent = `Loading CAD model… ${(got / 1048576).toFixed(1)} MB`; }
+    b64 = parts.join('');
+  } else b64 = await resp.text();
+  txt.textContent = 'Building meshes…';
+  await new Promise(r => setTimeout(r, 0));
+  const bin = atob(b64.trim()); const u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const buf = u8.buffer;
+  const palB = meta.palette.map(h => { const c = parseInt(h.slice(1), 16); return [c >> 16 & 255, c >> 8 & 255, c & 255]; });
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.3, roughness: 0.55 });
+  for (const c of meta.chunks) {
+    const q = new Uint16Array(buf, c.pos, c.nv * 3);
+    const pos = new Float32Array(c.nv * 3);
+    for (let i = 0; i < pos.length; i++) { const a = i % 3; pos[i] = c.o[a] + q[i] * c.s[a]; }
+    const idx = new Uint16Array(buf, c.idx, c.nt * 3).slice();
+    const ci = new Uint8Array(buf, c.col, c.nv);
+    const col = new Uint8Array(c.nv * 3);
+    for (let i = 0; i < c.nv; i++) { const p = palB[ci[i]]; col[i * 3] = p[0]; col[i * 3 + 1] = p[1]; col[i * 3 + 2] = p[2]; }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.computeVertexNormals();
+    const mesh = new THREE.Mesh(g, mat); mesh.castShadow = c.g === 'car'; mesh.receiveShadow = true;
+    (G[c.g] || G.static).add(mesh);
+  }
+  $('#loading').hidden = true;
+}
+
+// ---- added parts: sensor flag, door leaves, HMI screen, button lamps, door cylinder rods ----
+const flag = new THREE.Mesh(new THREE.BoxGeometry(2, 26, FLAG[1] - FLAG[0]), new THREE.MeshStandardMaterial({ color: 0xe07a1a, metalness: 0.3, roughness: 0.5 }));
+flag.position.set(380, 690, Z0 + (FLAG[0] + FLAG[1]) / 2); G.car.add(flag);
+const doorMat = new THREE.MeshStandardMaterial({ color: 0x8fb4d9, transparent: true, opacity: 0.32, metalness: 0.2, roughness: 0.2, depthWrite: false });
+const leafL = new THREE.Mesh(new THREE.BoxGeometry(3, 200, 178), doorMat), leafR = leafL.clone();
+G.car.add(leafL); G.car.add(leafR);
+const screenTex = canvasTex(512, 322);
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(200, 126), new THREE.MeshBasicMaterial({ map: screenTex }));
+screen.rotation.set(Math.PI / 2, Math.PI / 2, 0); screen.position.set(389, 500, 191); G.car.add(screen);
+const lamps = {};   // key 'u3' / 'd3' -> mesh
+for (let k = 1; k <= N; k++) for (const up of [true, false]) {
+  if ((up && k === N) || (!up && k === 1)) continue;
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 2, 24), new THREE.MeshStandardMaterial({ color: 0xdedede, emissive: 0x000000, roughness: 0.4 }));
+  m.rotation.z = Math.PI / 2; m.position.set(BTN_X, BTN_Y, btnZ(k, up)); m.userData = { hall: { k, up } }; root.add(m); lamps[(up ? 'u' : 'd') + k] = m;
+  const arrow = new THREE.Mesh(new THREE.CircleGeometry(6, 3), new THREE.MeshBasicMaterial({ color: 0x333333 }));
+  arrow.rotation.set(0, Math.PI / 2, up ? Math.PI : 0); arrow.position.set(BTN_X + 1.2, BTN_Y, btnZ(k, up)); root.add(arrow);
+}
+const emg = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 6, 28), new THREE.MeshStandardMaterial({ color: 0xc62828, roughness: 0.4 }));
+emg.rotation.z = Math.PI / 2; emg.position.set(498, 750, 1368); emg.userData = { emg: true }; root.add(emg);
+const rodMat = new THREE.MeshStandardMaterial({ color: 0xd8dde2, metalness: 0.7, roughness: 0.25 });
+const rodA = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 1, 12), rodMat), rodB = rodA.clone();
+root.add(rodA); root.add(rodB);
+const sensorLeds = [];
+for (let k = 1; k <= N; k++) SENS(k).forEach(z => { const m = new THREE.Mesh(new THREE.SphereGeometry(4, 12, 10), new THREE.MeshStandardMaterial({ color: 0x3a3a3a, emissive: 0 })); m.position.set(408, 740, z); root.add(m); sensorLeds.push({ m, z }); });
+
+// ================= Machine model =================
+const car = { z: zf(1), v: 0, motor: 0 };   // motor: +1 up (P00021), -1 down (P00022), 0 off
+const door = { pos: 0 };                    // 0 closed … 1 open
+const calls = { car: Array(N + 1).fill(false), up: Array(N + 1).fill(false), dn: Array(N + 1).fill(false) };
+const plc = { ems: false, dir: 0, phase: 'IDLE', doorCmd: 0, doorT: 0, stopAt: 0, lastFloor: 1, relevel: false };
+const speedSet = () => +$('#spd').value;
+const vOf = lvl => lvl * 30;   // mm/s
+const flagCovers = z => z >= car.z + FLAG[0] && z <= car.z + FLAG[1];
+function levelFloor() { for (let k = 1; k <= N; k++) { const [a, b] = SENS(k); if (flagCovers(a) && flagCovers(b)) return k; } return 0; }
+function nearestFloor() { return Math.max(1, Math.min(N, Math.round((car.z - Z0) / PITCH) + 1)); }
+
+function physics(dt) {
+  // motor: full speed at once (no ramp); when it switches off the car coasts to a stop (inertia)
+  const vmax = vOf(plc.relevel ? 1 : speedSet());
+  if (car.motor) car.v = car.motor * vmax;
+  else if (car.v) { const a = 1 / (2 * BRAKE_C); const s = Math.sign(car.v); car.v -= s * a * dt; if (Math.sign(car.v) !== s) car.v = 0; }
+  car.z = Math.max(zf(1) - 30, Math.min(zf(N) + 30, car.z + car.v * dt));
+  // door cylinder
+  const target = plc.doorCmd ? 1 : 0;
+  door.pos += Math.sign(target - door.pos) * Math.min(Math.abs(target - door.pos), dt / 0.9);
+}
+
+// ================= PLC =================
+const anyAbove = k => { for (let i = k + 1; i <= N; i++) if (calls.car[i] || calls.up[i] || calls.dn[i]) return true; return false; };
+const anyBelow = k => { for (let i = 1; i < k; i++) if (calls.car[i] || calls.up[i] || calls.dn[i]) return true; return false; };
+const callsAt = k => calls.car[k] || calls.up[k] || calls.dn[k];
+function shouldStop(k, dir) {
+  if (calls.car[k]) return true;
+  if (dir > 0) return calls.up[k] || (calls.dn[k] && !anyAbove(k)) || k === N;
+  return calls.dn[k] || (calls.up[k] && !anyBelow(k)) || k === 1;
+}
+function nextTarget() {
+  const k = plc.lastFloor;
+  if (plc.dir > 0) { for (let i = k + 1; i <= N; i++) if (shouldStopPreview(i, 1)) return i; }
+  if (plc.dir < 0) { for (let i = k - 1; i >= 1; i--) if (shouldStopPreview(i, -1)) return i; }
+  return 0;
+}
+function shouldStopPreview(k, dir) {
+  if (calls.car[k]) return true;
+  if (dir > 0) return calls.up[k] || (calls.dn[k] && !anyAbove(k));
+  return calls.dn[k] || (calls.up[k] && !anyBelow(k));
+}
+function clearAt(k) {
+  const had = callsAt(k);
+  calls.car[k] = false;
+  if (plc.dir > 0) { calls.up[k] = false; if (!anyAbove(k)) { calls.dn[k] = false; } }
+  else if (plc.dir < 0) { calls.dn[k] = false; if (!anyBelow(k)) { calls.up[k] = false; } }
+  else { calls.up[k] = false; calls.dn[k] = false; }
+  return had;
+}
+const doorClosed = () => door.pos <= 0.001, doorOpen = () => door.pos >= 0.999;
+const blocked = () => $('#block').checked && door.pos > 0.05;
+
+function openDoor(reason) { plc.doorCmd = 1; plc.doorT = 0; plc.phase = 'DOOR'; if (reason) log(reason); }
+
+function scan(dt) {
+  if (plc.ems) { car.motor = 0; return; }                       // EMG: motor output off, door holds
+  const lf = levelFloor();
+  if (lf) plc.lastFloor = lf;
+  else if (car.v > 0 && car.z > zf(plc.lastFloor) + PITCH / 2) plc.lastFloor = Math.min(N, plc.lastFloor + 1);
+  else if (car.v < 0 && car.z < zf(plc.lastFloor) - PITCH / 2) plc.lastFloor = Math.max(1, plc.lastFloor - 1);
+
+  switch (plc.phase) {
+    case 'IDLE': {
+      if (!doorClosed()) { plc.doorCmd = 0; break; }
+      const k = lf || nearestFloor();
+      if (lf && callsAt(lf)) { clearAt(lf); openDoor(`Call at ${lf}F: door opens`); break; }
+      // between floors (after an E-stop) decide by height, so a call at the nearest floor is still reached
+      const fl = [1, 2, 3, 4, 5, 6].filter(callsAt);
+      const above = lf ? anyAbove(lf) : fl.some(i => zf(i) > car.z + 15);
+      const below = lf ? anyBelow(lf) : fl.some(i => zf(i) < car.z - 15);
+      if (plc.dir >= 0 && above) plc.dir = 1;
+      else if (plc.dir <= 0 && below) plc.dir = -1;
+      else if (above) plc.dir = 1;
+      else if (below) plc.dir = -1;
+      else { plc.dir = 0; break; }
+      plc.phase = 'RUN'; car.motor = plc.dir; plc.skip = lf;
+      log(`Motor ${plc.dir > 0 ? 'forward (up) P00021' : 'reverse (down) P00022'} from ${k}F`);
+      break;
+    }
+    case 'RUN': {
+      if (!doorClosed()) { car.motor = 0; log('Door not closed: motor blocked', 'e'); plc.phase = 'IDLE'; break; }   // test 09 interlock
+      if (lf && lf !== plc.skip && shouldStop(lf, plc.dir)) { car.motor = 0; plc.stopAt = lf; plc.phase = 'BRAKE'; }
+      if (!lf) plc.skip = 0;
+      break;
+    }
+    case 'BRAKE':
+      if (car.v === 0) {
+        const k = plc.stopAt;
+        const err = car.z - zf(k);
+        if (!levelFloor()) {
+          log(`Overshoot: stopped ${err.toFixed(1)} mm off the ${k}F level (speed ${speedSet().toFixed(1)} too high). Re-levelling slowly`, 'w');
+          plc.relevel = true; plc.phase = 'RELEVEL'; car.motor = err > 0 ? -1 : 1;
+        } else arrive(k, err);
+      }
+      break;
+    case 'RELEVEL':
+      if (levelFloor() === plc.stopAt) { car.motor = 0; if (car.v === 0) { plc.relevel = false; arrive(plc.stopAt, car.z - zf(plc.stopAt)); } }
+      else if (car.motor === 0 && car.v === 0) car.motor = car.z > zf(plc.stopAt) ? -1 : 1;
+      break;
+    case 'DOOR':
+      if (plc.doorCmd === 1) {
+        if (doorOpen()) { plc.doorT += dt; if (blocked()) plc.doorT = 0; if (plc.doorT > 3) { plc.doorCmd = 0; } }
+      } else {
+        if (blocked()) { plc.doorCmd = 1; plc.doorT = 0; log('Boarding sensor blocked: door reopens', 'w'); }
+        else if (doorClosed()) { plc.phase = 'IDLE'; if (!anyAbove(plc.lastFloor) && !anyBelow(plc.lastFloor)) plc.dir = 0; }
+      }
+      break;
+  }
+}
+function arrive(k, err) {
+  plc.lastFloor = k;
+  if (!anyAbove(k) && plc.dir > 0 && !calls.up[k]) plc.dir = anyBelow(k) ? -1 : plc.dir;
+  if (!anyBelow(k) && plc.dir < 0 && !calls.dn[k]) plc.dir = anyAbove(k) ? 1 : plc.dir;
+  clearAt(k);
+  openDoor(`Arrived at ${k}F (level error ${err.toFixed(1)} mm): door opens`);
+}
+
+// ================= Operator actions =================
+function hallCall(k, up) {
+  if (plc.ems) { log('E-stop active: call ignored', 'w'); return; }
+  const lf = levelFloor();
+  if (lf === k && (plc.phase === 'IDLE' || plc.phase === 'DOOR')) { openDoor(`${k}F ${up ? '▲' : '▼'} at the car's floor: door opens`); return; }
+  (up ? calls.up : calls.dn)[k] = true; log(`Hall call ${k}F ${up ? '▲' : '▼'}`);
+}
+function carCall(k) {
+  if (plc.ems) { log('E-stop active: call ignored', 'w'); return; }
+  const lf = levelFloor();
+  if (lf === k && plc.phase !== 'RUN') { if (plc.phase === 'IDLE' || plc.phase === 'DOOR') openDoor(); return; }
+  calls.car[k] = !calls.car[k] || true; log(`Car call ${k}F (M0000${k})`);
+}
+function doorOpenBtn() {
+  if (plc.phase === 'DOOR' || (plc.phase === 'IDLE' && levelFloor())) { openDoor('Door open button'); }
+  else log('Door open refused: the car is moving', 'w');
+}
+function doorCloseBtn() { if (plc.phase === 'DOOR' && plc.doorCmd) { plc.doorT = 99; log('Door close button'); } }
+function toggleEms() {
+  plc.ems = !plc.ems; $('#bEms').setAttribute('aria-pressed', String(plc.ems));
+  if (plc.ems) { car.motor = 0; log('EMERGENCY STOP: motor off, all movement stops', 'e'); }
+  else { log('E-stop released: operation resumes', 'ok'); if (plc.phase === 'RUN' || plc.phase === 'BRAKE' || plc.phase === 'RELEVEL') { plc.phase = 'IDLE'; plc.relevel = false; } }
+}
+
+// panel
+const cp = $('#carpanel');
+[4, 5, 6, 1, 2, 3].forEach(k => { const b = document.createElement('button'); b.type = 'button'; b.className = 'fbtn'; b.textContent = k; b.dataset.k = k; b.onclick = () => carCall(k); cp.append(b); });
+const hallEl = $('#hall');
+for (let k = N; k >= 1; k--) {
+  const lab = document.createElement('b'); lab.textContent = k + 'F'; hallEl.append(lab);
+  [true, false].forEach(up => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'hbtn'; b.dataset.k = k; b.dataset.up = up ? 1 : 0;
+    const idx = up ? (k === 1 ? 0 : 2 * k - 2) : 2 * k - 3;
+    b.innerHTML = `${up ? '▲ Up' : '▼ Down'}<small>P0004${idx.toString(16).toUpperCase()}</small>`;
+    if ((up && k === N) || (!up && k === 1)) b.disabled = true;
+    b.onclick = () => hallCall(k, up); hallEl.append(b);
+  });
+}
+$('#bOpen').onclick = doorOpenBtn; $('#bClose').onclick = doorCloseBtn; $('#bEms').onclick = toggleEms;
+window.addEventListener('keydown', e => { if (e.key === 'Escape') toggleEms(); });
+$('#spd').oninput = e => { $('#spdVal').textContent = (+e.target.value).toFixed(1); };
+$$('#speed button').forEach(b => b.onclick = () => { sim.speed = +b.dataset.s; $$('#speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+
+// 3D clicks: hall buttons, E-stop, HMI screen
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let downAt = null;
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5 || !sim.ready) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hits = ray.intersectObjects([...Object.values(lamps), emg, screen], false);
+  if (!hits.length) return;
+  const h = hits[0];
+  if (h.object.userData.hall) hallCall(h.object.userData.hall.k, h.object.userData.hall.up);
+  else if (h.object.userData.emg) toggleEms();
+  else if (h.object === screen && h.uv) screenClick(h.uv.x, 1 - h.uv.y);
+});
+
+// ================= Car HMI screen =================
+const SB = []; // screen button rects in canvas px
+function drawScreen() {
+  const { g, c } = screenTex.userData, w = c.width, h = c.height;
+  g.fillStyle = '#10151b'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#1b2430'; g.fillRect(0, 0, 190, h);
+  const k = levelFloor() || plc.lastFloor;
+  g.fillStyle = '#e8eef4'; g.font = '700 120px Barlow Condensed, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(k, 95, 150);
+  const up = car.v > 1 || (car.motor > 0), dn = car.v < -1 || (car.motor < 0);
+  g.fillStyle = up ? '#3ddc84' : '#3a4654'; g.beginPath(); g.moveTo(95, 22); g.lineTo(125, 58); g.lineTo(65, 58); g.fill();
+  g.fillStyle = dn ? '#3ddc84' : '#3a4654'; g.beginPath(); g.moveTo(95, 280); g.lineTo(125, 244); g.lineTo(65, 244); g.fill();
+  SB.length = 0;
+  const bw = 88, bh = 62;
+  [[4, 5, 6], [1, 2, 3]].forEach((row, r) => row.forEach((f, i) => {
+    const x = 210 + i * (bw + 12), y = 22 + r * (bh + 12);
+    const stop = calls.car[f] || calls.up[f] || calls.dn[f];
+    g.fillStyle = stop ? '#d23b30' : '#2d5fbf'; g.fillRect(x, y, bw, bh);
+    g.fillStyle = '#fff'; g.font = '700 40px Barlow Condensed, sans-serif'; g.fillText(f, x + bw / 2, y + bh / 2 + 2);
+    SB.push({ x, y, w: bw, h: bh, f });
+  }));
+  const dy = 196;
+  [['◀▶', 'open', 210], ['▶◀', 'close', 210 + 150]].forEach(([t, a, x]) => {
+    g.fillStyle = '#2a3340'; g.fillRect(x, dy, 140, 52); g.fillStyle = '#e8eef4'; g.font = '600 30px Barlow Condensed, sans-serif'; g.fillText(t, x + 70, dy + 27);
+    SB.push({ x, y: dy, w: 140, h: 52, a });
+  });
+  g.fillStyle = plc.ems ? '#ff6b6b' : '#93a2b3'; g.font = '600 22px Barlow Condensed, sans-serif'; g.textAlign = 'left';
+  g.fillText(plc.ems ? 'EMERGENCY STOP' : door.pos > 0.01 ? (plc.doorCmd ? 'DOOR OPEN' : 'DOOR CLOSING') : (car.v ? 'MOVING' : 'READY'), 210, 285);
+  screenTex.needsUpdate = true;
+}
+function screenClick(u, v) {
+  const x = u * 512, y = v * 322;
+  const b = SB.find(b => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h);
+  if (!b) return;
+  if (b.f) carCall(b.f); else if (b.a === 'open') doorOpenBtn(); else doorCloseBtn();
+}
+
+// ================= UI =================
+const IO = [
+  ['Inputs'], ...Array.from({ length: N }, (_, i) => [`${i + 1}F sensors (lower / upper)`, `P0000${(2 * i).toString(16).toUpperCase()}/${(2 * i + 1).toString(16).toUpperCase()}`, 'sen' + (i + 1)]),
+  ['Boarding sensor E3JK', 'P0000C', 'board'], ['Door open reed', 'P0000D', 'dO'], ['Door closed reed', 'P0000E', 'dC'], ['EMG button', 'P0000F', 'ems'],
+  ['Outputs'], ['Motor forward (up)', 'P00021', 'mU'], ['Motor reverse (down)', 'P00022', 'mD'], ['Door cylinder solenoid', 'P00023', 'sol'],
+  ['Data'], ['Current position', 'D00000', 'pos'], ['Target position', 'D00001', 'tgt'],
+];
+const ioBody = $('#ioBody'), ioCells = {};
+IO.forEach(r => {
+  const tr = document.createElement('tr');
+  if (r.length === 1) { tr.className = 'grp'; tr.innerHTML = `<td colspan="3">${r[0]}</td>`; }
+  else { tr.innerHTML = `<td>${r[0]}</td><td class="d">${r[1]}</td><td class="v"></td>`; ioCells[r[2]] = tr.lastChild; }
+  ioBody.append(tr);
+});
+const posCode = () => { const lf = levelFloor(); return lf ? lf * 10 : plc.lastFloor * 10 + 5; };
+function refreshUI() {
+  const lf = levelFloor(), tg = nextTarget();
+  const st = $('#state');
+  st.textContent = plc.ems ? 'Emergency stop' : { IDLE: 'Standby', RUN: plc.dir > 0 ? 'Going up' : 'Going down', BRAKE: 'Stopping', RELEVEL: 'Re-levelling', DOOR: 'At floor' }[plc.phase];
+  st.className = 'pill ' + (plc.ems ? 'err' : plc.phase === 'RELEVEL' ? 'warn' : plc.phase === 'RUN' ? 'run' : '');
+  $('#door').textContent = doorClosed() ? 'Door closed' : doorOpen() ? 'Door open' : plc.doorCmd ? 'Door opening' : 'Door closing';
+  $('#floorHud').textContent = (lf || plc.lastFloor) + 'F' + (car.v > 1 ? ' ▲' : car.v < -1 ? ' ▼' : '');
+  $('#sPos').textContent = posCode(); $('#sTgt').textContent = tg ? tg * 10 : '–';
+  $('#sDir').textContent = plc.dir > 0 ? 'up' : plc.dir < 0 ? 'down' : 'idle';
+  $('#sMot').textContent = car.motor > 0 ? 'forward' : car.motor < 0 ? 'reverse' : 'off';
+  $('#sZ').textContent = Math.round(car.z - Z0) + ' mm'; $('#sV').textContent = Math.round(Math.abs(car.v)) + ' mm/s';
+  $$('.fbtn').forEach(b => { const k = +b.dataset.k; b.classList.toggle('on', callsAt(k)); b.classList.toggle('here', lf === k); });
+  $$('.hbtn').forEach(b => { const k = +b.dataset.k; b.classList.toggle('on', +b.dataset.up ? calls.up[k] : calls.dn[k]); });
+  const val = { board: $('#block').checked, dO: doorOpen(), dC: doorClosed(), ems: plc.ems, mU: car.motor > 0, mD: car.motor < 0, sol: plc.doorCmd, pos: posCode(), tgt: tg ? tg * 10 : 0 };
+  for (let k = 1; k <= N; k++) { const [a, b] = SENS(k); val['sen' + k] = `${+flagCovers(a)} / ${+flagCovers(b)}`; }
+  Object.entries(ioCells).forEach(([k, td]) => { const v = val[k]; td.textContent = typeof v === 'boolean' || typeof v === 'number' && (k === 'sol') ? (v ? 'ON' : '0') : v; td.className = 'v' + (v === true || v === 1 || (typeof v === 'string' && v.includes('1')) ? ' on' : ''); });
+}
+function refreshScene() {
+  G.car.position.z = car.z - Z0;
+  const o = door.pos * 170;
+  leafL.position.set(398, 400 - o, Z0 + 90); leafR.position.set(398, 600 + o, Z0 + 90);
+  const ext = (1 - door.pos) * 70;   // cylinder rods extended = door closed
+  rodA.scale.y = Math.max(ext, 0.01); rodA.position.set(420, 401 + ext / 2, 1530);
+  rodB.scale.y = Math.max(ext, 0.01); rodB.position.set(420, 602 - ext / 2, 1530);
+  for (const [key, m] of Object.entries(lamps)) { const k = +key.slice(1), on = key[0] === 'u' ? calls.up[k] : calls.dn[k]; m.material.emissive.setHex(on ? 0xff5a2a : 0); m.material.color.setHex(on ? 0xff7a4a : 0xdedede); }
+  emg.material.emissive.setHex(plc.ems && Math.floor(sim.t * 3) % 2 ? 0x661010 : 0);
+  sensorLeds.forEach(s => { const on = flagCovers(s.z); s.m.material.emissive.setHex(on ? 0x22ff66 : 0); s.m.material.color.setHex(on ? 0x22ff66 : 0x3a3a3a); });
+  drawScreen();
+}
+
+// ================= Camera =================
+const VIEWS = {
+  front: () => [W(3600, 700, 1150), W(250, 500, 860)], iso: () => [W(2500, -1500, 2100), W(200, 500, 800)],
+  car: () => [W(1050, 120, car.z + 360), W(380, 500, car.z + 150)], top: () => [W(900, 150, 2500), W(300, 500, 1720)],
+  panel: () => [W(-1200, 400, 1150), W(-20, 500, 1000)],
+};
+let camAnim = null, follow = false;
+function setView(k, instant) {
+  follow = k === 'car';
+  const [p, t] = VIEWS[k]();
+  if (instant) { camera.position.copy(p); controls.target.copy(t); controls.update(); return; }
+  camAnim = { t0: performance.now(), p0: camera.position.clone(), t0v: controls.target.clone(), p, t };
+}
+$$('.views button').forEach(b => b.onclick = () => setView(b.dataset.v));
+controls.addEventListener('start', () => { if (!camAnim) follow = follow && true; });
+setView('front', true);
+function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(view); resize();
+
+let last = performance.now(), uiT = 0, lastCarZ = car.z;
+function frame(now) {
+  const real = Math.min(0.1, (now - last) / 1000); last = now;
+  if (sim.ready) {
+    let rem = real * sim.speed;
+    while (rem > 1e-6) { const dt = Math.min(rem, 1 / 120); sim.t += dt; scan(dt); physics(dt); rem -= dt; }
+    refreshScene();
+    uiT += real; if (uiT > 0.1) { uiT = 0; refreshUI(); }
+  }
+  if (camAnim) {
+    const p = Math.min(1, (now - camAnim.t0) / 700), e = p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
+    camera.position.lerpVectors(camAnim.p0, camAnim.p, e); controls.target.lerpVectors(camAnim.t0v, camAnim.t, e);
+    if (p >= 1) camAnim = null;
+  } else if (follow) {   // keep the car in view: shift camera and target with it
+    const dz = car.z - lastCarZ; camera.position.y += dz; controls.target.y += dz;
+  }
+  lastCarZ = car.z;
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+// test hook: advance the simulation without rendering (used to check the logic quickly)
+window.elevatorSimStep = sec => { for (let t = 0; t < sec; t += 1 / 120) { sim.t += 1 / 120; scan(1 / 120); physics(1 / 120); } refreshScene(); refreshUI(); return { z: car.z, phase: plc.phase }; };
+
+loadModel().then(() => { sim.ready = true; log('Elevator ready at 1F. Press a hall button or a floor on the car HMI.', 'ok'); refreshUI(); })
+  .catch(e => { console.error(e); $('#loadTxt').textContent = 'Could not load the CAD model: ' + e.message; });
+})();
+</script>
+</body>
+</html>
