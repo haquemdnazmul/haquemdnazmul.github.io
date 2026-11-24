@@ -287,6 +287,44 @@ window.PORTFOLIO_I18N = {
     '승강기의 STEP 어셈블리로 만들었습니다. 층 호출 버튼이나 승강기 HMI의 층 버튼(3D에서도 클릭 가능)을 누르면 승강기가 진행 순서대로 호출을 처리합니다. 속도를 4로 올려 시험 04에서 발견한 정지 위치 초과를 확인하거나, 문 앞을 막거나, 비상정지를 눌러 보세요.',
     'লিফটের STEP অ্যাসেম্বলি থেকে তৈরি। তলার কল বোতাম বা লিফটের HMI-এর তলার বোতাম চাপুন (3D-তেও ক্লিক করা যায়) এবং দেখুন লিফট চলার ক্রম অনুযায়ী কলগুলো সামলায়। পরীক্ষা ০৪-এ পাওয়া ওভারশুট দেখতে গতি ৪ দিন, দরজার পথ আটকান, অথবা জরুরি স্টপ চাপুন।'],
 
+  // ---------- background (from CV) ----------
+  'Education & experience ↓': ['학력 및 경력 ↓', 'শিক্ষা ও অভিজ্ঞতা ↓'],
+  'Background': ['배경', 'পটভূমি'],
+  'Education and experience': ['학력 및 경력', 'শিক্ষা ও অভিজ্ঞতা'],
+  "I come to automation from physics and chip design. My master's research was on neuromorphic circuits, followed by two years as a design engineer for engine turbochargers. I am now training full time in PLC, HMI, SCADA, motion control and machine vision, and I am looking for a role as a maintenance or automation engineer.":
+    ['물리학과 반도체 칩 설계를 거쳐 자동화 분야로 왔습니다. 석사 과정에서 뉴로모픽 회로를 연구했고, 이후 2년간 엔진 터보차저 설계 엔지니어로 일했습니다. 현재 PLC, HMI, SCADA, 모션 제어, 머신 비전을 전일제로 교육받고 있으며, 설비 보전 엔지니어 또는 자동화 엔지니어 직무를 찾고 있습니다.',
+     'আমি পদার্থবিজ্ঞান ও চিপ ডিজাইন থেকে অটোমেশনে এসেছি। মাস্টার্সে আমার গবেষণা ছিল নিউরোমরফিক সার্কিট নিয়ে, এরপর দুই বছর ইঞ্জিন টার্বোচার্জারের ডিজাইন ইঞ্জিনিয়ার হিসেবে কাজ করেছি। এখন আমি PLC, HMI, SCADA, মোশন কন্ট্রোল ও মেশিন ভিশনে পূর্ণকালীন প্রশিক্ষণ নিচ্ছি এবং মেইনটেন্যান্স বা অটোমেশন ইঞ্জিনিয়ার পদে কাজ খুঁজছি।'],
+  'Work experience': ['경력', 'কাজের অভিজ্ঞতা'],
+  'Engine Turbocharger Design Engineer': ['엔진 터보차저 설계 엔지니어', 'ইঞ্জিন টার্বোচার্জার ডিজাইন ইঞ্জিনিয়ার'],
+  'Professional training': ['전문 교육', 'পেশাগত প্রশিক্ষণ'],
+  'Industrial automation and robotics': ['산업 자동화 및 로보틱스', 'শিল্প অটোমেশন ও রোবোটিক্স'],
+  'PLC and HMI programming, SCADA, motion and servo control, sensors, machine vision and Python. The four projects on this page were built during this course.':
+    ['PLC·HMI 프로그래밍, SCADA, 모션 및 서보 제어, 센서, 머신 비전, Python. 이 페이지의 네 가지 프로젝트는 이 과정에서 만들었습니다.',
+     'PLC ও HMI প্রোগ্রামিং, SCADA, মোশন ও সার্ভো কন্ট্রোল, সেন্সর, মেশিন ভিশন ও Python। এই পাতার চারটি প্রকল্প এই কোর্সেই তৈরি।'],
+  'Research': ['연구', 'গবেষণা'],
+  'Neuromorphic circuits': ['뉴로모픽 회로', 'নিউরোমরফিক সার্কিট'],
+  '· Nano Circuit Design Lab, Inje University ·': ['· 인제대학교 나노회로설계(NCDL) 연구실 ·', '· ন্যানো সার্কিট ডিজাইন ল্যাব, ইনজে বিশ্ববিদ্যালয় ·'],
+  'Designed and built artificial neuron, synapse and TIA circuits in 65 nm CMOS, then measured and characterised the chips and analysed the test data.':
+    ['65 nm CMOS 기반 인공 뉴런·시냅스·TIA 회로를 설계·구현하고, 칩 측정 및 특성 분석, 실험 데이터 분석과 성능 검증을 수행했습니다.',
+     '65 nm CMOS-এ কৃত্রিম নিউরন, সিন্যাপ্স ও TIA সার্কিট ডিজাইন ও তৈরি করেছি, তারপর চিপ পরিমাপ ও বৈশিষ্ট্য নির্ণয় করে পরীক্ষার ডেটা বিশ্লেষণ করেছি।'],
+  'Publication': ['논문', 'প্রকাশনা'],
+  'Period': ['기간', 'সময়কাল'],
+  'School': ['학교', 'প্রতিষ্ঠান'],
+  'Degree': ['학위', 'ডিগ্রি'],
+  'Inje University, Korea': ['인제대학교 (한국)', 'ইনজে বিশ্ববিদ্যালয়, কোরিয়া'],
+  'Khulna University, Bangladesh': ['쿨나대학교 (방글라데시)', 'খুলনা বিশ্ববিদ্যালয়, বাংলাদেশ'],
+  'M.Sc., Nano-science & Engineering': ['나노과학공학 석사', 'এম.এসসি., ন্যানো-বিজ্ঞান ও প্রকৌশল'],
+  'B.Sc., Physics': ['물리학 학사', 'বি.এসসি., পদার্থবিজ্ঞান'],
+  'Electronics': ['전자', 'ইলেকট্রনিক্স'],
+  'Circuit design': ['회로 설계', 'সার্কিট ডিজাইন'],
+  'PCB design': ['PCB 설계', 'PCB ডিজাইন'],
+  'Measurement and testing': ['측정 및 시험', 'পরিমাপ ও পরীক্ষা'],
+  'Programming and CAD': ['프로그래밍 및 CAD', 'প্রোগ্রামিং ও CAD'],
+  'Languages': ['언어 능력', 'ভাষা দক্ষতা'],
+  'Bengali · native': ['벵골어 · 모국어', 'বাংলা · মাতৃভাষা'],
+  'English · TOEIC 750, IELTS 6.0': ['영어 · TOEIC 750, IELTS 6.0', 'ইংরেজি · TOEIC 750, IELTS 6.0'],
+  'Korean · KIIP level 4': ['한국어 · 사회통합프로그램(KIIP) 4단계', 'কোরিয়ান · KIIP লেভেল ৪'],
+
   // ---------- footer ----------
   'Md Nazmul Haque · 2026': ['Md Nazmul Haque · 2026', 'মোঃ নাজমুল হক · ২০২৬'],
 };

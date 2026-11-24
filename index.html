@@ -88,6 +88,9 @@ header.hero{padding-top:56px;display:flex;flex-direction:column;gap:18px;border-
 .highlights{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .highlights li{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:8px 24px;padding:14px 0;border-bottom:1px solid var(--line)}
 .highlights strong{font-family:var(--display);font-size:1.15rem;font-weight:600}
+.highlights b{font-weight:600}
+.highlights .when{font-family:var(--mono);font-size:.8rem;color:var(--muted);white-space:nowrap}
+.highlights cite{font-style:italic}
 @media (max-width:560px){.highlights li{grid-template-columns:1fr}}
 
 .photo{margin:0;display:flex;flex-direction:column;gap:8px}
@@ -148,6 +151,7 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
     <a class="btn" href="#studio">Motion-X Studio ↓</a>
     <a class="btn" href="#conveyor">Conveyor sorter + 3D ↓</a>
     <a class="btn" href="#elevator">6-floor elevator + 3D ↓</a>
+    <a class="btn" href="#background">Education &amp; experience ↓</a>
   </div>
 </header>
 
@@ -358,6 +362,35 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
     <button type="button" class="sim-load">Load the 3D elevator simulator</button>
   </div>
   <p class="caption">Built from the elevator's STEP assembly. Press hall buttons or the car's HMI floor buttons (also clickable in 3D) and watch the car serve calls in travel order. Try speed setting 4 to see the overshoot found in test 04, block the doorway, or hit the E-stop. <a href="elevator-simulator/" target="_blank" rel="noopener">Open full screen ↗</a></p>
+</section>
+
+<section id="background" aria-labelledby="bg-h">
+  <span class="label">Background</span>
+  <h2 id="bg-h">Education and experience</h2>
+  <p>I come to automation from physics and chip design. My master's research was on neuromorphic circuits, followed by two years as a design engineer for engine turbochargers. I am now training full time in PLC, HMI, SCADA, motion control and machine vision, and I am looking for a role as a maintenance or automation engineer.</p>
+
+  <ul class="highlights">
+    <li><strong>Work experience</strong><span><b>Engine Turbocharger Design Engineer</b> · Samjeong TBM Co., Ltd. · <span class="when">2024.02 – 2026.03</span></span></li>
+    <li><strong>Professional training</strong><span><b>Industrial automation and robotics</b> · DASAN EDU · <span class="when">2026.07 – 2026.12</span><br>PLC and HMI programming, SCADA, motion and servo control, sensors, machine vision and Python. The four projects on this page were built during this course.</span></li>
+    <li><strong>Research</strong><span><b>Neuromorphic circuits</b> · Nano Circuit Design Lab, Inje University · <span class="when">2021.03 – 2023.08</span><br>Designed and built artificial neuron, synapse and TIA circuits in 65 nm CMOS, then measured and characterised the chips and analysed the test data.</span></li>
+    <li><strong>Publication</strong><span><cite lang="en">An artificial bridge circuit approach between two biological neurons using nanoscale topologies towards paralytic disorders</cite> · Microelectronics Journal, 2023 · <a href="https://doi.org/10.1016/j.mejo.2023.105722" target="_blank" rel="noopener">doi:10.1016/j.mejo.2023.105722</a></span></li>
+  </ul>
+
+  <div class="spec-wrap">
+    <table class="spec">
+      <thead><tr><th>Period</th><th>School</th><th>Degree</th></tr></thead>
+      <tbody>
+        <tr><td>2021.03 – 2023.08</td><td>Inje University, Korea</td><td>M.Sc., Nano-science &amp; Engineering</td></tr>
+        <tr><td>2012.06 – 2016.06</td><td>Khulna University, Bangladesh</td><td>B.Sc., Physics</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="skills">
+    <div class="skill"><h3>Electronics</h3><ul><li>Circuit design</li><li>PCB design</li><li>Cadence</li><li>CMOS 65 nm</li><li>Measurement and testing</li></ul></div>
+    <div class="skill"><h3>Programming and CAD</h3><ul><li>Python</li><li>C / C++</li><li>PHP</li><li>AutoCAD</li></ul></div>
+    <div class="skill"><h3>Languages</h3><ul><li>Bengali · native</li><li>English · TOEIC 750, IELTS 6.0</li><li>Korean · KIIP level 4</li></ul></div>
+  </div>
 </section>
 
 <footer>
