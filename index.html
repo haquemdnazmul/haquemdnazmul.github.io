@@ -6,15 +6,15 @@
 <meta name="description" content="Md Nazmul Haque - automation and robotics engineer: PLC, HMI/SCADA, robot arms and 3D vision.">
 <title>Nazmul Haque Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+Bengali:wght@400;500;700&display=swap">
 <style>
 /* Layout: one narrow reading column, framed like a machine spec sheet; one wide system diagram as the centerpiece */
 :root{
   --bg:#eef0f2; --panel:#ffffff; --ink:#18212b; --muted:#5a6673; --line:#cfd5dc;
   --accent:#d98a00; --accent-ink:#8a5600; --wire:#2f6f9f; --ok:#2e8b57;
-  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --display:"Barlow Condensed","Noto Sans KR","Noto Sans Bengali","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Noto Sans KR","Noto Sans Bengali",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono","Noto Sans KR","Noto Sans Bengali",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#12171d; --panel:#1a2129; --ink:#e6eaee; --muted:#98a4b0; --line:#2c3640;
@@ -35,6 +35,18 @@ a{color:var(--wire)}
 a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
 .label{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 section{display:flex;flex-direction:column;gap:20px}
+
+/* language switcher: a small pill that stays in the top-right corner while scrolling */
+.langbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:20;align-self:flex-end;margin:12px 0 -44px;
+  display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);
+  box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.langbar .langlabel{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.langbar button{font-family:var(--body);font-size:.85rem;font-weight:500;border:0;border-radius:999px;padding:5px 12px;background:transparent;color:var(--ink);cursor:pointer}
+.langbar button[aria-pressed="true"]{background:var(--accent);color:#18212b}
+.langbar button:focus-visible{outline:2px solid var(--wire);outline-offset:2px}
+html[lang="ko"]{word-break:keep-all}
+html[lang="bn"] h1,html[lang="bn"] h2,html[lang="bn"] h3{line-height:1.35}
+html[lang="ko"] .label,html[lang="bn"] .label{letter-spacing:.02em}
 
 /* hero */
 header.hero{padding-top:56px;display:flex;flex-direction:column;gap:18px;border-bottom:1px solid var(--line);padding-bottom:40px}
@@ -116,6 +128,13 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
 
 
 <div class="wrap">
+
+<nav class="langbar" aria-label="Language">
+  <span class="langlabel">Language</span>
+  <button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button>
+  <button type="button" data-lang="ko" lang="ko" aria-pressed="false">한국어</button>
+  <button type="button" data-lang="bn" lang="bn" aria-pressed="false">বাংলা</button>
+</nav>
 
 <header class="hero">
   <span class="tag"><span class="lamp" aria-hidden="true"></span>Open to automation &amp; robotics roles</span>
@@ -356,6 +375,47 @@ document.querySelectorAll('.sim-load').forEach(function (btn) {
     btn.hidden = true;
   });
 });
+</script>
+<script src="i18n.js"></script>
+<script>
+// Language switcher: every text node and label is looked up by its English wording in i18n.js.
+(function () {
+  var T = window.PORTFOLIO_I18N || {}, COL = { ko: 0, bn: 1 }, LANGS = ['en', 'ko', 'bn'];
+  var norm = function (s) { return s.replace(/\s+/g, ' ').trim(); };
+  var texts = [], attrs = [];
+  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: function (n) {
+      var p = n.parentNode && n.parentNode.nodeName;
+      if (p === 'SCRIPT' || p === 'STYLE') return NodeFilter.FILTER_REJECT;
+      return norm(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+  for (var n; (n = walker.nextNode());) {
+    var v = n.nodeValue, m = v.match(/^(\s*)([\s\S]*?)(\s*)$/);
+    texts.push({ node: n, en: v, lead: m[1], key: norm(m[2]), trail: m[3] });
+  }
+  document.querySelectorAll('[aria-label],[alt],[title]').forEach(function (el) {
+    ['aria-label', 'alt', 'title'].forEach(function (a) { if (el.hasAttribute(a)) attrs.push({ el: el, a: a, en: el.getAttribute(a) }); });
+  });
+  var enTitle = document.title;
+  function tr(key, lang) { var r = T[key]; return r && r[COL[lang]] ? r[COL[lang]] : null; }
+  function apply(lang) {
+    if (LANGS.indexOf(lang) < 0) lang = 'en';
+    texts.forEach(function (t) { var x = lang === 'en' ? null : tr(t.key, lang); t.node.nodeValue = x ? t.lead + x + t.trail : t.en; });
+    attrs.forEach(function (t) { var x = lang === 'en' ? null : tr(norm(t.en), lang); t.el.setAttribute(t.a, x || t.en); });
+    document.title = (lang !== 'en' && tr(enTitle, lang)) || enTitle;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('.langbar button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    try { localStorage.setItem('portfolio-lang', lang); } catch (e) {}
+    try { var u = new URL(location.href); if (lang === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', lang); history.replaceState(null, '', u); } catch (e) {}
+  }
+  document.querySelectorAll('.langbar button').forEach(function (b) { b.addEventListener('click', function () { apply(b.dataset.lang); }); });
+  var start = null;
+  try { start = new URL(location.href).searchParams.get('lang'); } catch (e) {}
+  if (!start) { try { start = localStorage.getItem('portfolio-lang'); } catch (e) {} }
+  if (!start) { var nl = (navigator.language || '').slice(0, 2); start = nl === 'ko' || nl === 'bn' ? nl : 'en'; }
+  apply(start);
+})();
 </script>
 </body>
 </html>
