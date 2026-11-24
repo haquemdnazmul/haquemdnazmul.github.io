@@ -91,6 +91,11 @@ header.hero{padding-top:56px;display:flex;flex-direction:column;gap:18px;border-
 .highlights b{font-weight:600}
 .highlights .when{font-family:var(--mono);font-size:.8rem;color:var(--muted);white-space:nowrap}
 .highlights cite{font-style:italic}
+.pubs{margin:10px 0 10px;padding-left:1.4em;display:flex;flex-direction:column;gap:10px}
+.pubs li{display:block;padding:0;border:0}
+.pubs li::marker{color:var(--muted);font-family:var(--mono);font-size:.8rem}
+.pubs cite{display:block}
+.pubs .venue{display:block;font-size:.85rem;color:var(--muted)}
 @media (max-width:560px){.highlights li{grid-template-columns:1fr}}
 
 .photo{margin:0;display:flex;flex-direction:column;gap:8px}
@@ -374,7 +379,17 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
     <li><strong>Work experience</strong><span><b>Engine Turbocharger Design Engineer</b> · Samjeong TBM Co., Ltd. · <span class="when">2024.02 – 2026.03</span></span></li>
     <li><strong>Professional training</strong><span><b>Industrial automation and robotics</b> · DASAN EDU · <span class="when">2026.07 – 2026.12</span><br>PLC and HMI programming, SCADA, motion and servo control, sensors, machine vision and Python. The four projects on this page were built during this course.</span></li>
     <li><strong>Research</strong><span><b>Neuromorphic circuits</b> · Nano Circuit Design Lab, Inje University · <span class="when">2021.03 – 2023.08</span><br>Designed and built artificial neuron, synapse and TIA circuits in 65 nm CMOS, then measured and characterised the chips and analysed the test data.</span></li>
-    <li><strong>Publication</strong><span><cite lang="en">An artificial bridge circuit approach between two biological neurons using nanoscale topologies towards paralytic disorders</cite> · Microelectronics Journal, 2023 · <a href="https://doi.org/10.1016/j.mejo.2023.105722" target="_blank" rel="noopener">doi:10.1016/j.mejo.2023.105722</a><br><a href="https://scholar.google.com/citations?user=BSvhaNAAAAAJ" target="_blank" rel="noopener">All my publications on Google Scholar ↗</a></span></li>
+    <li><strong>Publications</strong><span>Research done at the Nano Circuit Design Lab, Inje University.
+      <ol class="pubs">
+        <li><cite lang="en">An artificial bridge circuit approach between two biological neurons using nanoscale topologies towards paralytic disorders</cite><span class="venue">Microelectronics Journal, vol. 135, 105722 · <span class="when">2023</span> · <a href="https://doi.org/10.1016/j.mejo.2023.105722" target="_blank" rel="noopener">DOI ↗</a></span></li>
+        <li><cite lang="en">An Ultralow-Power CMOS Integrated and Fire Neuron for Neuromorphic Computing</cite><span class="venue">Proc. 2nd Int. Conf. on Computational Electronics for Wireless Communications · <span class="when">2023</span></span></li>
+        <li><cite lang="en">Logic Gates Using Memristor-Aided Logic for Neuromorphic Applications</cite><span class="venue">Proc. 2nd Int. Conf. on Computational Electronics for Wireless Communications · <span class="when">2023</span></span></li>
+        <li><cite lang="en">A Low-Power Highly Efficient DC–DC Buck Converter Using PWM Technique</cite><span class="venue">Proc. 2nd Int. Conf. on Computational Electronics for Wireless Communications · <span class="when">2023</span></span></li>
+        <li><cite lang="en">Study on Neuron Chip-based Neural Networks for Neuromorphic Computing</cite><span class="venue">Master's thesis, Inje University Graduate School · <span class="when">2023</span></span></li>
+        <li><cite lang="en">Analysis of Analog Neuron Circuit Using 180 nm CMOS Process for Brain-Inspired Neural Networks</cite><span class="venue">Korean Institute of Communications and Information Sciences (KICS) Conference, pp. 399–401 · <span class="when">2021</span></span></li>
+        <li><cite lang="en">A Study on Different Memristor Models for Neuromorphic Applications</cite><span class="venue">KICS Conference, pp. 402–404 · <span class="when">2021</span></span></li>
+      </ol>
+      <a href="https://scholar.google.com/citations?user=BSvhaNAAAAAJ" target="_blank" rel="noopener">Google Scholar profile ↗</a></span></li>
   </ul>
 
   <div class="spec-wrap">
