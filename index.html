@@ -456,9 +456,14 @@ document.querySelectorAll('.sim-load').forEach(function (btn) {
     document.documentElement.lang = lang;
     document.querySelectorAll('.langbar button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
     try { localStorage.setItem('portfolio-lang', lang); } catch (e) {}
+    document.querySelectorAll('iframe').forEach(function (f) { try { f.contentWindow.postMessage({ type: 'portfolio-lang', lang: lang }, location.origin); } catch (e) {} });
     try { var u = new URL(location.href); if (lang === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', lang); history.replaceState(null, '', u); } catch (e) {}
   }
   document.querySelectorAll('.langbar button').forEach(function (b) { b.addEventListener('click', function () { apply(b.dataset.lang); }); });
+  // a simulator's own language pill changes the whole page too
+  window.addEventListener('message', function (e) {
+    if (e.origin === location.origin && e.data && e.data.type === 'portfolio-lang' && LANGS.indexOf(e.data.lang) >= 0 && e.data.lang !== document.documentElement.lang) apply(e.data.lang);
+  });
   var start = null;
   try { start = new URL(location.href).searchParams.get('lang'); } catch (e) {}
   if (!start) { try { start = localStorage.getItem('portfolio-lang'); } catch (e) {} }

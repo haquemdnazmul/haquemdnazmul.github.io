@@ -131,6 +131,9 @@ tr.grp td { font-family: var(--font-display); font-weight: 600; letter-spacing: 
   .view { height: 62vh; min-height: 340px; }
   .panel { overflow: visible; }
   .views { max-width: 100%; top: auto; bottom: 30px; right: 10px; }
+  /* language pill (../sim-i18n.js): sits in its own strip above the 3D view instead of floating over content */
+  html[data-sim-lang] body { padding-top: 46px; }
+  html[data-sim-lang] body > [data-noi18n][role="group"] { position: absolute !important; top: 10px !important; right: max(16px, env(safe-area-inset-right, 0px)) !important; bottom: auto !important; left: auto !important; }
 }
 @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
 </style>
@@ -881,5 +884,7 @@ loadModel().then(() => {
 }).catch(e => { console.error(e); $('#loadTxt').textContent = 'Could not load the CAD model: ' + e.message; });
 })();
 </script>
+<script src="i18n-dict.js"></script>
+<script src="../sim-i18n.js"></script>
 </body>
 </html>

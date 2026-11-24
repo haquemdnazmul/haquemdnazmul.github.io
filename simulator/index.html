@@ -111,6 +111,9 @@ tr.flash td.v { background: color-mix(in srgb, var(--accent) 22%, transparent); 
   .app { grid-template-columns: minmax(0, 1fr); height: auto; }
   .view { height: 62vh; min-height: 340px; }
   .panel { overflow: visible; }
+  /* language pill (sim-i18n.js) sits in the gap between the 3D view and the panel on phones */
+  html[data-sim-lang] .panel { padding-top: 30px; }
+  div[data-noi18n][role="group"] { position: absolute !important; top: calc(12px + max(62vh, 340px) + 12px) !important; bottom: auto !important; right: max(16px, env(safe-area-inset-right, 0px)) !important; }
 }
 @media (prefers-reduced-motion: reduce) { tr.flash td.v { background: none; } .bar i { transition: none; } }
 </style>
@@ -211,6 +214,7 @@ tr.flash td.v { background: color-mix(in srgb, var(--accent) 22%, transparent); 
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
+const T = s => (window.simT ? window.simT(s) : s);   // optional translation (../sim-i18n.js); English if absent
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 // ================= Machine geometry, CAD frame (mm, Z up), from Object_Sort_Machine.stp =================
@@ -748,7 +752,7 @@ items.forEach(it => {
 function refreshItemsUI(force) {
   items.forEach(it => {
     const st = it.loc === 'slot' ? 'slot ' + it.slot : it.loc === 'loadcell' ? 'on scale' : it.loc;
-    if (it.ui.st.textContent !== st) it.ui.st.textContent = st;
+    if (it.ui.last !== st) { it.ui.st.textContent = st; it.ui.last = st; }   // compare with state, not DOM text (may be translated)
     const dis = it.loc !== 'infeed'; if (it.ui.inp.disabled !== dis) it.ui.inp.disabled = dis;
     if (force) it.ui.inp.value = it.w;
   });
@@ -766,7 +770,7 @@ function refreshGrid() {
   for (let n = 1; n <= 9; n++) {
     const el = slotEls[n], it = slotItem[n] || reserved[n];
     const txt = slotItem[n] ? `#${it.id} · ${Math.round(it.w)} g` : reserved[n] ? `→ #${it.id}` : '—';
-    if (el.lastChild.textContent !== txt) el.lastChild.textContent = txt;
+    if (el._txt !== txt) { el.lastChild.textContent = txt; el._txt = txt; }
     el.classList.toggle('full', !!slotItem[n]); el.classList.toggle('res', !slotItem[n] && !!reserved[n]); el.style.borderLeftColor = slotColor(n);
   }
 }
@@ -787,14 +791,15 @@ function refreshIO() {
   }
 }
 const stateEl = $('#state'), stepsEl = $('#steps'), scaleEl = $('#scaleVal');
-let lastHud = '', lastLc = '', lastHmi = '';
+let lastHud = '', lastLc = '', lastHmi = '', lastSteps = '';
+window.addEventListener('simlangchange', () => { lastHmi = ''; });   // redraw the HMI screen texture in the new language
 function refreshHud() {
   let s = 'Ready', cls = '';
   if (io.R_EStop) { s = 'E-stop'; cls = 'err'; } else if (io.R_StopErr) { s = 'Error ' + io.D_ErrCode; cls = 'err'; }
   else if (io.R_StopBtn) { s = 'Paused'; cls = 'pause'; } else if (sim.running) { s = 'Running'; cls = 'run'; } else if (io.JobDoneSig) { s = 'Job done'; cls = 'run'; }
   if (s + cls !== lastHud) { stateEl.textContent = s; stateEl.className = 'pill ' + cls; lastHud = s + cls; }
   const st = `STEP_MOVE ${io.STEP_MOVE} · STEP_Robot ${io.STEP_Robot} · Done ${io.D_DoneCount}/${io.D_JobQty || ui.jobQty.value}`;
-  if (stepsEl.textContent !== st) stepsEl.textContent = st;
+  if (lastSteps !== st) { stepsEl.textContent = st; lastSteps = st; }
   const lc = (lcItem || lcReading ? lcReading : 0).toFixed(1) + ' g';
   if (lc !== lastLc) { scaleEl.textContent = lc; lastLc = lc; }
   const hm = `${s}|${io.STEP_MOVE}|${io.D_DoneCount}|${io.D_JobQty}|${io.D_PickWeight}|${io.D_ErrCode}`;
@@ -803,11 +808,12 @@ function refreshHud() {
     redraw(screenTex, (g, w, h) => {
       g.fillStyle = '#0f1a24'; g.fillRect(0, 0, w, h);
       g.fillStyle = cls === 'err' ? '#e23b3b' : cls === 'pause' ? '#d79b00' : '#1f8f55'; g.fillRect(0, 0, w, 64);
-      g.fillStyle = '#fff'; g.font = '700 38px "Barlow Condensed", sans-serif'; g.textBaseline = 'middle'; g.fillText('OBJECT SORT · ' + s.toUpperCase(), 18, 33);
+      g.fillStyle = '#fff'; g.font = '700 38px "Barlow Condensed", sans-serif'; g.textBaseline = 'middle'; g.fillText(T('OBJECT SORT') + ' · ' + T(s).toUpperCase(), 18, 33, w - 30);
       g.font = '500 32px "JetBrains Mono", monospace'; g.fillStyle = '#cfe3f3';
-      g.fillText(`STEP_MOVE  ${io.STEP_MOVE}`, 22, 116); g.fillText(`DONE       ${io.D_DoneCount} / ${io.D_JobQty}`, 22, 168);
-      g.fillText(`WEIGHT     ${(io.D_PickWeight / 10).toFixed(1)} g`, 22, 220); g.fillText(`ERROR      ${io.D_ErrCode}`, 22, 272);
-      if (io.D_ErrCode) { g.fillStyle = '#ff8a8a'; g.font = '500 24px "Barlow", sans-serif'; g.fillText(ERR[io.D_ErrCode] || '', 22, 330); }
+      const row = (k, v, y) => { g.fillText(k, 22, y, 200); g.fillText(v, 233, y); };
+      row('STEP_MOVE', String(io.STEP_MOVE), 116); row(T('DONE'), `${io.D_DoneCount} / ${io.D_JobQty}`, 168);
+      row(T('WEIGHT'), `${(io.D_PickWeight / 10).toFixed(1)} g`, 220); row(T('ERROR'), String(io.D_ErrCode), 272);
+      if (io.D_ErrCode) { g.fillStyle = '#ff8a8a'; g.font = '500 24px "Barlow", sans-serif'; g.fillText(T(ERR[io.D_ErrCode] || ''), 22, 330, w - 30); }
     });
   }
 }
@@ -857,3 +863,6 @@ Promise.all([loadModel(), loadMirobot()]).then(() => { sim.ready = true; log('CA
 requestAnimationFrame(frame);
 })();
 </script>
+<!-- optional EN / 한국어 / বাংলা switcher; the simulator works in English if these files are missing -->
+<script src="i18n-dict.js"></script>
+<script src="../sim-i18n.js"></script>
