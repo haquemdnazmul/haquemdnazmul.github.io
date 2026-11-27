@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" role="img" aria-label="16x2 LCD wiring">
+<rect width="1200" height="470" fill="#ffffff"/>
+<text x="24" y="34" font-size="18" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">SHEET 4 · 16x2 LCD (I2C backpack module)</text>
+<text x="24" y="54" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Four wires. A4/A5 are the Uno&#x27;s I2C pins; the SDA/SCL pins next to AREF are the same signals.</text>
+<rect x="60" y="100" width="190" height="230" rx="6" fill="#e8f1ec" stroke="#111111" stroke-width="1.8"/>
+<text x="155" y="124" font-size="12" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">U2 ARDUINO UNO</text>
+<rect x="230" y="162" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="222" y="174" font-size="12" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">GND</text>
+<rect x="230" y="197" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="222" y="209" font-size="12" font-weight="700" fill="#d07a00" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">5V</text>
+<rect x="230" y="232" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="222" y="244" font-size="12" font-weight="700" fill="#1f4fa0" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">A4 / SDA</text>
+<rect x="230" y="267" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="222" y="279" font-size="12" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">A5 / SCL</text>
+<rect x="500" y="90" width="640" height="250" rx="6" fill="#2f6b4c" stroke="#111111" stroke-width="1.8"/>
+<circle cx="514" cy="104" r="6" fill="#ffffff" stroke="#111111" stroke-width="1"/>
+<circle cx="514" cy="326" r="6" fill="#ffffff" stroke="#111111" stroke-width="1"/>
+<circle cx="1126" cy="104" r="6" fill="#ffffff" stroke="#111111" stroke-width="1"/>
+<circle cx="1126" cy="326" r="6" fill="#ffffff" stroke="#111111" stroke-width="1"/>
+<rect x="560" y="120" width="560" height="170" rx="4" fill="#1d1d1d" stroke="#111111" stroke-width="2"/>
+<rect x="580" y="140" width="520" height="130" rx="2" fill="#b9d34a" stroke="#111111" stroke-width="1"/>
+<text x="600" y="192" font-size="34" fill="#1f2a0f" style="font-family:Consolas,monospace;letter-spacing:2px" xml:space="preserve">AUTO   CHG 48V</text>
+<text x="600" y="246" font-size="34" fill="#1f2a0f" style="font-family:Consolas,monospace;letter-spacing:2px" xml:space="preserve">48V 55.2V CHG 7m</text>
+<rect x="430" y="140" width="70" height="160" rx="3" fill="#1b3f8f" stroke="#111111" stroke-width="1.6"/>
+<text x="465" y="316" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PCF8574</text>
+<text x="465" y="330" font-size="9" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">backpack</text>
+<circle cx="478" cy="155" r="7" fill="#3b6fd8" stroke="#ffffff" stroke-width="1.2"/>
+<text x="492" y="132" font-size="9" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">contrast pot</text>
+<rect x="422" y="164" width="16" height="12" rx="0" fill="#d0d0d0" stroke="#111111" stroke-width="1"/>
+<text x="444" y="174" font-size="10" font-weight="700" fill="#ffffff" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">GND</text>
+<polyline points="250,170 422,170" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="422" y="199" width="16" height="12" rx="0" fill="#d0d0d0" stroke="#111111" stroke-width="1"/>
+<text x="444" y="209" font-size="10" font-weight="700" fill="#ffffff" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">VCC</text>
+<polyline points="250,205 422,205" fill="none" stroke="#d07a00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="422" y="234" width="16" height="12" rx="0" fill="#d0d0d0" stroke="#111111" stroke-width="1"/>
+<text x="444" y="244" font-size="10" font-weight="700" fill="#ffffff" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">SDA</text>
+<polyline points="250,240 422,240" fill="none" stroke="#1f4fa0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="422" y="269" width="16" height="12" rx="0" fill="#d0d0d0" stroke="#111111" stroke-width="1"/>
+<text x="444" y="279" font-size="10" font-weight="700" fill="#ffffff" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">SCL</text>
+<polyline points="250,275 422,275" fill="none" stroke="#1e7b45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="336" y="160" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">GND</text>
+<text x="336" y="198" font-size="10" font-weight="700" fill="#d07a00" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">+5 V</text>
+<text x="336" y="233" font-size="10" font-weight="700" fill="#1f4fa0" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">SDA</text>
+<text x="336" y="268" font-size="10" font-weight="700" fill="#1e7b45" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">SCL</text>
+<text x="24" y="380" font-size="12" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Line 1: mode and the battery being charged.  Line 2: each battery in turn, every 2 seconds.</text>
+<text x="24" y="400" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">CHG 7m = charging, 7 minutes until it counts as full · FULL · FLOAT (all full, still connected) · WAIT · LOW (needs charge)</text>
+<text x="24" y="418" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Blank screen: try address 0x3F in the sketch. Row of solid blocks: turn the contrast pot on the backpack.</text>
+<rect x="880" y="428" width="300" height="34" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="890" y="444" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Solar charger selector · Sheet 4 of 4</text>
+<text x="890" y="457" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Rev C · 2026-11-26</text>
+</svg>

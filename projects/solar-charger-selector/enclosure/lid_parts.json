@@ -1,0 +1,5 @@
+{
+  "_how_to_measure": "x = mm from the shield edge on the USB-jack side, y = mm from the shield edge with the digital pins (D0-D13), both to the CENTRE of the part. button_top_from_table = mm from the table to the top of a button, with the Arduino lying flat on the table.",
+  "button_top_from_table": null,
+  "parts": []
+}

@@ -10,6 +10,7 @@ This repository holds the source of that website and the project files.
 | **3D weight sorter simulator** | https://haquemdnazmul.github.io/simulator/ |
 | **3D conveyor sorter simulator** | https://haquemdnazmul.github.io/conveyor-simulator/ |
 | **3D elevator simulator** | https://haquemdnazmul.github.io/elevator-simulator/ |
+| **Solar selector simulator** | https://haquemdnazmul.github.io/solar-simulator/ |
 | **Project files** | [projects/](projects/) |
 
 ## Projects
@@ -18,5 +19,6 @@ This repository holds the source of that website and the project files.
 - [Motion-X Studio](projects/motion-x-studio/): Python operator app with face login and a live 3D robot view
 - [Conveyor Length Sorter](projects/conveyor-length-sorter/): conveyors and pneumatic pushers sorting blocks by length
 - [6-Floor Elevator](projects/six-floor-elevator/): PLC-controlled elevator with an AC motor, pneumatic door and HMI
+- [Solar Charger Selector](projects/solar-charger-selector/): Arduino controller that switches one solar array between 12 V, 48 V and 72 V battery chargers
 
 Skills: LS XGB PLC (XG5000), TOP Design Studio HMI, CIMON SCADA, WLKATA Mirobot, Intel RealSense D455, Python, OpenCV, Three.js.

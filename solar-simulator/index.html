@@ -1,0 +1,1604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Solar Charger Selector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: bench-instrument page. Live schematic left, control panel right, measurements and scope traces below. */
+:root{
+  --bg:#eef0ec; --panel:#ffffff; --ink:#1b2220; --muted:#5b6662; --line:#d3d8d2; --grid:#e5e9e3;
+  --pvp:#b3372b; --pvn:#2b58a6; --ctl:#2c7a46; --coil:#c07d08; --coilbg:#fbefd5; --gnd:#3a4340;
+  --ok:#2c7a46; --okbg:#e3f1e7; --warn:#a96a00; --warnbg:#fbf0d9; --bad:#c22f2f; --badbg:#fbe3e1;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",system-ui,"Malgun Gothic","Nirmala UI",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI","Malgun Gothic","Nirmala UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,"Malgun Gothic","Nirmala UI",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111513; --panel:#192020; --ink:#e4ebe7; --muted:#97a39e; --line:#2d3633; --grid:#232b29;
+  --pvp:#e86a5c; --pvn:#76a0ea; --ctl:#5fc282; --coil:#f0b23a; --coilbg:#3a2f15; --gnd:#a9b4af;
+  --ok:#5fc282; --okbg:#173022; --warn:#f0b23a; --warnbg:#352a12; --bad:#ff6d64; --badbg:#3d1a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111513; --panel:#192020; --ink:#e4ebe7; --muted:#97a39e; --line:#2d3633; --grid:#232b29;
+  --pvp:#e86a5c; --pvn:#76a0ea; --ctl:#5fc282; --coil:#f0b23a; --coilbg:#3a2f15; --gnd:#a9b4af;
+  --ok:#5fc282; --okbg:#173022; --warn:#f0b23a; --warnbg:#352a12; --bad:#ff6d64; --badbg:#3d1a18; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:50px 48px;margin:0}
+html{-webkit-text-size-adjust:100%}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:1.9rem;font-weight:700;letter-spacing:.01em}
+h2{font-size:1.15rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+h3{font-size:.95rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+header p{max-width:68ch;color:var(--muted)}
+.status{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font:600 12px var(--mono);border:1px solid var(--line);background:var(--panel)}
+.pill.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--badbg);color:var(--bad);border-color:transparent}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.schwrap{overflow-x:auto}
+#sch{display:block;width:100%;min-width:760px;height:auto}
+
+/* schematic */
+.w{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.w.pvp{stroke:var(--pvp)} .w.pvn{stroke:var(--pvn)} .w.v12{stroke:var(--pvp)} .w.gate{stroke:var(--ctl);stroke-width:1.6} .w.gnd{stroke:var(--gnd)} .w.v5{stroke:var(--coil)}
+.w.live{stroke-dasharray:7 5;animation:flow .7s linear infinite;stroke-width:2.6}
+.w.gate.live{stroke-width:2.2}
+.w.broken{stroke:var(--bad);stroke-dasharray:3 4}
+@keyframes flow{to{stroke-dashoffset:-12}}
+@media (prefers-reduced-motion:reduce){.w.live{animation:none;stroke-dasharray:none}}
+.bx{fill:var(--panel);stroke:var(--line);stroke-width:1.3}
+.bx.p{stroke:var(--pvp)} .bx.n{stroke:var(--pvn)} .bx.ch{stroke:var(--ctl)} .bx.q{stroke:#7a5bb5} .bx.b{stroke:var(--coil)}
+.bx.on{fill:var(--coilbg)}
+.bx.flt{stroke:var(--bad);stroke-width:2.4}
+.bx.chon{fill:var(--okbg)}
+.t{fill:var(--ink);font:600 11px var(--mono)}
+.s{fill:var(--muted);font:9.5px var(--mono)}
+.sec{fill:var(--muted);font:600 11px var(--mono);letter-spacing:.08em}
+.c{text-anchor:middle}
+.jn{fill:var(--ink)}
+.coilind{fill:var(--panel);stroke:var(--coil);stroke-width:1.3}
+.coilind.on{fill:var(--coil)}
+.blade{stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;transition:transform 60ms}
+.diode{fill:none;stroke:var(--ink);stroke-width:1.3}
+.diode path.tri{fill:var(--ink)}
+.xmark{stroke:var(--bad);stroke-width:2.4}
+.redtxt{fill:var(--bad);font:600 10px var(--mono)}
+
+/* controls */
+.ctl{display:grid;gap:18px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:600 14px var(--mono);padding:12px 4px;border:0;border-right:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--grid)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.seg button.pending{background:var(--warnbg);color:var(--warn)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--pvn);outline-offset:2px}
+.btn{font:600 13px var(--body);padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--grid)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chk{display:grid;gap:8px}
+.chk label{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;font-size:13.5px;line-height:1.35;cursor:pointer}
+.chk input{margin-top:2px;accent-color:var(--bad)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fields label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.fields input{font:500 14px var(--mono);padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+.range{display:grid;gap:4px}
+.range .row{justify-content:space-between}
+.range input{width:100%;accent-color:var(--pvp)}
+details>summary{cursor:pointer;font:600 13px var(--body);color:var(--muted)}
+details[open]>summary{margin-bottom:10px}
+
+/* readouts */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+dl{margin:10px 0 0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px}
+dt{color:var(--muted)}
+dd{margin:0;text-align:right;font:600 13px var(--mono);font-variant-numeric:tabular-nums}
+dd.ok{color:var(--ok)} dd.warn{color:var(--warn)} dd.bad{color:var(--bad)}
+.note{margin-top:10px;font-size:13px;padding:8px 10px;border-radius:4px;background:var(--grid)}
+.note.bad{background:var(--badbg);color:var(--bad)} .note.warn{background:var(--warnbg);color:var(--warn)} .note.ok{background:var(--okbg);color:var(--ok)}
+
+.scopes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:20px}
+.scope svg{display:block;width:100%;height:auto;min-width:520px}
+.scope .sx{overflow-x:auto;margin-top:10px}
+.scope p{font-size:13px;margin-top:8px}
+.ax{fill:var(--muted);font:9.5px var(--mono)}
+.axl{stroke:var(--line);stroke-width:1}
+.gl{stroke:var(--grid);stroke-width:1}
+.sig{fill:none;stroke-width:2}
+.sig.g{stroke:var(--ctl)} .sig.k{stroke:var(--coil)}
+.ovl{fill:var(--bad);opacity:.18}
+.lim{stroke:var(--bad);stroke-dasharray:4 3;stroke-width:1}
+
+/* batteries */
+.bats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.bat{border:1px solid var(--line);border-radius:6px;padding:12px;display:grid;gap:8px;min-width:0}
+.bat.chg{border-color:var(--ok);box-shadow:inset 0 0 0 1px var(--ok)}
+.bat .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.bat .nm{font:700 1.1rem var(--display)}
+.bat .v{font:600 1.25rem var(--mono);font-variant-numeric:tabular-nums}
+.bar{height:14px;border-radius:3px;background:var(--grid);overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--pvn)}
+.bat.chg .bar i{background:var(--ok)}
+.bat .meta{display:flex;justify-content:space-between;gap:8px;font:12px var(--mono);color:var(--muted);flex-wrap:wrap}
+.bat input[type=range]{width:100%;accent-color:var(--pvn)}
+
+.lcdwrap{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.pbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pb{display:grid;justify-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer;font:inherit;color:inherit}
+.pb i{width:30px;height:30px;border-radius:50%;background:#2a2a2a;box-shadow:0 3px 0 #000,inset 0 2px 3px rgba(255,255,255,.25)}
+.pb:active i{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.pb b{font-size:12px}.pb span{font:11px var(--mono);color:var(--muted)}
+.pb.on{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.pb{position:relative;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.pb .hold{position:absolute;left:0;bottom:0;height:4px;width:0;background:var(--warn)}
+.pb.down i{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.help{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);display:grid;gap:3px}
+.help b{color:var(--ink);font-family:var(--mono);font-size:12px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.steps li{display:grid;gap:2px;justify-items:center;text-align:center;padding:6px 4px;border:1px solid var(--line);border-radius:6px;font-size:11.5px;line-height:1.25;color:var(--muted)}
+.steps li b{font:600 12px var(--mono)}
+.steps li.done{opacity:.55}
+.steps li.skip span{text-decoration:line-through}
+.steps li.cur{border-color:var(--warn);background:var(--warnbg);color:var(--warn)}
+.speed{display:inline-grid;grid-template-columns:repeat(4,auto);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.speed button{font:600 12.5px var(--mono);padding:6px 10px;border:0;border-right:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.speed button:last-child{border-right:0}
+.speed button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.leds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.led{display:grid;justify-items:center;gap:4px;padding:8px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.led i{width:20px;height:20px;border-radius:50%;background:var(--c);opacity:.22;border:2px solid rgba(0,0,0,.35)}
+.led.on i{opacity:1;box-shadow:0 0 10px 3px var(--c)}
+.led b{font-size:12px}.led span{font:11px var(--mono);color:var(--muted)}
+.lcd{background:#1d1d1d;padding:10px;border-radius:6px;max-width:100%;overflow-x:auto}
+.lcd pre{margin:0;background:#b9d34a;color:#1f2a0f;font:600 22px/1.25 var(--mono);letter-spacing:.12em;padding:2px 10px;white-space:pre}
+.lcd pre:first-child{padding-top:8px}.lcd pre:last-child{padding-bottom:8px}
+
+/* serial */
+.serial{display:grid;gap:10px;align-content:start}
+#log{height:220px;overflow:auto;background:#0f1412;color:#c9e7d3;font:12.5px/1.55 var(--mono);padding:10px 12px;border-radius:4px;white-space:pre-wrap;word-break:break-word}
+#log .e{color:#ff8a80} #log .y{color:#ffd27a} #log .d{color:#7f9a8c}
+#cmd{flex:1;min-width:0;font:500 14px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:20px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.q{font-family:var(--mono);white-space:nowrap}
+pre.code{margin:10px 0 0;max-height:360px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:12px;font:12px/1.5 var(--mono)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font:12px var(--mono);color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div style="display:grid;gap:6px">
+      <h1>Solar Charger Selector</h1>
+      <p>One PV array switched between a 12 V, 48 V and 72 V charger by three relay pairs. The Arduino drives each pair through an IRLZ44N, and every change is break-before-make with a 10 s dead time. At power-up the TIMER sequence runs: 12 V for 3 hours, then 48 V until full, then 72 V until full, then AUTO. Speed up the clock to watch it, and try the faults to see what goes wrong.</p>
+    </div>
+    <div class="status" id="status"></div>
+  </header>
+
+  <section class="main">
+    <div class="panel">
+      <div class="schwrap"><svg id="sch" viewBox="0 0 1000 620" role="img" aria-label="Live schematic of the solar selector"></svg></div>
+      <div class="legend">
+        <span><i style="background:var(--pvp)"></i>PV+ / +12 V</span>
+        <span><i style="background:var(--pvn)"></i>PV−</span>
+        <span><i style="background:var(--ctl)"></i>Gate signal</span>
+        <span><i style="background:var(--gnd)"></i>Control GND</span>
+        <span>Dashed moving line = current flowing</span>
+      </div>
+    </div>
+
+    <aside class="panel ctl">
+      <div style="display:grid;gap:8px">
+        <div class="row" style="justify-content:space-between"><h3>Mode buttons</h3><span class="mono" id="modeo">TIMER</span></div>
+        <div class="pbs">
+          <button type="button" class="pb" id="sw-auto"><i></i><b>SW1 AUTO</b><span>D5</span></button>
+          <button type="button" class="pb" id="sw-next"><i></i><b>SW2 NEXT</b><span>D6</span><em class="hold" id="holdbar"></em></button>
+          <button type="button" class="pb" id="sw-timer"><i></i><b>SW3 TIMER</b><span>A3</span></button>
+        </div>
+        <ul class="help">
+          <li><b>AUTO</b>: charge each battery until full, then the next one that is not full.</li>
+          <li><b>NEXT</b> short press: swap to the next battery in every mode. Hold 5 s: MANUAL mode, keeping the battery connected now.</li>
+          <li><b>TIMER</b>: restart the sequence. Full batteries are skipped.</li>
+        </ul>
+        <ol class="steps" id="steps">
+          <li id="st0"><b>1</b><span>12 V for 3 h</span></li>
+          <li id="st1"><b>2</b><span>48 V until full</span></li>
+          <li id="st2"><b>3</b><span>72 V until full</span></li>
+          <li id="st3"><b>→</b><span>AUTO</span></li>
+        </ol>
+        <h3>Charging LEDs</h3>
+        <div class="leds">
+          <div class="led" id="led0" style="--c:#2ecc40"><i></i><b>LED1 12 V</b><span>green · D2</span></div>
+          <div class="led" id="led1" style="--c:#ffd400"><i></i><b>LED2 48 V</b><span>yellow · D3</span></div>
+          <div class="led" id="led2" style="--c:#2f7bff"><i></i><b>LED3 72 V</b><span>blue · D4</span></div>
+        </div>
+        <h3>Mode LEDs</h3>
+        <div class="leds">
+          <div class="led" id="led-auto" style="--c:#f4f4ee"><i></i><b>LED4 AUTO</b><span>white · D9</span></div>
+          <div class="led" id="led-timer" style="--c:#ff3b30"><i></i><b>LED5 TIMER</b><span>red · D8</span></div>
+          <div class="led" id="led-man" style="--c:transparent"><b style="margin-top:6px">MANUAL</b><span>both off</span></div>
+        </div>
+      </div>
+      <div style="display:grid;gap:8px">
+        <h3>Select charger (serial 0 / 12 / 48 / 72)</h3>
+        <div class="seg" id="seg">
+          <button type="button" id="b-1" data-ch="-1">OFF</button>
+          <button type="button" id="b0" data-ch="0">12 V</button>
+          <button type="button" id="b1" data-ch="1">48 V</button>
+          <button type="button" id="b2" data-ch="2">72 V</button>
+        </div>
+        <p class="muted" style="font-size:12.5px;margin:0">Same as typing the number in the serial monitor: switches to MANUAL mode.</p>
+        <div class="row"><button type="button" class="btn" id="reset">Reset Arduino</button><span class="muted" style="font-size:12.5px">Pins float for ~1.6 s during boot, then TIMER restarts</span></div>
+      </div>
+
+      <div style="display:grid;gap:8px">
+        <h3>Inject a fault</h3>
+        <div class="chk">
+          <label><input type="checkbox" id="f-diode"><span>Remove flyback diodes</span></label>
+          <label><input type="checkbox" id="f-dead"><span>Skip the 10 s dead time (switch directly)</span></label>
+          <label><input type="checkbox" id="f-gnd"><span>Arduino GND not joined to control-battery − (e.g. Arduino on USB)</span></label>
+          <label><input type="checkbox" id="f-pull"><span>Remove 10 kΩ gate pulldowns</span></label>
+        </div>
+      </div>
+
+      <div class="range">
+        <div class="row"><h3>Control battery</h3><span class="mono" id="vbat-o">12.8 V</span></div>
+        <input type="range" id="vbat" min="9" max="14.6" step="0.1" value="12.8" aria-label="Control battery voltage">
+      </div>
+
+      <details>
+        <summary>Relay and supply parameters</summary>
+        <div class="fields">
+          <label>Coil resistance (Ω)<input id="rcoil" type="number" value="85" min="20" step="1"></label>
+          <label>Must-operate voltage (V)<input id="pullin" type="number" value="7.8" step="0.1"></label>
+          <label>Coil inductance (H, est.)<input id="lcoil" type="number" value="0.15" step="0.01"></label>
+          <label>Control fuse (A)<input id="fuse" type="number" value="1" step="0.25"></label>
+          <label>Contact DC rating (V)<input id="relaydc" type="number" value="14" step="1"></label>
+          <label>Contact current rating (A)<input id="relaya" type="number" value="40" step="1"></label>
+        </div>
+      </details>
+      <details>
+        <summary>PV array and charger limits</summary>
+        <div class="fields">
+          <label>Array Voc at 25 °C (V)<input id="voc" type="number" value="90" step="1"></label>
+          <label>Array Isc (A)<input id="isc" type="number" value="11" step="0.5"></label>
+          <label>Coldest morning (°C)<input id="tmin" type="number" value="-10" step="1"></label>
+          <label>Voc temp. coeff. (%/°C)<input id="coef" type="number" value="0.30" step="0.01"></label>
+          <label>12 V charger max PV (V)<input id="cmax0" type="number" value="100" step="5"></label>
+          <label>48 V charger max PV (V)<input id="cmax1" type="number" value="150" step="5"></label>
+          <label>72 V charger max PV (V)<input id="cmax2" type="number" value="250" step="5"></label>
+        </div>
+        <p class="muted" style="font-size:12px;margin-top:8px">Charger limits are example values. Use the numbers on your chargers' datasheets.</p>
+      </details>
+    </aside>
+  </section>
+
+  <section class="panel" style="display:grid;gap:12px">
+    <div class="row" style="justify-content:space-between">
+      <h2>Batteries</h2>
+      <div class="row"><span class="mono muted" id="simclock">Sim time 0:00:00</span>
+        <div class="speed" id="speed" role="group" aria-label="Simulation speed"><button type="button" data-x="1">1×</button><button type="button" data-x="60">60×</button><button type="button" data-x="600">600×</button><button type="button" data-x="3600">3600×</button></div></div>
+    </div>
+    <p class="muted" style="font-size:13px;max-width:80ch">A battery counts as full when it stays at or above its full voltage for 10 minutes while charging. Drag a charge slider down to use that battery; once it drops below its resume voltage it needs charge again. At 600× the 3-hour TIMER step takes 18 s; the clock slows to 20× during each 10 s dead time so the switching stays visible.</p>
+    <div class="lcdwrap"><div class="lcd" aria-label="16x2 LCD" data-noi18n><pre id="lcd1"></pre><pre id="lcd2"></pre></div><span class="muted" style="font-size:12.5px">16x2 LCD as the sketch draws it (I2C backpack, SDA on A4, SCL on D7 by software I2C). Line 2 steps through the three batteries every 2 s.</span></div>
+    <div class="bats" id="bats"></div>
+  </section>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="scopes">
+    <div class="panel scope">
+      <h2>Switching timeline</h2>
+      <p class="muted">Last change, as the firmware and relays execute it. Gates switch instantly; contacts follow after the relay's operate or release time.</p>
+      <div class="sx"><svg id="timing" viewBox="0 0 640 250" aria-label="Timing diagram"></svg></div>
+      <p id="timing-note"></p>
+    </div>
+    <div class="panel scope">
+      <h2>MOSFET drain at switch-off</h2>
+      <p class="muted">Drain voltage of the transistor that just turned its coil pair off. Solid line is the circuit as configured, dashed is the alternative.</p>
+      <div class="sx"><svg id="drain" viewBox="0 0 640 250" aria-label="Drain voltage waveform"></svg></div>
+      <p id="drain-note"></p>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel serial">
+      <h2>Serial monitor</h2>
+      <p class="muted" style="font-size:13px">Same commands as the sketch (9600 baud, Newline):</p>
+      <p class="mono" style="font-size:13px;margin-top:-6px" data-noi18n>auto · timer · timer N · next · manual · 0|off · 12 · 48 · 72 · ?</p>
+      <p class="muted" style="font-size:13px;margin-top:-6px"><span class="mono" data-noi18n>timer 1</span> <span>= 12 V step of 1 minute, for a quick test.</span></p>
+      <div id="log" aria-live="polite" data-noi18n></div>
+      <form class="row" id="cmdform"><input id="cmd" autocomplete="off" placeholder="Type a command, e.g. 72" aria-label="Serial command"><button class="btn" type="submit">Send</button></form>
+    </div>
+    <div class="panel">
+      <h2>Parts to build it</h2>
+      <div class="tbl"><table id="bom">
+        <thead><tr><th>Qty</th><th>Part</th><th>Notes</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <h2 style="margin-top:18px">Arduino pin map</h2>
+      <div class="tbl"><table id="pins">
+        <thead><tr><th>Pin</th><th>Connected to</th></tr></thead>
+        <tbody>
+          <tr><td class="q">D2 / D3 / D4</td><td>Gates of Q1 / Q2 / Q3 (100 Ω) and the green / yellow / blue charging LEDs</td></tr>
+          <tr><td class="q">D5</td><td>SW1 AUTO to GND (internal pull-up)</td></tr>
+          <tr><td class="q">D6</td><td>SW2 NEXT to GND (internal pull-up)</td></tr>
+          <tr><td class="q">A3</td><td>SW3 TIMER to GND (internal pull-up)</td></tr>
+          <tr><td class="q">D9</td><td>White mode LED: AUTO</td></tr>
+          <tr><td class="q">D8</td><td>Red mode LED: TIMER</td></tr>
+          <tr><td class="q">A0 / A1 / A2</td><td>12 V / 48 V / 72 V bank dividers (33k, 150k, 220k over 10k)</td></tr>
+          <tr><td class="q">A4</td><td>LCD backpack SDA</td></tr>
+          <tr><td class="q">D7</td><td>LCD backpack SCL (software I2C, LCD_SOFT_SCL 7)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between">
+      <h2>Arduino sketch</h2>
+      <button class="btn" type="button" id="copy">Copy sketch</button>
+    </div>
+    <p class="muted" style="font-size:13px;margin-top:4px">Saved as <span class="mono" data-noi18n>solar_selector/solar_selector.ino</span>. The simulator above runs the same logic.</p>
+    <pre class="code" id="code" data-noi18n>// Solar selector: one PV array, three chargers (12 V / 48 V / 72 V)
+// AUTO MODE: charge one battery until it is full, then move to the next one.
+//
+// D2 -&gt; 100R -&gt; Q1 (IRLZ44N) gate -&gt; K1 + K2 coils -&gt; 12 V charger
+// D3 -&gt; 100R -&gt; Q2 (IRLZ44N) gate -&gt; K3 + K4 coils -&gt; 48 V charger
+// D4 -&gt; 100R -&gt; Q3 (IRLZ44N) gate -&gt; K5 + K6 coils -&gt; 72 V charger
+// Charging LEDs hang on the same pins (pin -&gt; 330R -&gt; LED -&gt; GND), no code needed:
+//   D2 green = 12 V charging, D3 yellow = 48 V charging, D4 blue = 72 V charging
+// Mode LEDs (pin -&gt; 330R -&gt; LED -&gt; GND):
+//   D9 white = AUTO mode, D8 red = TIMER mode, both off = MANUAL mode
+//   (with the parallel LCD option they move to A4 / A5, see MODE_LED_*)
+// A0 &lt;- 12 V bank  (33k / 10k divider)
+// A1 &lt;- 48 V bank  (150k / 10k divider)
+// A2 &lt;- 72 V bank  (220k / 10k divider)
+// All bank negatives join the control GND (see sheet 3).
+// 16x2 LCD (sheet 4): I2C backpack on A4 (SDA) / A5 (SCL), or parallel on D7-D12.
+// LCD_SOFT_SCL 7 (default here): the display's SCL wire goes to D7 instead of A5.
+//
+// LCD line 1: mode and the battery being charged     e.g.  AUTO   CHG 48V
+// LCD line 2: each battery in turn, every 2 seconds   e.g.  48V 55.2V CHG 7m
+//             CHG = charging (7m = minutes left until counted full)
+//             FULL / FLOAT / WAIT / LOW (needs charge)
+//
+// Rule: only one relay pair may ever be closed. Every change opens ALL pairs,
+// waits DEAD_TIME_MS (10 s, so the relays fully de-energise), then closes exactly one pair.
+//
+// "Full" = the battery being charged stays at or above FULL_V for FULL_HOLD_MS.
+// A full battery is skipped until its voltage falls below RESUME_V.
+// When every battery is full, the last one stays connected (charger floats it).
+//
+// THREE BUTTONS (each button: pin -&gt; button -&gt; GND, no resistor, internal pull-up):
+//   SW1 AUTO  (D5) : AUTO mode. Charge each battery until full, then move to the next.
+//   SW3 TIMER (A3) : TIMER sequence (started automatically at power-up). 12 V for 3 hours, then 48 V until full,
+//                    then 72 V until full, then carry on in AUTO.
+//                    A battery that is already full is skipped. Press again to restart.
+//   SW2 NEXT  (D6) : short press = SWAP to the next battery, in every mode:
+//                      AUTO   -&gt; next battery in order that is not full (stays in AUTO)
+//                      TIMER  -&gt; next step of the sequence
+//                      MANUAL -&gt; 12V -&gt; 48V -&gt; 72V -&gt; OFF -&gt; 12V ...
+//                    hold 5 s = MANUAL mode (keeps the battery that is connected now).
+//                    Leave MANUAL with AUTO or TIMER.
+//
+// Serial Monitor (9600 baud, "Newline"):
+//   auto        AUTO mode
+//   timer       start the TIMER sequence   (timer N = 12 V step of N minutes, e.g. timer 1 to test)
+//   next        same as a short press of NEXT
+//   manual      same as holding NEXT for 5 s
+//   0|off|12|48|72   manual select
+//   ?           status and battery voltages
+
+// ---------- display ----------
+#define LCD_I2C 1          // 1 = I2C backpack module, 0 = parallel wiring
+#define LCD_SOFT_SCL 7     // I2C display: 0 = SCL on A5 (hardware I2C, needs the library)
+                           //              7 = SCL wire on D7 (software I2C, no library), SDA stays on A4
+#define LCD_ADDR 0x27      // if the screen stays blank, try 0x3F
+#if LCD_I2C &amp;&amp; LCD_SOFT_SCL
+  // Software I2C driver for a 16x2 LCD with PCF8574 backpack (RS=P0 RW=P1 E=P2 BL=P3 D4-D7=P4-P7)
+  class SoftLcd : public Print {
+   public:
+    SoftLcd(uint8_t sda, uint8_t scl, uint8_t addr) : sda_(sda), scl_(scl), addr_(addr) {}
+    void init() {
+      rel(sda_); rel(scl_);
+      delay(50);
+      pcf(bl_);
+      nib(0x3, 0); delay(5); nib(0x3, 0); delay(5); nib(0x3, 0); delayMicroseconds(200);
+      nib(0x2, 0);
+      cmd(0x28); cmd(0x0C); cmd(0x01); cmd(0x06);
+    }
+    void backlight() { bl_ = 0x08; pcf(bl_); }
+    // Re-sync the 4-bit interface (no clear, no flicker). A glitch on the wires can leave the
+    // display half a byte out of step, which shows as garbage; this puts it back in step.
+    void resync() {
+      nib(0x3, 0); delay(5); nib(0x3, 0); delayMicroseconds(150); nib(0x3, 0); nib(0x2, 0);
+      cmd(0x28); cmd(0x0C); cmd(0x06);
+    }
+    void clear() { cmd(0x01); }
+    void setCursor(uint8_t col, uint8_t row) { cmd(0x80 | (col + (row ? 0x40 : 0))); }
+    size_t write(uint8_t c) override { send(c, 0x01); return 1; }
+    using Print::write;
+   private:
+    uint8_t sda_, scl_, addr_, bl_ = 0x08;
+    static void rel(uint8_t p) { pinMode(p, INPUT); }                       // released: pulled up by the backpack
+    static void low(uint8_t p) { digitalWrite(p, LOW); pinMode(p, OUTPUT); }
+    static void dly() { delayMicroseconds(10); }                          // slow and robust
+    void start() { rel(sda_); rel(scl_); dly(); low(sda_); dly(); low(scl_); dly(); }
+    void stop() { low(sda_); dly(); rel(scl_); dly(); rel(sda_); dly(); }
+    void byteOut(uint8_t b) {
+      for (int8_t i = 7; i &gt;= 0; i--) {
+        if (b &amp; (1 &lt;&lt; i)) rel(sda_); else low(sda_);
+        dly(); rel(scl_); dly(); low(scl_);
+      }
+      rel(sda_); dly(); rel(scl_); dly(); low(scl_); dly();                  // ACK clock (not checked)
+    }
+    void pcf(uint8_t v) { start(); byteOut(addr_ &lt;&lt; 1); byteOut(v); stop(); }
+    void nib(uint8_t n, uint8_t rs) {
+      uint8_t v = (n &lt;&lt; 4) | rs | bl_;
+      pcf(v | 0x04); pcf(v); delayMicroseconds(40);
+    }
+    void send(uint8_t b, uint8_t rs) { nib(b &gt;&gt; 4, rs); nib(b &amp; 0x0F, rs); }
+    void cmd(uint8_t c) { send(c, 0); if (c &lt; 4) delay(2); }
+  };
+  SoftLcd lcd(A4, LCD_SOFT_SCL, LCD_ADDR);
+#elif LCD_I2C
+  // Library: "LiquidCrystal I2C" by Frank de Brabander (Library Manager)
+  #include &lt;Wire.h&gt;
+  #include &lt;LiquidCrystal_I2C.h&gt;
+  LiquidCrystal_I2C lcd(LCD_ADDR, 16, 2);
+#else
+  #include &lt;LiquidCrystal.h&gt;              // built in
+  LiquidCrystal lcd(7, 8, 9, 10, 11, 12); // RS, E, D4, D5, D6, D7
+#endif
+const unsigned long LCD_MS = 500;
+const unsigned long LCD_PAGE_MS = 2000;
+
+struct Bank {
+  const char *name;
+  uint8_t gatePin;
+  uint8_t adcPin;
+  float ratio;     // (Rtop + Rbottom) / Rbottom
+  float fullV;     // set ~0.2 V per 12 V below your charger's absorption voltage
+  float resumeV;   // battery counts as "needs charge" again below this
+};
+
+// Lead-acid / AGM defaults. LiFePO4: 12 V -&gt; 14.0 / 13.2, 48 V (16s) -&gt; 56.0 / 52.8
+const Bank BANK[3] = {
+  {"12V", 2, A0, (33.0 + 10.0) / 10.0, 14.2, 12.4},
+  {"48V", 3, A1, (150.0 + 10.0) / 10.0, 56.8, 49.6},
+  {"72V", 4, A2, (220.0 + 10.0) / 10.0, 85.2, 74.4},
+};
+float CAL[3] = {1.000, 1.000, 1.000};   // tune so readings match a multimeter
+
+const unsigned long DEAD_TIME_MS = 10000;                 // all relays off for 10 s between batteries
+const unsigned long FULL_HOLD_MS = 10UL * 60UL * 1000UL;   // 10 minutes
+const unsigned long SAMPLE_MS = 1000;
+const unsigned long REPORT_MS = 60UL * 1000UL;
+
+int8_t activeCh = -1;      // -1 = no charger connected
+int8_t pendingCh = -1;
+bool waiting = false;
+unsigned long offAt = 0;
+
+enum Mode : uint8_t { MODE_AUTO, MODE_MANUAL, MODE_TIMER };
+Mode mode = MODE_TIMER;                   // power-up starts the TIMER sequence
+
+// ---------- push buttons ----------
+const uint8_t BTN_AUTO = 5, BTN_NEXT = 6, BTN_TIMER = A3;
+const uint8_t BTN_PIN[3] = {BTN_AUTO, BTN_NEXT, BTN_TIMER};
+const unsigned long DEBOUNCE_MS = 30;
+bool btnStable[3] = {HIGH, HIGH, HIGH};
+bool btnLast[3] = {HIGH, HIGH, HIGH};
+unsigned long btnChanged[3] = {0, 0, 0};
+
+// ---------- mode LEDs ----------
+#if LCD_I2C
+const uint8_t MODE_LED_WHITE = 9, MODE_LED_RED = 8;     // D7-D12 are free with the I2C display
+#else
+const uint8_t MODE_LED_WHITE = A4, MODE_LED_RED = A5;   // D7-D12 drive the parallel display
+#endif
+
+// ---------- timer sequence ----------
+unsigned int timer12Min = 180;            // TIMER step 1: 12 V for 3 hours ("timer N" changes it)
+uint8_t timerStage = 0;                   // 0 = 12 V timed, 1 = 48 V until full, 2 = 72 V until full
+unsigned long timerStart = 0;
+unsigned long timerMs() { return timer12Min * 60000UL; }
+
+// ---------- NEXT long press ----------
+const unsigned long LONG_PRESS_MS = 5000;
+unsigned long nextDownAt = 0;
+bool nextLongDone = false;
+
+bool full[3] = {false, false, false};
+bool above[3] = {false, false, false};
+unsigned long aboveSince[3] = {0, 0, 0};
+float volts[3] = {0, 0, 0};
+unsigned long lastSample = 0, lastReport = 0;
+unsigned long lastLcd = 0, lastPage = 0;
+uint8_t lcdPage = 0;
+bool interlockFault = false;
+
+char rxBuf[12];
+uint8_t rxLen = 0;
+
+// ---------- measurement ----------
+long readVcc_mV() {                       // measure 5 V rail against the 1.1 V bandgap
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  delay(2);
+  ADCSRA |= _BV(ADSC);
+  while (bit_is_set(ADCSRA, ADSC));
+  long r = ADCL;
+  r |= (long)ADCH &lt;&lt; 8;
+  return r ? 1125300L / r : 5000;
+}
+
+float readBank(uint8_t i, long vcc) {
+  analogRead(BANK[i].adcPin);             // settle the mux
+  long sum = 0;
+  for (uint8_t n = 0; n &lt; 16; n++) sum += analogRead(BANK[i].adcPin);
+  float vPin = (sum / 16.0) * (vcc / 1000.0) / 1023.0;
+  return vPin * BANK[i].ratio * CAL[i];
+}
+
+// ---------- switching ----------
+void allOff() {
+  for (uint8_t i = 0; i &lt; 3; i++) digitalWrite(BANK[i].gatePin, LOW);
+  activeCh = -1;
+}
+
+bool allGatesLow() {
+  for (uint8_t i = 0; i &lt; 3; i++)
+    if (digitalRead(BANK[i].gatePin) == HIGH) return false;
+  return true;
+}
+
+void requestChannel(int8_t ch) {
+  if (ch == activeCh &amp;&amp; !waiting) return;
+  allOff();                               // break first
+  offAt = millis();
+  for (uint8_t i = 0; i &lt; 3; i++) above[i] = false;
+  if (ch &lt; 0) {
+    waiting = false;
+    Serial.println(F("All chargers disconnected"));
+    return;
+  }
+  pendingCh = ch;
+  waiting = true;
+  Serial.print(F("Opening all relays, waiting "));
+  Serial.print(DEAD_TIME_MS / 1000);
+  Serial.print(F(" s, then "));
+  Serial.println(BANK[ch].name);
+}
+
+int8_t pickNext() {
+  if (activeCh &gt;= 0 &amp;&amp; !full[activeCh]) return activeCh;
+  int8_t start = activeCh &lt; 0 ? 0 : activeCh + 1;
+  for (uint8_t k = 0; k &lt; 3; k++) {
+    int8_t i = (start + k) % 3;
+    if (!full[i]) return i;
+  }
+  return activeCh;                        // all full: keep floating the current one
+}
+
+
+const __FlashStringHelper *modeName() {
+  if (mode == MODE_AUTO) return F("AUTO");
+  if (mode == MODE_TIMER) return F("TIMER");
+  return F("MANUAL");
+}
+
+// ---------- reporting ----------
+void printVolts() {
+  for (uint8_t i = 0; i &lt; 3; i++) {
+    Serial.print(BANK[i].name);
+    Serial.print(F(": "));
+    Serial.print(volts[i], 2);
+    Serial.print(F(" V"));
+    if (full[i]) Serial.print(F(" FULL"));
+    if (i == activeCh) Serial.print(F(" &lt;charging&gt;"));
+    Serial.print(i &lt; 2 ? F("  |  ") : F("\n"));
+  }
+}
+
+void printStatus() {
+  Serial.print('[');
+  Serial.print(modeName());
+  if (mode == MODE_TIMER) {
+    Serial.print(F(" step "));
+    Serial.print(timerStage + 1);
+    if (timerStage == 0) {
+      unsigned long el = millis() - timerStart;
+      Serial.print(F(", 12V min left "));
+      Serial.print(el &gt;= timerMs() ? 0 : (timerMs() - el) / 60000UL + 1);
+    } else Serial.print(F(", until full"));
+  }
+  Serial.print(F("] "));
+  if (waiting) {
+    Serial.print(F("dead time, next = "));
+    Serial.println(BANK[pendingCh].name);
+  } else if (activeCh &lt; 0) {
+    Serial.println(F("all chargers disconnected"));
+  } else {
+    Serial.print(BANK[activeCh].name);
+    Serial.println(F(" charger connected"));
+  }
+  printVolts();
+}
+
+// ---------- LCD ----------
+void lcdBegin() {
+#if LCD_I2C
+  lcd.init();
+  lcd.backlight();
+#else
+  lcd.begin(16, 2);
+#endif
+  lcd.clear();
+  lcd.print(F("Solar selector"));
+  lcd.setCursor(0, 1);
+  lcd.print(F("starting..."));
+}
+
+void lcdRow(uint8_t row, char *s) {
+  uint8_t n = strlen(s);
+  while (n &lt; 16) s[n++] = ' ';           // pad so old characters are overwritten
+  s[16] = '\0';
+  lcd.setCursor(0, row);
+  lcd.print(s);
+}
+
+void updateLcd(unsigned long now) {
+  char l1[17], l2[17], v[8], st[8], m[8];
+  if (mode == MODE_AUTO) strcpy(m, "AUTO  ");
+  else if (mode == MODE_MANUAL) strcpy(m, "MANUAL");
+  else strcpy(m, "TIMER ");
+
+  bool holding = btnStable[1] == LOW &amp;&amp; !nextLongDone &amp;&amp; now - nextDownAt &gt;= 1000;
+  if (interlockFault) snprintf(l1, sizeof l1, "INTERLOCK FAULT");
+  else if (holding &amp;&amp; mode != MODE_MANUAL) {
+    unsigned long left = (LONG_PRESS_MS - (now - nextDownAt) + 999) / 1000;
+    snprintf(l1, sizeof l1, "HOLD %lus-&gt;MANUAL", left);
+  }
+  else if (waiting) {
+    unsigned long el = now - offAt;
+    unsigned long left = el &gt;= DEAD_TIME_MS ? 0 : (DEAD_TIME_MS - el + 999) / 1000;
+    snprintf(l1, sizeof l1, "%s &gt;&gt;%s %2lus", m, BANK[pendingCh].name, left);
+  }
+  else if (activeCh &lt; 0) snprintf(l1, sizeof l1, "%s ALL OFF", m);
+  else snprintf(l1, sizeof l1, "%s CHG %s", m, BANK[activeCh].name);
+
+  uint8_t p = lcdPage;
+  dtostrf(volts[p], 4, 1, v);            // e.g. "13.6", "55.2"
+  if (p == activeCh &amp;&amp; !waiting) {
+    if (full[p]) strcpy(st, "FLOAT");
+    else if (mode == MODE_TIMER &amp;&amp; timerStage == 0) {   // time left on the 12 V step, e.g. T2h59
+      unsigned long el = now - timerStart;
+      unsigned long left = el &gt;= timerMs() ? 0 : (timerMs() - el) / 60000UL + 1;
+      snprintf(st, sizeof st, "T%luh%02lu", left / 60, left % 60);
+    } else if (above[p] &amp;&amp; now - aboveSince[p] &lt; FULL_HOLD_MS) {
+      unsigned long left = (FULL_HOLD_MS - (now - aboveSince[p])) / 60000UL + 1;
+      snprintf(st, sizeof st, "CHG%2lum", left);
+    } else strcpy(st, "CHG");
+  } else if (full[p]) strcpy(st, "FULL");
+  else if (volts[p] &lt; BANK[p].resumeV) strcpy(st, "LOW");
+  else strcpy(st, "WAIT");
+  snprintf(l2, sizeof l2, "%s %sV %s", BANK[p].name, v, st);
+
+#if LCD_I2C &amp;&amp; LCD_SOFT_SCL
+  lcd.resync();
+#endif
+  lcdRow(0, l1);
+  lcdRow(1, l2);
+}
+
+// ---------- timer sequence ----------
+void timerAdvance(const __FlashStringHelper *why) {
+  while (true) {
+    timerStage++;
+    if (timerStage &gt; 2) {
+      timerStage = 2;
+      mode = MODE_AUTO;
+      Serial.println(F("TIMER: sequence done, continuing in AUTO"));
+      return;
+    }
+    if (!full[timerStage]) break;
+    Serial.print(F("TIMER: "));
+    Serial.print(BANK[timerStage].name);
+    Serial.println(F(" already full, skipped"));
+  }
+  Serial.print(F("TIMER: "));
+  Serial.print(why);
+  Serial.print(F(", step "));
+  Serial.print(timerStage + 1);
+  Serial.print(F(" = "));
+  Serial.print(BANK[timerStage].name);
+  Serial.println(F(" until full"));
+  requestChannel(timerStage);
+}
+
+void timerFollow(unsigned long now) {
+  if (timerStage == 0 &amp;&amp; now - timerStart &gt;= timerMs()) { timerAdvance(F("12V time is up")); return; }
+  if (timerStage &gt; 0 &amp;&amp; full[timerStage]) { timerAdvance(F("battery full")); return; }
+  if (activeCh != (int8_t)timerStage) requestChannel(timerStage);   // keep this step's battery connected
+}
+
+// ---------- auto logic ----------
+void autoStep() {
+  unsigned long now = millis();
+  long vcc = readVcc_mV();
+  for (uint8_t i = 0; i &lt; 3; i++) volts[i] = readBank(i, vcc);
+
+  // full detection on the battery being charged
+  if (activeCh &gt;= 0 &amp;&amp; !waiting) {
+    uint8_t i = activeCh;
+    if (volts[i] &gt;= BANK[i].fullV) {
+      if (!above[i]) { above[i] = true; aboveSince[i] = now; }
+      else if (!full[i] &amp;&amp; now - aboveSince[i] &gt;= FULL_HOLD_MS) {
+        full[i] = true;
+        Serial.print(BANK[i].name);
+        Serial.println(F(" battery FULL"));
+      }
+    } else {
+      above[i] = false;
+    }
+  }
+  // a full battery that has been used again needs charging
+  for (uint8_t i = 0; i &lt; 3; i++) {
+    if (full[i] &amp;&amp; volts[i] &lt; BANK[i].resumeV) {
+      full[i] = false;
+      Serial.print(BANK[i].name);
+      Serial.println(F(" battery needs charge again"));
+    }
+  }
+  if (waiting) return;
+  if (mode == MODE_AUTO) {
+    int8_t next = pickNext();
+    if (next != activeCh) {
+      Serial.print(F("AUTO: switching to "));
+      Serial.println(next &gt;= 0 ? BANK[next].name : "none");
+      requestChannel(next);
+    }
+  } else if (mode == MODE_TIMER) {
+    timerFollow(now);
+  }
+}
+
+// ---------- modes ----------
+void setAuto() {
+  mode = MODE_AUTO;
+  Serial.println(F("AUTO mode"));
+}
+
+void setTimer() {                         // start (or restart) the sequence at step 1
+  mode = MODE_TIMER;
+  timerStage = 0;
+  timerStart = millis();
+  Serial.print(F("TIMER: step 1 = 12V for "));
+  Serial.print(timer12Min);
+  Serial.println(F(" min, then 48V until full, then 72V until full"));
+  requestChannel(0);
+}
+
+void manual(int8_t ch) {
+  if (mode != MODE_MANUAL) Serial.println(F("MANUAL mode (press AUTO or TIMER to leave)"));
+  mode = MODE_MANUAL;
+  requestChannel(ch);
+}
+
+void enterManual() {                      // NEXT held 5 s: keep the battery that is connected now
+  if (mode == MODE_MANUAL) return;
+  mode = MODE_MANUAL;
+  Serial.println(F("MANUAL mode (NEXT held 5 s). NEXT = next battery, AUTO or TIMER to leave"));
+}
+
+void swapNext() {                         // NEXT short press
+  int8_t cur = waiting ? pendingCh : activeCh;
+  if (mode == MODE_MANUAL) {              // 12 -&gt; 48 -&gt; 72 -&gt; OFF -&gt; 12
+    int8_t n = cur &gt;= 2 ? -1 : cur + 1;
+    Serial.print(F("MANUAL: NEXT -&gt; "));
+    Serial.println(n &lt; 0 ? "OFF" : BANK[n].name);
+    requestChannel(n);
+  } else if (mode == MODE_TIMER) {
+    timerAdvance(F("NEXT pressed"));
+  } else {                                // AUTO: next battery in order that is not full
+    int8_t start = cur &lt; 0 ? 0 : cur + 1;
+    int8_t n = start % 3;
+    for (uint8_t k = 0; k &lt; 3; k++) {
+      int8_t i = (start + k) % 3;
+      if (!full[i]) { n = i; break; }
+    }
+    Serial.print(F("AUTO: NEXT -&gt; "));
+    Serial.println(BANK[n].name);
+    requestChannel(n);
+  }
+}
+
+void updateModeLeds() {
+  digitalWrite(MODE_LED_WHITE, mode == MODE_AUTO ? HIGH : LOW);
+  digitalWrite(MODE_LED_RED, mode == MODE_TIMER ? HIGH : LOW);
+}
+
+void readButtons(unsigned long now) {
+  for (uint8_t b = 0; b &lt; 3; b++) {
+    bool r = digitalRead(BTN_PIN[b]);
+    if (r != btnLast[b]) { btnLast[b] = r; btnChanged[b] = now; }
+    if (now - btnChanged[b] &gt;= DEBOUNCE_MS &amp;&amp; r != btnStable[b]) {
+      btnStable[b] = r;
+      if (b == 1) {                       // NEXT: short press = swap, hold 5 s = MANUAL
+        if (r == LOW) { nextDownAt = now; nextLongDone = false; }
+        else if (!nextLongDone) swapNext();
+      } else if (r == LOW) {
+        if (b == 0) setAuto();
+        else setTimer();
+      }
+      lastLcd = 0;                        // refresh the display now
+    }
+  }
+  if (btnStable[1] == LOW &amp;&amp; !nextLongDone &amp;&amp; now - nextDownAt &gt;= LONG_PRESS_MS) {
+    nextLongDone = true;
+    enterManual();
+    lastLcd = 0;
+  }
+}
+
+// ---------- serial ----------
+void handleCommand(const char *cmd) {
+  if (!strcmp(cmd, "0") || !strcasecmp(cmd, "off")) manual(-1);
+  else if (!strcmp(cmd, "12")) manual(0);
+  else if (!strcmp(cmd, "48")) manual(1);
+  else if (!strcmp(cmd, "72")) manual(2);
+  else if (!strcasecmp(cmd, "auto")) setAuto();
+  else if (!strcasecmp(cmd, "timer")) setTimer();
+  else if (!strncasecmp(cmd, "timer ", 6)) {
+    int t = atoi(cmd + 6);
+    if (t &lt; 1 || t &gt; 1440) Serial.println(F("timer N: 12V minutes, 1 to 1440"));
+    else { timer12Min = t; setTimer(); }
+  }
+  else if (!strcasecmp(cmd, "next")) swapNext();
+  else if (!strcasecmp(cmd, "manual")) enterManual();
+  else if (!strcmp(cmd, "?")) printStatus();
+  else Serial.println(F("Commands: auto, timer, timer N, next, manual, 0/off, 12, 48, 72, ?"));
+}
+
+void readSerial() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '\r') continue;
+    if (c == '\n') {
+      rxBuf[rxLen] = '\0';
+      if (rxLen) handleCommand(rxBuf);
+      rxLen = 0;
+    } else if (rxLen &lt; sizeof(rxBuf) - 1) {
+      rxBuf[rxLen++] = c;
+    }
+  }
+}
+
+void setup() {
+  for (uint8_t i = 0; i &lt; 3; i++) {
+    digitalWrite(BANK[i].gatePin, LOW);   // latch LOW before the pin becomes an output
+    pinMode(BANK[i].gatePin, OUTPUT);
+  }
+  for (uint8_t b = 0; b &lt; 3; b++) pinMode(BTN_PIN[b], INPUT_PULLUP);
+  pinMode(MODE_LED_WHITE, OUTPUT);
+  pinMode(MODE_LED_RED, OUTPUT);
+  updateModeLeds();
+  Serial.begin(9600);
+  lcdBegin();
+  Serial.println(F("Solar selector ready (TIMER). AUTO D5, TIMER A3, NEXT D6 (hold 5 s = MANUAL). 10 s relay pause"));
+  Serial.println(F("Commands: auto, timer, timer N, next, manual, 0/off, 12, 48, 72, ?"));
+  setTimer();                             // always start with the TIMER sequence (12V first)
+}
+
+void loop() {
+  unsigned long now = millis();
+
+  if (waiting &amp;&amp; now - offAt &gt;= DEAD_TIME_MS) {
+    if (allGatesLow()) {                  // interlock check before making
+      digitalWrite(BANK[pendingCh].gatePin, HIGH);
+      activeCh = pendingCh;
+      interlockFault = false;
+      Serial.print(BANK[activeCh].name);
+      Serial.println(F(" charger connected"));
+    } else {
+      allOff();
+      interlockFault = true;
+      Serial.println(F("Interlock fault: gate still HIGH, all off"));
+    }
+    waiting = false;
+  }
+
+  readButtons(now);
+  updateModeLeds();
+
+  if (now - lastPage &gt;= LCD_PAGE_MS) {
+    lastPage = now;
+    lcdPage = (lcdPage + 1) % 3;
+  }
+  if (now - lastLcd &gt;= LCD_MS &amp;&amp; now &gt;= SAMPLE_MS) {
+    lastLcd = now;
+    updateLcd(now);
+  }
+
+  if (now - lastSample &gt;= SAMPLE_MS) {
+    lastSample = now;
+    autoStep();
+  }
+  if (now - lastReport &gt;= REPORT_MS) {
+    lastReport = now;
+    printVolts();
+  }
+  readSerial();
+}</pre>
+  </section>
+</div>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,a,parent,text){const e=document.createElementNS(NS,tag);if(a)for(const k in a)e.setAttribute(k,a[k]);if(text!=null)e.textContent=text;if(parent)parent.appendChild(e);return e;}
+const pts=p=>p.map(q=>q.join(',')).join(' ');
+function wire(parent,p,cls){return el('polyline',{points:pts(p),class:'w '+cls},parent);}
+function dot(parent,x,y){return el('circle',{cx:x,cy:y,r:3.2,class:'jn'},parent);}
+
+/* ---------- constants (match the sketch) ---------- */
+const DEAD=10000, OP=8, REL_DIODE=15, REL_NODIODE=4, RDS=0.025, VF=0.7, VAV=62, VDSS=55, ARD_I=0.025, BOOT=1600;
+const FULL_HOLD=10*60*1000, SAMPLE_MS=1000, REPORT_MS=60*1000, LONG_PRESS=5000, LCD_PAGE=2000, DEAD_SPEED_CAP=20;
+const CH=[
+  {name:'12V',pin:'D2',q:'Q1',kp:'K1',kn:'K2',cx:200,bx:600},
+  {name:'48V',pin:'D3',q:'Q2',kp:'K3',kn:'K4',cx:500,bx:760},
+  {name:'72V',pin:'D4',q:'Q3',kp:'K5',kn:'K6',cx:800,bx:915},
+];
+const F={diode:false,dead:false,gnd:false,pull:false};
+const FAULT_LABEL={diode:'Remove flyback diodes',dead:'Skip the 10 s dead time',gnd:'Arduino GND not joined to control-battery -',pull:'Remove 10 kOhm gate pulldowns'};
+const P={};
+function readParams(){
+  for(const k of ['vbat','rcoil','pullin','lcoil','fuse','relaydc','relaya','voc','isc','tmin','coef']) P[k]=parseFloat($(k).value)||0;
+  P.cmax=[0,1,2].map(i=>parseFloat($('cmax'+i).value)||0);
+  P.rcoil=Math.max(P.rcoil,1); P.lcoil=Math.max(P.lcoil,0.001);
+  $('vbat-o').textContent=P.vbat.toFixed(1)+' V';
+}
+// set text / html only when the (English) source changes, so the translator is not re-run every frame
+function setText(e,s){if(e._src!==s){e._src=s;e.textContent=s;}}
+function setHTML(e,s){if(e._src!==s){e._src=s;e.innerHTML=s;}}
+
+/* ---------- simulated clock: C.ms plays the role of millis() ---------- */
+const C={ms:0,speed:60,lastReal:performance.now(),lastSample:0,lastReport:0,lastReportReal:0,bootMs:0};
+
+/* ---------- simulated state ---------- */
+const S={gate:[0,0,0],active:-1,pending:-1,waiting:false,offAt:0,interlock:false,
+  booting:false,bootUntil:0,held:[0,0,0],mode:'timer',
+  coilOn:[false,false,false],coilT:[0,0,0],closed:[false,false,false],
+  faultUntil:0,faultMsg:'',timing:null,drain:null,lastRead:0};
+const FW={stage:0,timerStart:0,t12:180};          // TIMER sequence (timerStage, timerStart, timer12Min)
+const NB={down:false,at:0,longDone:false};        // NEXT button (real time: it is your finger)
+const timerMs=()=>FW.t12*60000;
+
+function elec(){
+  const Rh=P.rcoil/2, I=P.vbat/(Rh+RDS);
+  return {I,Vcoil:I*Rh,Vds:I*RDS,Pd:I*I*RDS,Vgs:5*10000/10100,pulls:I*Rh>=P.pullin};
+}
+function relTime(){return F.diode?REL_NODIODE:REL_DIODE;}
+function canEnergize(){return !F.gnd && elec().pulls;}
+function drive(i){
+  if(F.gnd) return false;
+  const g=S.booting?(F.pull?S.held[i]:0):S.gate[i];
+  return !!g && elec().pulls;
+}
+
+/* ---------- serial log ---------- */
+const logEl=$('log');
+function ts(){const d=new Date();return d.toTimeString().slice(0,8)+'.'+String(d.getMilliseconds()).padStart(3,'0');}
+function log(msg,cls){const line=document.createElement('div');if(cls)line.className=cls;line.textContent=ts()+' -> '+msg;logEl.appendChild(line);while(logEl.childNodes.length>200)logEl.removeChild(logEl.firstChild);logEl.scrollTop=logEl.scrollHeight;}
+
+/* ---------- firmware logic ---------- */
+function request(ch){                                   // requestChannel()
+  if(S.booting){log('(no reply: Arduino still in bootloader)','d');return;}
+  if(ch===S.active&&!S.waiting)return;
+  const prev=S.active, prevClosed=prev>=0&&S.closed[prev];
+  S.gate=[0,0,0];S.active=-1;S.offAt=C.ms;
+  B.above=[false,false,false];
+  if(ch<0){S.waiting=false;log('All chargers disconnected');}
+  else if(F.dead){S.gate[ch]=1;S.active=ch;S.waiting=false;log(CH[ch].name+' charger connected (dead time skipped)','y');}
+  else{S.pending=ch;S.waiting=true;log('Opening all relays, waiting '+DEAD/1000+' s, then '+CH[ch].name);}
+  captureTiming(prev,prevClosed,ch);
+  if(prev>=0) S.drain={ch:prev};
+  drawDrain();
+  updateButtons();
+}
+function resetArduino(){
+  S.held=S.gate.slice();
+  S.booting=true;S.bootUntil=performance.now()+BOOT;S.gate=[0,0,0];S.active=-1;S.waiting=false;
+  NB.down=false;
+  log('--- reset: D2-D4 are inputs while the bootloader runs ---','d');
+  if(F.pull&&S.held.some(Boolean)) log('No pulldown: gate charge keeps '+CH[S.held.indexOf(1)].q+' on during boot','y');
+  updateButtons();
+}
+function powerUp(){                                     // setup(): RAM starts fresh, TIMER sequence starts
+  S.gate=[0,0,0];S.active=-1;S.waiting=false;S.interlock=false;
+  B.full=[false,false,false];B.above=[false,false,false];
+  FW.t12=180;C.bootMs=C.ms;C.lastSample=C.ms;C.lastReport=C.ms;
+  log('Solar selector ready (TIMER). AUTO D5, TIMER A3, NEXT D6 (hold 5 s = MANUAL). 10 s relay pause');
+  log('Commands: auto, timer, timer N, next, manual, 0/off, 12, 48, 72, ?');
+  setTimer();
+  updateButtons();
+}
+
+/* ---------- batteries + modes (mirrors autoStep() and the TIMER code in the sketch) ---------- */
+const BANKN=[1,4,6], FULLV=[14.2,56.8,85.2], RESUMEV=[12.4,49.6,74.4];
+const B={soc:[55,88,35],v:[0,0,0],full:[false,false,false],above:[false,false,false],aboveAt:[0,0,0]};
+function batV(i){const n=BANKN[i],soc=B.soc[i],rest=11.9+0.010*soc;return n*(S.closed[i]?Math.min(14.4,rest+0.9+0.012*soc):rest);}
+function batStep(dMs){
+  const dMin=dMs/60000;
+  for(let i=0;i<3;i++){
+    if(S.closed[i]&&dMin>0){const r=B.soc[i]<70?3:1;B.soc[i]=Math.min(100,B.soc[i]+r*dMin);}
+    B.v[i]=batV(i);
+  }
+}
+function pickNext(){
+  if(S.active>=0&&!B.full[S.active])return S.active;
+  const st=S.active<0?0:S.active+1;
+  for(let k=0;k<3;k++){const i=(st+k)%3;if(!B.full[i])return i;}
+  return S.active;
+}
+function autoStep(){
+  const now=C.ms;
+  if(S.active>=0&&!S.waiting){const i=S.active;
+    if(B.v[i]>=FULLV[i]){
+      if(!B.above[i]){B.above[i]=true;B.aboveAt[i]=now;}
+      else if(!B.full[i]&&now-B.aboveAt[i]>=FULL_HOLD){B.full[i]=true;log(CH[i].name+' battery FULL','y');}
+    } else B.above[i]=false;
+  }
+  for(let i=0;i<3;i++) if(B.full[i]&&B.v[i]<RESUMEV[i]){B.full[i]=false;log(CH[i].name+' battery needs charge again');}
+  if(S.waiting)return;
+  if(S.mode==='auto'){const n=pickNext();if(n!==S.active){log('AUTO: switching to '+(n>=0?CH[n].name:'none'));request(n);}}
+  else if(S.mode==='timer') timerFollow(now);
+}
+function timerAdvance(why){
+  while(true){
+    FW.stage++;
+    if(FW.stage>2){FW.stage=2;S.mode='auto';log('TIMER: sequence done, continuing in AUTO');return;}
+    if(!B.full[FW.stage])break;
+    log('TIMER: '+CH[FW.stage].name+' already full, skipped');
+  }
+  log('TIMER: '+why+', step '+(FW.stage+1)+' = '+CH[FW.stage].name+' until full');
+  request(FW.stage);
+}
+function timerFollow(now){
+  if(FW.stage===0&&now-FW.timerStart>=timerMs()){timerAdvance('12V time is up');return;}
+  if(FW.stage>0&&B.full[FW.stage]){timerAdvance('battery full');return;}
+  if(S.active!==FW.stage)request(FW.stage);
+}
+function setAuto(){S.mode='auto';log('AUTO mode');}
+function setTimer(){
+  S.mode='timer';FW.stage=0;FW.timerStart=C.ms;
+  log('TIMER: step 1 = 12V for '+FW.t12+' min, then 48V until full, then 72V until full');
+  request(0);
+}
+function manual(ch){if(S.mode!=='manual')log('MANUAL mode (press AUTO or TIMER to leave)');S.mode='manual';request(ch);}
+function enterManual(){if(S.mode==='manual')return;S.mode='manual';log('MANUAL mode (NEXT held 5 s). NEXT = next battery, AUTO or TIMER to leave');}
+function swapNext(){
+  const cur=S.waiting?S.pending:S.active;
+  if(S.mode==='manual'){const n=cur>=2?-1:cur+1;log('MANUAL: NEXT -> '+(n<0?'OFF':CH[n].name));request(n);}
+  else if(S.mode==='timer') timerAdvance('NEXT pressed');
+  else{
+    const st=cur<0?0:cur+1;let n=st%3;
+    for(let k=0;k<3;k++){const i=(st+k)%3;if(!B.full[i]){n=i;break;}}
+    log('AUTO: NEXT -> '+CH[n].name);request(n);
+  }
+}
+function modeName(){return S.mode==='auto'?'AUTO':S.mode==='timer'?'TIMER':'MANUAL';}
+function stage0Left(){const el=C.ms-FW.timerStart;return el>=timerMs()?0:Math.floor((timerMs()-el)/60000)+1;}
+function printVolts(){log(CH.map((c,i)=>c.name+': '+B.v[i].toFixed(2)+' V'+(B.full[i]?' FULL':'')+(i===S.active?' <charging>':'')).join('  |  '));}
+function printStatus(){
+  let s='['+modeName();
+  if(S.mode==='timer'){s+=' step '+(FW.stage+1);s+=FW.stage===0?', 12V min left '+stage0Left():', until full';}
+  s+='] ';
+  if(S.waiting)s+='dead time, next = '+CH[S.pending].name;
+  else if(S.active<0)s+='all chargers disconnected';
+  else s+=CH[S.active].name+' charger connected';
+  log(s);printVolts();
+}
+function handleCommand(v){                              // handleCommand(): rxBuf holds 11 characters
+  v=v.slice(0,11);const k=v.toLowerCase();
+  if(v==='0'||k==='off')manual(-1);
+  else if(v==='12')manual(0);
+  else if(v==='48')manual(1);
+  else if(v==='72')manual(2);
+  else if(k==='auto')setAuto();
+  else if(k==='timer')setTimer();
+  else if(k.startsWith('timer ')){const t=parseInt(v.slice(6),10)||0;
+    if(t<1||t>1440)log('timer N: 12V minutes, 1 to 1440');else{FW.t12=t;setTimer();}}
+  else if(k==='next')swapNext();
+  else if(k==='manual')enterManual();
+  else if(v==='?')printStatus();
+  else log('Commands: auto, timer, timer N, next, manual, 0/off, 12, 48, 72, ?');
+}
+function modeTxt(){
+  if(S.mode!=='timer')return modeName();
+  if(FW.stage===0)return 'TIMER step 1: 12V, '+stage0Left()+' min left';
+  return 'TIMER step '+(FW.stage+1)+': '+CH[FW.stage].name+' until full';
+}
+function showMode(){
+  $('led-auto').classList.toggle('on',S.mode==='auto');$('led-timer').classList.toggle('on',S.mode==='timer');
+  setText($('modeo'),modeTxt());
+  ['auto','next','timer'].forEach(k=>$('sw-'+k).classList.toggle('on',(k==='next'?'manual':k)===S.mode));
+  for(let k=0;k<4;k++){const li=$('st'+k);
+    const cur=S.mode==='timer'?k===FW.stage:(S.mode==='auto'&&k===3);
+    li.classList.toggle('cur',cur);
+    li.classList.toggle('done',S.mode==='timer'&&k<FW.stage);
+    li.classList.toggle('skip',S.mode==='timer'&&k>FW.stage&&k<3&&B.full[k]);}
+  const h=NB.down&&!NB.longDone?Math.min(100,(performance.now()-NB.at)/LONG_PRESS*100):0;
+  $('holdbar').style.width=h.toFixed(1)+'%';
+}
+const fmtHMS=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/3600)+':'+String(Math.floor(s/60)%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');};
+function buildBats(){
+  $('bats').innerHTML=CH.map((c,i)=>`<div class="bat" id="bat${i}">
+    <div class="top"><span class="nm">${c.name.replace('V',' V')} bank</span><span class="v" id="bv${i}"></span></div>
+    <div class="bar"><i id="bb${i}"></i></div>
+    <div class="meta"><span id="bs${i}"></span><span id="bt${i}"></span></div>
+    <label style="display:grid;gap:2px;font-size:12px;color:var(--muted)">Charge level (drag down to use the battery)<input type="range" min="0" max="100" step="1" id="soc${i}" value="${B.soc[i]}"></label>
+    <div class="meta"><span>full ≥ ${FULLV[i]} V</span><span>resume &lt; ${RESUMEV[i]} V</span></div></div>`).join('');
+  CH.forEach((c,i)=>$('soc'+i).addEventListener('input',e=>{B.soc[i]=+e.target.value;B.v[i]=batV(i);}));
+}
+let lcdPage=0,lcdPageAt=0;
+function renderLcd(nowReal){                            // same layout as updateLcd() in the sketch
+  const pad=s=>(s+' '.repeat(16)).slice(0,16);
+  if(nowReal-lcdPageAt>=LCD_PAGE){lcdPageAt=nowReal;lcdPage=(lcdPage+1)%3;}
+  let l1,l2;
+  if(S.booting||C.ms-C.bootMs<SAMPLE_MS){l1='Solar selector';l2='starting...';}
+  else{
+    const m=S.mode==='auto'?'AUTO  ':S.mode==='manual'?'MANUAL':'TIMER ';
+    const holding=NB.down&&!NB.longDone&&nowReal-NB.at>=1000;
+    if(S.interlock) l1='INTERLOCK FAULT';
+    else if(holding&&S.mode!=='manual') l1='HOLD '+Math.floor((LONG_PRESS-(nowReal-NB.at)+999)/1000)+'s->MANUAL';
+    else if(S.waiting){const el=C.ms-S.offAt,left=el>=DEAD?0:Math.floor((DEAD-el+999)/1000);l1=m+' >>'+CH[S.pending].name+' '+String(left).padStart(2,' ')+'s';}
+    else if(S.active<0) l1=m+' ALL OFF';
+    else l1=m+' CHG '+CH[S.active].name;
+    const p=lcdPage;let st;
+    if(p===S.active&&!S.waiting){
+      if(B.full[p]) st='FLOAT';
+      else if(S.mode==='timer'&&FW.stage===0){const left=stage0Left();st='T'+Math.floor(left/60)+'h'+String(left%60).padStart(2,'0');}
+      else if(B.above[p]&&C.ms-B.aboveAt[p]<FULL_HOLD){const left=Math.floor((FULL_HOLD-(C.ms-B.aboveAt[p]))/60000)+1;st='CHG'+String(left).padStart(2,' ')+'m';}
+      else st='CHG';
+    } else if(B.full[p]) st='FULL';
+    else if(B.v[p]<RESUMEV[p]) st='LOW';
+    else st='WAIT';
+    l2=CH[p].name+' '+B.v[p].toFixed(1).padStart(4,' ')+'V '+st;
+  }
+  setText($('lcd1'),pad(l1));setText($('lcd2'),pad(l2));
+}
+function renderBats(nowReal){
+  renderLcd(nowReal);showMode();
+  setText($('simclock'),'Sim time '+fmtHMS(C.ms));
+  for(let i=0;i<3;i++){
+    const chg=S.closed[i];
+    $('bat'+i).classList.toggle('chg',chg);
+    setText($('bv'+i),B.v[i].toFixed(1)+' V');
+    $('bb'+i).style.width=B.soc[i].toFixed(1)+'%';
+    const sl=$('soc'+i);if(document.activeElement!==sl)sl.value=Math.round(B.soc[i]);
+    let st;
+    if(chg&&B.full[i]) st='Full · floating';
+    else if(chg) st=B.above[i]&&C.ms-B.aboveAt[i]<FULL_HOLD?'Charging · full in '+(Math.floor((FULL_HOLD-(C.ms-B.aboveAt[i]))/60000)+1)+' min':'Charging';
+    else if(B.full[i]) st='Full';
+    else if(B.v[i]<RESUMEV[i]) st='Needs charge';
+    else st='Waiting';
+    setText($('bs'+i),st);
+    setText($('bt'+i),Math.round(B.soc[i])+' %');
+  }
+}
+
+/* ---------- schematic ---------- */
+const sch=$('sch');const R={k:[],gates:[],coilW:[],coilBox:[],coilInd:[],mos:[],diodes:[],pull:[],chg:[],pvW:[],blades:[],relBox:[],vds:[],icoil:[]};
+function buildSchematic(){
+  el('text',{x:16,y:22,class:'sec'},sch,'A · PV SWITCHING — RELAY CONTACTS');
+  R.busP=wire(sch,[[118,52],[900,52]],'pvp');
+  R.busN=wire(sch,[[118,68],[900,68]],'pvn');
+  el('rect',{x:20,y:40,width:96,height:40,rx:4,class:'bx b'},sch);
+  el('text',{x:68,y:56,class:'t c'},sch,'PV ARRAY');
+  R.pvTxt=el('text',{x:68,y:72,class:'s c'},sch,'');
+  el('text',{x:122,y:47,class:'s'},sch,'SOLAR PV+');
+  el('text',{x:122,y:81,class:'s'},sch,'SOLAR PV−');
+  CH.forEach((c,i)=>{
+    const xs=[c.cx-62,c.cx+62];const kn=[c.kp,c.kn];const pol=['p','n'];const lab=['PV+','PV−'];
+    const pw=[];const bl=[];const bxs=[];
+    xs.forEach((x,j)=>{
+      const b=el('rect',{x:x-40,y:94,width:80,height:66,rx:4,class:'bx '+pol[j]},sch);bxs.push(b);
+      el('text',{x:x-34,y:107,class:'t'},sch,kn[j]);
+      el('text',{x:x-34,y:118,class:'s'},sch,lab[j]);
+      // pin 30 up to bus
+      const yb=j?68:52;
+      let w;
+      if(j===0) w=el('path',{d:`M${x} 94 V74 A6 6 0 0 1 ${x} 62 V${yb}`,class:'w pvp'},sch);
+      else w=wire(sch,[[x,94],[x,yb]],'pvn');
+      dot(sch,x,yb);
+      el('text',{x:x+4,y:104,class:'s'},sch,'30');
+      el('text',{x:x+4,y:156,class:'s'},sch,'87');
+      // contact: pivot at y=118, fixed contact at y=140
+      el('circle',{cx:x,cy:118,r:2.2,class:'jn'},sch);
+      el('circle',{cx:x,cy:142,r:2.2,class:'jn'},sch);
+      const pin30=wire(sch,[[x,94],[x,118]],j?'pvn':'pvp');
+      const blade=el('line',{x1:x,y1:118,x2:x,y2:142,class:'blade'},sch);bl.push(blade);
+      const pin87=wire(sch,[[x,142],[x,160],[x,200]],j?'pvn':'pvp');
+      // coil indicator
+      el('rect',{x:x+16,y:120,width:16,height:24,rx:2,class:'coilind'},sch);
+      R.coilInd.push({i,el:sch.lastChild});
+      pw.push(w,pin30,pin87);
+    });
+    R.pvW.push(pw);R.blades.push(bl);R.relBox.push(bxs);
+    const cb=el('rect',{x:c.cx-110,y:200,width:220,height:50,rx:4,class:'bx ch'},sch);
+    el('text',{x:c.cx,y:220,class:'t c'},sch,c.name+' CHARGER');
+    const ct=el('text',{x:c.cx,y:237,class:'s c'},sch,'');
+    el('text',{x:c.cx,y:266,class:'s c'},sch,'battery output → its own '+c.name+' battery');
+    R.chg.push({box:cb,txt:ct});
+  });
+  el('line',{x1:10,y1:282,x2:990,y2:282,class:'axl'},sch);
+  el('text',{x:16,y:304,class:'sec'},sch,'B · 12 V CONTROL — RELAY COILS + ARDUINO');
+
+  // battery
+  el('rect',{x:24,y:334,width:112,height:56,rx:4,class:'bx b'},sch);
+  el('text',{x:80,y:352,class:'t c'},sch,'12V CTRL BATT');
+  R.battTxt=el('text',{x:80,y:368,class:'s c'},sch,'');
+  el('text',{x:80,y:382,class:'s c'},sch,'+ top · − bottom');
+  R.v12a=wire(sch,[[136,346],[156,346],[156,322],[470,322]],'v12');
+  R.v12b=wire(sch,[[156,346],[176,346]],'v12');
+  dot(sch,156,346);
+  el('rect',{x:176,y:332,width:92,height:42,rx:4,class:'bx'},sch);
+  el('text',{x:222,y:350,class:'t c'},sch,'12V→5V BUCK');
+  el('text',{x:222,y:364,class:'s c'},sch,'powers Arduino');
+  R.v5=wire(sch,[[268,353],[296,353]],'v5');
+  el('rect',{x:296,y:332,width:124,height:70,rx:4,class:'bx'},sch);
+  el('text',{x:358,y:347,class:'t c'},sch,'ARDUINO UNO');
+  R.ardTxt=el('text',{x:302,y:396,class:'s'},sch,'');
+  CH.forEach((c,i)=>el('text',{x:414,y:360+i*12,class:'s',"text-anchor":"end"},sch,c.pin));
+  el('rect',{x:470,y:312,width:60,height:20,rx:3,class:'bx'},sch);
+  R.fuseTxt=el('text',{x:500,y:326,class:'s c'},sch,'FUSE');
+  R.bus=wire(sch,[[530,322],[975,322]],'v12');
+  el('text',{x:540,y:315,class:'s'},sch,'fused +12 V → pin 86 of all six coils');
+
+  // GND
+  R.gndBus=wire(sch,[[80,592],[975,592]],'gnd');
+  wire(sch,[[80,390],[80,592]],'gnd');dot(sch,80,592);
+  wire(sch,[[222,374],[222,592]],'gnd');dot(sch,222,592);
+  R.ardGnd=wire(sch,[[358,402],[358,592]],'gnd');dot(sch,358,592);
+  R.gndX=el('g',{},sch);
+  el('line',{x1:350,y1:480,x2:366,y2:496,class:'xmark'},R.gndX);el('line',{x1:366,y1:480,x2:350,y2:496,class:'xmark'},R.gndX);
+  el('text',{x:372,y:492,class:'redtxt'},R.gndX,'no common GND');
+  el('text',{x:96,y:610,class:'s'},sch,'CONTROL GND BUS (12 V battery −) — Arduino GND, buck −, all MOSFET sources');
+
+  CH.forEach((c,i)=>{
+    const bx=c.bx, gx=bx-76, gy=360+i*12;
+    dot(sch,bx,322);
+    const w1=wire(sch,[[bx,322],[bx,400]],'v12');
+    const cb=el('rect',{x:bx-56,y:400,width:112,height:46,rx:4,class:'bx p'},sch);
+    el('text',{x:bx-50,y:414,class:'t'},sch,c.kp+'+'+c.kn+' coils');
+    const it=el('text',{x:bx-50,y:428,class:'s'},sch,'');
+    // flyback diodes (one symbol represents one per coil)
+    const d=el('g',{class:'diode'},sch);
+    el('line',{x1:bx+40,y1:430,x2:bx+52,y2:430},d);
+    el('path',{d:`M${bx+40} 440 L${bx+52} 440 L${bx+46} 431 Z`,class:'tri'},d);
+    el('text',{x:bx+46,y:412,class:'s c'},d,'2×D');
+    const w2=wire(sch,[[bx,446],[bx,478]],'v12');
+    const mb=el('rect',{x:bx-48,y:478,width:96,height:46,rx:4,class:'bx q'},sch);
+    el('text',{x:bx,y:494,class:'t c'},sch,c.q+' IRLZ44N');
+    const vt=el('text',{x:bx,y:508,class:'s c'},sch,'');
+    const pd=el('text',{x:bx,y:520,class:'s c'},sch,'10k G–S');
+    const w3=wire(sch,[[bx,524],[bx,592]],'gnd');dot(sch,bx,592);
+    const g=wire(sch,[[420,gy],[gx,gy],[gx,501],[bx-48,501]],'gate');
+    el('text',{x:gx+4,y:497,class:'s'},sch,'100Ω');
+    R.gates.push(g);R.coilW.push([w1,w2,w3]);R.coilBox.push(cb);R.mos.push(mb);R.diodes.push(d);R.pull.push(pd);R.vds.push(vt);R.icoil.push(it);
+  });
+}
+
+/* ---------- render ---------- */
+function setCls(e,base,on,extra){e.setAttribute('class',base+(on?' live':'')+(extra?' '+extra:''));}
+function render(now){
+  const E=elec();
+  let anyCoil=false,anyPV=false;
+  CH.forEach((c,i)=>{
+    const on=S.coilOn[i];anyCoil=anyCoil||on;
+    const closed=S.closed[i];anyPV=anyPV||closed;
+    const gHigh=S.booting?(F.pull?S.held[i]:0):S.gate[i];
+    setCls(R.gates[i],'w gate',!!gHigh);
+    $('led'+i).classList.toggle('on',!!gHigh);   // LED + 330R hang on the same pin as the gate
+    R.coilW[i].forEach((w,k)=>setCls(w,'w '+(k===2?'gnd':'v12'),on));
+    R.coilBox[i].setAttribute('class','bx p'+(on?' on':''));
+    R.mos[i].setAttribute('class','bx q'+(on?' on':'')+(on&&F.diode?'':''));
+    setText(R.icoil[i],on?(E.I*1000).toFixed(0)+' mA':'0 mA');
+    setText(R.vds[i],on?'Vds '+(E.Vds*1000).toFixed(1)+' mV':(F.gnd?'gate unreferenced':'off'));
+    R.diodes[i].style.display=F.diode?'none':'';
+    setText(R.pull[i],F.pull?'no pulldown':'10k G–S');
+    R.pull[i].setAttribute('class',F.pull?'redtxt c':'s c');
+    R.pvW[i].forEach((w,k)=>{const j=k<3?0:1;const base='w '+(j?'pvn':'pvp');w.setAttribute('class',base+(closed?' live':''));});
+    R.blades[i].forEach(b=>{b.setAttribute('x2',closed?b.getAttribute('x1'):+b.getAttribute('x1')+15);b.setAttribute('y2',closed?142:138);});
+    R.relBox[i].forEach((b,j)=>b.setAttribute('class','bx '+(j?'n':'p')+(closed&&S.closed.filter(Boolean).length>1?' flt':'')));
+    const over=vocCold()>P.cmax[i];
+    R.chg[i].box.setAttribute('class','bx ch'+(closed?' chon':'')+(closed&&over?' flt':''));
+    setText(R.chg[i].txt,closed?('PV in ≈ '+vocCold().toFixed(0)+' V max · '+(over?'OVER LIMIT':'charging')):('PV in ≤ '+P.cmax[i]+' V · idle'));
+  });
+  R.coilInd.forEach(o=>o.el.setAttribute('class','coilind'+(S.coilOn[o.i]?' on':'')));
+  setCls(R.bus,'w v12',anyCoil);setCls(R.v12a,'w v12',true);setCls(R.v12b,'w v12',true);setCls(R.v5,'w v5',!F.gnd);
+  setCls(R.busP,'w pvp',anyPV);setCls(R.busN,'w pvn',anyPV);
+  R.ardGnd.setAttribute('class','w gnd'+(F.gnd?' broken':''));
+  R.gndX.style.display=F.gnd?'':'none';
+  setText(R.battTxt,P.vbat.toFixed(1)+' V');
+  setText(R.pvTxt,'Voc '+P.voc+' V');
+  setText(R.fuseTxt,'FUSE '+P.fuse+' A');
+  setText(R.ardTxt,S.booting?'booting…':S.waiting?('dead time '+Math.ceil(Math.max(0,DEAD-(C.ms-S.offAt))/1000)+' s'):'running');
+}
+
+function vocCold(){return P.voc*(1+Math.abs(P.coef)/100*(25-P.tmin));}
+
+/* ---------- status, buttons, readouts ---------- */
+function updateButtons(){
+  [-1,0,1,2].forEach(ch=>{const b=$('b'+ch);const sel=!S.waiting&&S.active===ch&&!S.booting;b.setAttribute('aria-pressed',sel?'true':'false');b.classList.toggle('pending',S.waiting&&S.pending===ch);});
+}
+function pill(cls,txt){return `<span class="pill ${cls}"><span class="dot"></span>${txt}</span>`;}
+function renderStatus(now){
+  const n=S.closed.filter(Boolean).length;let h='';
+  if(n>1) h+=pill('bad','SHORT: two chargers on one PV array');
+  else if(now<S.faultUntil) h+=pill('bad',S.faultMsg);
+  const ci=S.closed.indexOf(true);
+  if(n===1) h+=pill(vocCold()>P.cmax[ci]?'warn':'ok','PV → '+CH[ci].name+' charger');
+  else if(n===0) h+=pill('', S.waiting?'Dead time…':'PV disconnected');
+  if(S.booting) h+=pill('warn','Arduino booting');
+  if(F.gnd&&S.gate.some(Boolean)) h+=pill('bad','Gate HIGH but relay not pulling in');
+  if(!elec().pulls&&S.gate.some(Boolean)) h+=pill('bad','Coil voltage below must-operate');
+  setHTML($('status'),h);
+}
+function row(k,v,c){return `<dt>${k}</dt><dd class="${c||''}">${v}</dd>`;}
+function renderCards(){
+  const E=elec();const nOn=S.coilOn.filter(Boolean).length;
+  const Ictl=nOn*E.I+ARD_I;const peak=Math.max(nOn,1)*E.I+ARD_I;
+  const vc=vocCold();const ci=S.closed.indexOf(true);
+  const margin=E.Vcoil-P.pullin;
+  let coilNote=E.pulls?`<div class="note ok">Coils get ${E.Vcoil.toFixed(2)} V, ${margin.toFixed(1)} V above the must-operate voltage.</div>`:`<div class="note bad">Coils only get ${E.Vcoil.toFixed(2)} V. The relays will not pull in below ${P.pullin} V; charge the control battery.</div>`;
+  if(F.gnd) coilNote=`<div class="note bad">The gate is driven relative to Arduino GND, but the MOSFET source sits on the battery's −. With no shared ground there is no defined Vgs, so the relays don't switch (or switch randomly).</div>`;
+  const Ires=P.isc*1.25;
+  let pvNote;
+  if(vc>P.relaydc) pvNote=`<div class="note bad">Cold Voc of ${vc.toFixed(0)} V is above the ${P.relaydc} V DC contact rating. A ${P.relaya} A automotive relay rated for 14 V DC can draw a sustained arc if it opens while a charger is pulling current. Use relays or contactors rated for at least ${Math.ceil(vc/10)*10} V DC, or stop the charger before switching.</div>`;
+  else pvNote=`<div class="note ok">Contacts are rated above the cold-morning Voc.</div>`;
+  if(Ires>P.relaya) pvNote+=`<div class="note bad">Array current ×1.25 = ${Ires.toFixed(1)} A exceeds the ${P.relaya} A contact rating.</div>`;
+  const over=[0,1,2].filter(i=>vc>P.cmax[i]).map(i=>CH[i].name);
+  if(over.length) pvNote+=`<div class="note warn">Cold Voc exceeds the PV input limit of the ${over.join(', ')} charger${over.length>1?'s':''}. Every charger sees the full array voltage when selected.</div>`;
+  setHTML($('cards'),`
+  <div class="panel"><h2>Coil drive</h2><dl>
+    ${row('Gate voltage (D-pin HIGH)',F.gnd?'undefined':E.Vgs.toFixed(2)+' V')}
+    ${row('Current per coil pair',(E.I*1000).toFixed(0)+' mA')}
+    ${row('Voltage across each coil',E.Vcoil.toFixed(2)+' V',E.pulls?'ok':'bad')}
+    ${row('Must-operate voltage',P.pullin.toFixed(1)+' V')}
+    ${row('Pairs energized now',nOn,nOn>1?'bad':'')}
+  </dl>${coilNote}</div>
+  <div class="panel"><h2>MOSFET Q1–Q3</h2><dl>
+    ${row('R<sub>DS(on)</sub> at 5 V gate','25 mΩ max')}
+    ${row('Vds when on',(E.Vds*1000).toFixed(1)+' mV')}
+    ${row('Dissipation',(E.Pd*1000).toFixed(2)+' mW','ok')}
+    ${row('Pin current, steady','0.49 mA')}
+    ${row('Turn-off drain peak',F.diode?VAV+' V (avalanche)':(P.vbat+VF).toFixed(1)+' V',F.diode?'bad':'ok')}
+    ${row('Contact release time',relTime()+' ms')}
+  </dl><div class="note ${F.diode?'bad':'ok'}">${F.diode?'With no flyback diode the coil energy dumps into the MOSFET in avalanche every switch-off. Above the 55 V rating, this destroys transistors over time.':'Diodes clamp the coil kick to one diode drop above +12 V. Release gets slower (≈15 ms), which is why the dead time matters.'}</div></div>
+  <div class="panel"><h2>Control supply</h2><dl>
+    ${row('Arduino + buck (12 V side)','≈'+(ARD_I*1000).toFixed(0)+' mA')}
+    ${row('Total now',(Ictl*1000).toFixed(0)+' mA')}
+    ${row('Fuse',P.fuse+' A')}
+    ${row('Fuse load',(peak/P.fuse*100).toFixed(0)+' %',peak>P.fuse?'bad':peak>0.75*P.fuse?'warn':'ok')}
+    ${row('Battery draw per day, one pair on',(Ictl*24).toFixed(1)+' Ah')}
+  </dl>${peak>P.fuse?'<div class="note bad">The fuse is smaller than the running current.</div>':'<div class="note">Size the fuse for one pair plus the Arduino. A 1 A fuse covers it with margin.</div>'}</div>
+  <div class="panel"><h2>PV side</h2><dl>
+    ${row('Array Voc at 25 °C',P.voc+' V')}
+    ${row('Voc at '+P.tmin+' °C',vc.toFixed(1)+' V',vc>P.relaydc?'bad':'')}
+    ${row('Contact rating',P.relaydc+' V DC / '+P.relaya+' A',vc>P.relaydc?'bad':'ok')}
+    ${row('Connected charger',ci>=0?CH[ci].name+(vc>P.cmax[ci]?' (over limit)':''):'none',ci>=0&&vc>P.cmax[ci]?'bad':'')}
+  </dl>${pvNote}</div>`);
+}
+
+/* ---------- timing diagram ---------- */
+function captureTiming(prev,prevClosed,next){
+  const dead=F.dead?0:DEAD, rel=relTime(), can=canEnergize();
+  let ov=null;
+  if(prev>=0&&prevClosed&&next>=0&&can&&rel>dead+OP) ov=[dead+OP,rel];
+  S.timing={prev,prevClosed,next,dead,rel,can,ov};
+  drawTiming();
+}
+function drawTiming(){
+  const T=S.timing,svg=$('timing');svg.innerHTML='';
+  if(!T){return;}
+  const x0=96,x1=628,top=14,rowH=27;
+  const segs=T.dead>80?[[-10,45],[T.dead-10,T.dead+45]]:[[-10,Math.max(T.dead+OP,T.rel)+35]];
+  const gap=segs.length>1?22:0;const span=segs.reduce((a,s)=>a+s[1]-s[0],0);const sc=(x1-x0-gap)/span;
+  const map=t=>{let x=x0;for(let k=0;k<segs.length;k++){const[a,b]=segs[k];if(t<=b||k===segs.length-1)return x+(Math.max(a,Math.min(b,t))-a)*sc;x+=(b-a)*sc+gap;}};
+  const tEnd=segs[segs.length-1][1];
+  const rows=[];
+  CH.forEach((c,i)=>{
+    const g={label:c.pin+' gate',cls:'g',init:i===T.prev?1:0,tr:[]};
+    if(i===T.prev)g.tr.push([0,0]);if(i===T.next)g.tr.push([T.dead,1]);
+    const k={label:c.kp+'/'+c.kn+' contacts',cls:'k',init:(i===T.prev&&T.prevClosed)?1:0,tr:[]};
+    if(i===T.prev&&T.prevClosed)k.tr.push([T.rel,0]);if(i===T.next&&T.can)k.tr.push([T.dead+OP,1]);
+    rows.push(g,k);
+  });
+  const yAxis=top+rows.length*rowH+6;
+  // grid ticks
+  segs.forEach(([a,b])=>{for(let t=Math.ceil(a/10)*10;t<=b;t+=10){const x=map(t);el('line',{x1:x,y1:top,x2:x,y2:yAxis,class:'gl'},svg);el('text',{x,y:yAxis+14,class:'ax c'},svg,String(t));}});
+  el('line',{x1:x0,y1:yAxis,x2:x1,y2:yAxis,class:'axl'},svg);
+  el('text',{x:x1,y:yAxis+28,class:'ax',"text-anchor":"end"},svg,'ms after the command');
+  if(gap){const gx=map(segs[0][1])+gap/2;el('path',{d:`M${gx-5} ${yAxis+5} L${gx-1} ${yAxis-5} M${gx+1} ${yAxis+5} L${gx+5} ${yAxis-5}`,class:'axl',fill:'none'},svg);
+    el('text',{x:gx,y:top-3,class:'ax c'},svg,'…');}
+  if(T.ov){const xa=map(T.ov[0]),xb=map(T.ov[1]);el('rect',{x:xa,y:top,width:Math.max(2,xb-xa),height:rows.length*rowH,class:'ovl'},svg);}
+  rows.forEach((r,n)=>{
+    const yb=top+n*rowH+rowH-6,yh=yb-14;
+    el('text',{x:0,y:yb-2,class:'ax'},svg,r.label);
+    let lvl=r.init,x=map(-10);let d=`M${x} ${lvl?yh:yb}`;
+    r.tr.sort((a,b)=>a[0]-b[0]).forEach(([t,v])=>{const xt=map(t);d+=` L${xt} ${lvl?yh:yb} L${xt} ${v?yh:yb}`;lvl=v;});
+    d+=` L${map(tEnd)} ${lvl?yh:yb}`;
+    el('path',{d,class:'sig '+r.cls},svg);
+  });
+  const note=$('timing-note');
+  const nm=i=>i>=0?CH[i].name:'off';
+  let txt=`${nm(T.prev)} → ${nm(T.next)}. `;
+  if(T.ov) {txt+=`Both pairs are closed for ${(T.ov[1]-T.ov[0]).toFixed(0)} ms: the two chargers' PV inputs are tied together.`;note.style.color='var(--bad)';}
+  else if(T.next>=0&&!T.can){txt+='The gate goes HIGH but the contacts never close.';note.style.color='var(--bad)';}
+  else if(T.prev>=0&&T.next>=0){txt+=`Old contacts open at ${T.rel} ms, new ones close at ${T.dead+OP} ms. Gap of ${T.dead+OP-T.rel} ms with nothing connected.`;note.style.color='var(--ok)';}
+  else {txt+='Single change, no overlap possible.';note.style.color='';}
+  note.textContent=txt;
+}
+
+/* ---------- drain waveform ---------- */
+function drawDrain(){
+  const svg=$('drain');svg.innerHTML='';
+  const E=elec();const L=P.lcoil/2,R=P.rcoil/2;const tau=L/R*1000;
+  const tEnd=Math.max(5*tau,2)*1.25;
+  const x0=40,x1=628,y0=210,y1=14,vmax=70;
+  const mx=t=>x0+(t+tEnd*0.08)/(tEnd*1.08)*(x1-x0);const my=v=>y0-(v/vmax)*(y0-y1);
+  for(let v=0;v<=vmax;v+=10){el('line',{x1:x0,y1:my(v),x2:x1,y2:my(v),class:'gl'},svg);el('text',{x:x0-6,y:my(v)+3,class:'ax',"text-anchor":"end"},svg,String(v));}
+  const step=tEnd>20?5:tEnd>8?2:1;
+  for(let t=0;t<=tEnd;t+=step){el('text',{x:mx(t),y:y0+14,class:'ax c'},svg,String(t));}
+  el('line',{x1:x0,y1:y0,x2:x1,y2:y0,class:'axl'},svg);
+  el('text',{x:x1,y:y0+30,class:'ax',"text-anchor":"end"},svg,'ms after gate goes LOW');
+  el('text',{x:x0,y:y1-2,class:'ax'},svg,'V');
+  el('line',{x1:x0,y1:my(VDSS),x2:x1,y2:my(VDSS),class:'lim'},svg);
+  el('text',{x:x1-4,y:my(VDSS)-4,class:'ax',"text-anchor":"end",style:'fill:var(--bad)'},svg,'IRLZ44N VDSS 55 V');
+  const tStart=-tEnd*0.08;
+  const tOff=5*tau;
+  const withD=[[tStart,E.Vds],[0,E.Vds],[0,P.vbat+VF],[tOff,P.vbat+VF],[tOff*1.15,P.vbat],[tEnd,P.vbat]];
+  const tav=L*E.I/(VAV-P.vbat)*1000;
+  const noD=[[tStart,E.Vds],[0,E.Vds],[0,VAV],[tav,VAV],[tav*1.3,P.vbat+4],[tav*1.7,P.vbat-2],[tav*2.1,P.vbat],[tEnd,P.vbat]];
+  const path=p=>'M'+p.map(([t,v])=>mx(t).toFixed(1)+' '+my(v).toFixed(1)).join(' L');
+  const cur=F.diode?noD:withD,alt=F.diode?withD:noD;
+  el('path',{d:path(alt),class:'sig',style:'stroke:var(--muted);stroke-dasharray:5 4;stroke-width:1.5'},svg);
+  el('path',{d:path(cur),class:'sig',style:'stroke:'+(F.diode?'var(--bad)':'var(--ctl)')},svg);
+  const Eav=0.5*L*E.I*E.I*1000;
+  const who=S.drain?CH[S.drain.ch].q:'Q1–Q3';
+  $('drain-note').textContent=F.diode
+    ?`${who}, no diodes: the drain flies up until the MOSFET avalanches near ${VAV} V for ${tav.toFixed(2)} ms, absorbing ≈${Eav.toFixed(1)} mJ at every switch-off.`
+    :`${who}, with diodes: the drain stops at ${(P.vbat+VF).toFixed(1)} V while coil current decays (τ = ${tau.toFixed(1)} ms). Dashed: what happens without them.`;
+  const lg=el('g',{},svg);
+}
+
+/* ---------- main loop ---------- */
+function tick(){
+  const now=performance.now();
+  let dReal=now-C.lastReal;C.lastReal=now;
+  if(dReal<0||dReal>1000)dReal=0;                       // tab was hidden: don't jump
+  const sp=S.waiting?Math.min(C.speed,DEAD_SPEED_CAP):C.speed;
+  const dSim=dReal*sp;
+  C.ms+=dSim;
+  if(S.booting&&now>=S.bootUntil){S.booting=false;powerUp();}
+  if(S.waiting&&C.ms-S.offAt>=DEAD){
+    if(S.gate.every(g=>!g)){S.gate[S.pending]=1;S.active=S.pending;S.interlock=false;log(CH[S.active].name+' charger connected');}
+    else{S.gate=[0,0,0];S.active=-1;S.interlock=true;log('Interlock fault: gate still HIGH, all off','e');}
+    S.waiting=false;updateButtons();
+  }
+  if(NB.down&&!NB.longDone&&now-NB.at>=LONG_PRESS){NB.longDone=true;enterManual();}
+  // coil changes: process turn-offs before turn-ons (relay physics stay in real milliseconds)
+  const want=[0,1,2].map(drive);
+  [0,1,2].filter(i=>!want[i]&&S.coilOn[i]).forEach(i=>{S.coilOn[i]=false;S.coilT[i]=now;});
+  [0,1,2].filter(i=>want[i]&&!S.coilOn[i]).forEach(j=>{
+    S.coilOn[j]=true;S.coilT[j]=now;
+    const closeAt=now+OP;
+    [0,1,2].forEach(i=>{if(i===j)return;
+      const openAt=S.coilOn[i]?Infinity:(S.closed[i]?S.coilT[i]+relTime():-1);
+      if(openAt>closeAt){const ms=openAt===Infinity?'continuous':(openAt-closeAt).toFixed(0)+' ms';
+        S.faultUntil=now+2500;S.faultMsg='Overlap '+ms+': '+CH[i].name+' + '+CH[j].name+' chargers paralleled';
+        log('FAULT: '+CH[i].kp+'/'+CH[i].kn+' and '+CH[j].kp+'/'+CH[j].kn+' closed together ('+ms+')','e');}
+    });
+  });
+  [0,1,2].forEach(i=>{
+    if(S.coilOn[i]&&!S.closed[i]&&now-S.coilT[i]>=OP)S.closed[i]=true;
+    if(!S.coilOn[i]&&S.closed[i]&&now-S.coilT[i]>=relTime())S.closed[i]=false;
+  });
+  render(now);
+  batStep(dSim);
+  if(!S.booting&&C.ms-C.lastSample>=SAMPLE_MS){C.lastSample=C.ms;autoStep();}
+  if(!S.booting&&C.ms-C.lastReport>=REPORT_MS&&now-C.lastReportReal>=10000){C.lastReport=C.ms;C.lastReportReal=now;printVolts();}
+  if(now-S.lastRead>150){S.lastRead=now;renderStatus(now);renderCards();renderBats(now);}
+}
+
+/* ---------- BOM + code ---------- */
+function renderBom(){
+  const vc=vocCold();const vReq=Math.ceil(vc/10)*10;const aReq=Math.ceil(P.isc*1.25);
+  const items=[
+    ['6','SPST-NO relay, 12 V coil (K1–K6)',`Contacts rated ≥ ${vReq} V DC and ≥ ${aReq} A DC. A 40 A automotive relay is usually rated for 14 V DC only.`],
+    ['3','IRLZ44N logic-level N-MOSFET (Q1–Q3)','Fully on at 5 V gate, 55 V / 47 A, TO-220.'],
+    ['6','1N4007 (or 1N5819) flyback diode','One across each coil, stripe to pin 86 (+12 V).'],
+    ['3','100 Ω resistor','Arduino pin to gate.'],
+    ['3','10 kΩ resistor','Gate to source, holds Q off while the Arduino boots.'],
+    ['1','Inline fuse holder + 1 A fuse','On the +12 V coil bus, close to the control battery.'],
+    ['1','12 V → 5 V buck converter, ≥1 A','Output to Arduino 5V pin (or 7–9 V to the barrel jack).'],
+    ['1','Arduino Uno','D2 / D3 / D4 to the gates. Full pin map below.'],
+    ['1','16x2 LCD with PCF8574 I2C backpack','SDA to A4, SCL to D7 (software I2C, no library). Address 0x27, or 0x3F.'],
+    ['3','Push button (SW1 AUTO, SW2 NEXT, SW3 TIMER)','Pin to button to GND; the internal pull-up is used, no resistor.'],
+    ['5','LED + 330 Ω resistor','Green / yellow / blue on D2 / D3 / D4 (charging), white on D9 (AUTO), red on D8 (TIMER).'],
+    ['3','Voltage divider: 33k, 150k, 220k over 10k','12 V / 48 V / 72 V bank to A0 / A1 / A2; bank negatives to control GND.'],
+    ['1','12 V control battery','Separate from the PV circuit. Its − is the control ground.'],
+    ['—','PV wire','Size for '+aReq+' A; use the same polarity colors at every relay.'],
+  ];
+  $('bom').querySelector('tbody').innerHTML=items.map(r=>`<tr><td class="q">${r[0]}</td><td>${r[1]}</td><td class="muted">${r[2]}</td></tr>`).join('');
+}
+const SKETCH=$('code').textContent;
+$('copy').addEventListener('click',()=>{
+  const b=$('copy');
+  const done=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy sketch',1500);};
+  try{navigator.clipboard.writeText(SKETCH).then(done,()=>sel());}catch(e){sel();}
+  function sel(){const r=document.createRange();r.selectNodeContents($('code'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected, press Ctrl+C';}
+});
+
+/* ---------- wiring ---------- */
+$('seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const ch=+b.dataset.ch;const c=ch<0?'0':CH[ch].name.replace('V','');log('< '+c,'d');
+  if(S.booting){log('(no reply: Arduino still in bootloader)','d');return;}handleCommand(c);});
+const btn=(id,fn)=>$(id).addEventListener('click',()=>{if(S.booting){log('(button ignored: Arduino still booting)','d');return;}fn();});
+btn('sw-auto',setAuto);btn('sw-timer',setTimer);
+// NEXT: short press = swap, hold 5 s = MANUAL (acts on release / after 5 s, like readButtons())
+const nb=$('sw-next');
+function nextDown(){if(NB.down)return;if(S.booting){log('(button ignored: Arduino still booting)','d');return;}NB.down=true;NB.at=performance.now();NB.longDone=false;nb.classList.add('down');}
+function nextUp(){if(!NB.down)return;NB.down=false;nb.classList.remove('down');$('holdbar').style.width='0';if(!NB.longDone&&!S.booting)swapNext();}
+nb.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();try{nb.setPointerCapture(e.pointerId);}catch(_){}nextDown();});
+nb.addEventListener('pointerup',nextUp);
+nb.addEventListener('pointercancel',nextUp);
+nb.addEventListener('lostpointercapture',nextUp);
+nb.addEventListener('contextmenu',e=>e.preventDefault());
+nb.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat)nextDown();}});
+nb.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();nextUp();}});
+nb.addEventListener('blur',nextUp);
+$('reset').addEventListener('click',resetArduino);
+$('cmdform').addEventListener('submit',e=>{e.preventDefault();const v=$('cmd').value.trim();if(!v)return;$('cmd').value='';log('< '+v,'d');
+  if(S.booting){log('(no reply: Arduino still in bootloader)','d');return;}
+  handleCommand(v);});
+[['f-diode','diode'],['f-dead','dead'],['f-gnd','gnd'],['f-pull','pull']].forEach(([id,k])=>$(id).addEventListener('change',e=>{F[k]=e.target.checked;
+  log((F[k]?'[fault on] ':'[fault off] ')+FAULT_LABEL[k],'y');drawDrain();renderCards();}));
+document.querySelectorAll('input[type=number],input[type=range]').forEach(i=>i.addEventListener('input',()=>{readParams();renderCards();renderBom();drawDrain();}));
+function paintSpeed(){$('speed').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.x===C.speed)));}
+$('speed').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;C.speed=+b.dataset.x;paintSpeed();});
+
+readParams();buildSchematic();buildBats();renderBom();
+for(let i=0;i<3;i++)B.v[i]=batV(i);
+paintSpeed();
+powerUp();
+drawDrain();updateButtons();
+setInterval(tick,4);tick();
+})();
+</script>
+<script src="i18n-dict.js"></script>
+<script src="../sim-i18n.js"></script>
+</body>
+</html>

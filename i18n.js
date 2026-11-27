@@ -287,6 +287,45 @@ window.PORTFOLIO_I18N = {
     '승강기의 STEP 어셈블리로 만들었습니다. 층 호출 버튼이나 승강기 HMI의 층 버튼(3D에서도 클릭 가능)을 누르면 승강기가 진행 순서대로 호출을 처리합니다. 속도를 4로 올려 시험 04에서 발견한 정지 위치 초과를 확인하거나, 문 앞을 막거나, 비상정지를 눌러 보세요.',
     'লিফটের STEP অ্যাসেম্বলি থেকে তৈরি। তলার কল বোতাম বা লিফটের HMI-এর তলার বোতাম চাপুন (3D-তেও ক্লিক করা যায়) এবং দেখুন লিফট চলার ক্রম অনুযায়ী কলগুলো সামলায়। পরীক্ষা ০৪-এ পাওয়া ওভারশুট দেখতে গতি ৪ দিন, দরজার পথ আটকান, অথবা জরুরি স্টপ চাপুন।'],
 
+  // ---------- solar charger selector ----------
+  'Solar charger selector ↓': ['태양광 충전 선택기 ↓', 'সোলার চার্জার সিলেক্টর ↓'],
+  'Project · electronics': ['프로젝트 · 전자회로', 'প্রকল্প · ইলেকট্রনিক্স'],
+  'Solar Charger Selector for Three Battery Banks': ['배터리 3종을 위한 태양광 충전 선택기', 'তিনটি ব্যাটারি ব্যাংকের জন্য সোলার চার্জার সিলেক্টর'],
+  'Switching': ['스위칭', 'সুইচিং'],
+  'Banks': ['배터리', 'ব্যাংক'],
+  '3 relay pairs, IRLZ44N': ['릴레이 3쌍, IRLZ44N', '৩ জোড়া রিলে, IRLZ44N'],
+  "One solar array has to charge three battery banks at different voltages. I designed and built a controller that connects the panel to one bank's charger at a time, charges it until it is full, then moves on. I designed the circuit, soldered it on an Arduino proto shield, wrote the firmware and modelled a 3D-printed box for it.":
+    ['하나의 태양광 어레이로 전압이 다른 배터리 3종을 충전해야 했습니다. 패널을 한 번에 한 배터리의 충전기에만 연결해 만충까지 충전한 뒤 다음 배터리로 넘어가는 컨트롤러를 설계하고 제작했습니다. 회로를 설계하고, Arduino 프로토 실드에 납땜하고, 펌웨어를 작성하고, 3D 프린팅 케이스까지 모델링했습니다.',
+     'একটি সোলার অ্যারে দিয়ে ভিন্ন ভোল্টেজের তিনটি ব্যাটারি ব্যাংক চার্জ করতে হতো। আমি একটি কন্ট্রোলার ডিজাইন ও তৈরি করেছি, যা প্যানেলকে একবারে একটি ব্যাংকের চার্জারের সাথে যুক্ত করে, সেটি পূর্ণ হওয়া পর্যন্ত চার্জ করে, তারপর পরেরটিতে যায়। সার্কিট ডিজাইন করেছি, Arduino প্রোটো শিল্ডে সোল্ডার করেছি, ফার্মওয়্যার লিখেছি এবং এর জন্য একটি 3D-প্রিন্টেড বাক্স মডেল করেছি।'],
+  'Schematic: an Arduino Uno drives three IRLZ44N MOSFETs, each switching a relay pair that connects the solar array to the 12 V, 48 V or 72 V charger; resistor dividers feed the three battery voltages to A0–A2; a 16x2 LCD and three buttons.':
+    ['회로도: Arduino Uno가 IRLZ44N MOSFET 3개를 구동하고, 각 MOSFET이 릴레이 한 쌍을 스위칭해 태양광 어레이를 12 V, 48 V, 72 V 충전기에 연결합니다. 분압 저항으로 배터리 3개의 전압을 A0–A2에 입력하며, 16x2 LCD와 버튼 3개가 있습니다.',
+     'স্কিম্যাটিক: একটি Arduino Uno তিনটি IRLZ44N MOSFET চালায়, প্রতিটি একটি রিলে জোড়া সুইচ করে সোলার অ্যারেকে 12 V, 48 V বা 72 V চার্জারের সাথে যুক্ত করে; রেজিস্টর ডিভাইডার তিনটি ব্যাটারির ভোল্টেজ A0–A2-তে দেয়; একটি 16x2 LCD ও তিনটি বোতাম।'],
+  'Full schematic (sheet 1 of 4). All sheets, the shield layout and the wiring guide are in the project folder.':
+    ['전체 회로도 (4장 중 1장). 모든 도면, 실드 배치도, 배선 가이드는 프로젝트 폴더에 있습니다.', 'পূর্ণ স্কিম্যাটিক (৪টির মধ্যে ১ নম্বর শিট)। সব শিট, শিল্ড লেআউট ও ওয়্যারিং গাইড প্রকল্প ফোল্ডারে আছে।'],
+  'Break-before-make': ['Break-before-make (선개방 후투입)', 'ব্রেক-বিফোর-মেক'],
+  'Only one relay pair may ever be closed. Every change opens all pairs and waits 10 seconds for the relays to drop out before closing the next one, so two chargers can never be tied together.':
+    ['릴레이는 항상 한 쌍만 닫힐 수 있습니다. 전환할 때마다 모든 릴레이를 열고 10초 동안 완전히 떨어지기를 기다린 뒤 다음 쌍을 닫으므로, 두 충전기가 서로 연결될 수 없습니다.',
+     'যেকোনো সময় শুধু একটি রিলে জোড়া বন্ধ থাকতে পারে। প্রতিটি পরিবর্তনে সব জোড়া খোলা হয় এবং পরেরটি বন্ধ করার আগে রিলেগুলো পুরো ছেড়ে দেওয়ার জন্য ১০ সেকেন্ড অপেক্ষা করা হয়, তাই দুটি চার্জার কখনো একসাথে যুক্ত হতে পারে না।'],
+  'Three modes': ['세 가지 모드', 'তিনটি মোড'],
+  'AUTO charges each battery until it is full, then moves on. TIMER gives the 12 V bank three hours first, then fills the 48 V and 72 V banks. NEXT swaps by hand, and holding it for 5 seconds gives full manual control.':
+    ['AUTO는 각 배터리를 만충까지 충전한 뒤 다음으로 넘어갑니다. TIMER는 12 V 배터리를 먼저 3시간 충전한 다음 48 V와 72 V를 채웁니다. NEXT로 수동 전환하고, 5초간 누르면 완전 수동 모드가 됩니다.',
+     'AUTO প্রতিটি ব্যাটারি পূর্ণ হওয়া পর্যন্ত চার্জ করে, তারপর পরেরটিতে যায়। TIMER প্রথমে 12 V ব্যাংককে তিন ঘণ্টা দেয়, তারপর 48 V ও 72 V ব্যাংক পূর্ণ করে। NEXT দিয়ে হাতে বদলানো যায়, আর ৫ সেকেন্ড চেপে ধরলে পুরো ম্যানুয়াল নিয়ন্ত্রণ পাওয়া যায়।'],
+  'Knowing when a battery is full': ['만충 판단', 'ব্যাটারি কখন পূর্ণ তা বোঝা'],
+  "Each bank is read through a resistor divider. A battery counts as full only after it stays above its full voltage for a set time, and it is skipped until it drops below a lower resume voltage, so the selector doesn't flip back and forth.":
+    ['각 배터리 전압은 분압 저항으로 측정합니다. 만충 전압 이상이 일정 시간 유지되어야 만충으로 판단하고, 더 낮은 재충전 전압 아래로 떨어질 때까지 건너뛰므로 선택기가 왔다 갔다 하지 않습니다.',
+     'প্রতিটি ব্যাংক একটি রেজিস্টর ডিভাইডার দিয়ে পড়া হয়। একটি ব্যাটারি নির্দিষ্ট সময় ধরে পূর্ণ ভোল্টেজের উপরে থাকলে তবেই পূর্ণ ধরা হয়, এবং নিচের রিজিউম ভোল্টেজের নিচে না নামা পর্যন্ত সেটি বাদ থাকে, তাই সিলেক্টর বারবার আসা-যাওয়া করে না।'],
+  'Working with the real board': ['실제 보드에 맞춘 해결', 'আসল বোর্ডের সাথে কাজ'],
+  "When a shield track to the display's clock pin turned out to be broken, I moved the wire to D7 and wrote a small software I2C driver for the display, so no rework of the soldered board was needed.":
+    ['디스플레이 클럭 핀으로 가는 실드 배선이 끊어져 있는 것을 발견하고, 선을 D7로 옮긴 뒤 디스플레이용 소프트웨어 I2C 드라이버를 직접 작성했습니다. 덕분에 납땜한 보드를 다시 작업할 필요가 없었습니다.',
+     'ডিসপ্লের ক্লক পিনে যাওয়া শিল্ডের ট্র্যাক ভাঙা পাওয়া গেলে, আমি তারটি D7-এ সরিয়ে ডিসপ্লের জন্য একটি ছোট সফটওয়্যার I2C ড্রাইভার লিখেছি, তাই সোল্ডার করা বোর্ড আবার কাজ করতে হয়নি।'],
+  'Simulator of the solar charger selector': ['태양광 충전 선택기 시뮬레이터', 'সোলার চার্জার সিলেক্টরের সিমুলেটর'],
+  'Load the solar selector simulator': ['태양광 선택기 시뮬레이터 불러오기', 'সোলার সিলেক্টর সিমুলেটর লোড করুন'],
+  'Runs the same logic as the firmware. Press the buttons, speed up time to watch the TIMER sequence, type serial commands, or switch on a fault to see what goes wrong.':
+    ['펌웨어와 같은 로직으로 동작합니다. 버튼을 누르거나, 시간을 빠르게 해 TIMER 순서를 보거나, 시리얼 명령을 입력하거나, 고장을 켜서 무엇이 잘못되는지 확인해 보세요.',
+     'ফার্মওয়্যারের একই লজিকে চলে। বোতাম চাপুন, TIMER ধাপগুলো দেখতে সময় দ্রুত করুন, সিরিয়াল কমান্ড লিখুন, অথবা কী ভুল হয় দেখতে একটি ত্রুটি চালু করুন।'],
+  'Code and drawings ↗': ['코드 및 도면 ↗', 'কোড ও ড্রয়িং ↗'],
+  'Open full screen ↗': ['전체 화면으로 열기 ↗', 'পূর্ণ স্ক্রিনে খুলুন ↗'],
+
   // ---------- background (from CV) ----------
   'Education & experience ↓': ['학력 및 경력 ↓', 'শিক্ষা ও অভিজ্ঞতা ↓'],
   'Background': ['배경', 'পটভূমি'],
@@ -298,9 +337,9 @@ window.PORTFOLIO_I18N = {
   'Engine Turbocharger Design Engineer': ['엔진 터보차저 설계 엔지니어', 'ইঞ্জিন টার্বোচার্জার ডিজাইন ইঞ্জিনিয়ার'],
   'Professional training': ['전문 교육', 'পেশাগত প্রশিক্ষণ'],
   'Industrial automation and robotics': ['산업 자동화 및 로보틱스', 'শিল্প অটোমেশন ও রোবোটিক্স'],
-  'PLC and HMI programming, SCADA, motion and servo control, sensors, machine vision and Python. The four projects on this page were built during this course.':
-    ['PLC·HMI 프로그래밍, SCADA, 모션 및 서보 제어, 센서, 머신 비전, Python. 이 페이지의 네 가지 프로젝트는 이 과정에서 만들었습니다.',
-     'PLC ও HMI প্রোগ্রামিং, SCADA, মোশন ও সার্ভো কন্ট্রোল, সেন্সর, মেশিন ভিশন ও Python। এই পাতার চারটি প্রকল্প এই কোর্সেই তৈরি।'],
+  'PLC and HMI programming, SCADA, motion and servo control, sensors, machine vision and Python. The PLC, robot and elevator projects on this page were built during this course.':
+    ['PLC·HMI 프로그래밍, SCADA, 모션 및 서보 제어, 센서, 머신 비전, Python. 이 페이지의 PLC·로봇·승강기 프로젝트는 이 과정에서 만들었습니다.',
+     'PLC ও HMI প্রোগ্রামিং, SCADA, মোশন ও সার্ভো কন্ট্রোল, সেন্সর, মেশিন ভিশন ও Python। এই পাতার PLC, রোবট ও লিফট প্রকল্পগুলো এই কোর্সেই তৈরি।'],
   'Research': ['연구', 'গবেষণা'],
   'Neuromorphic circuits': ['뉴로모픽 회로', 'নিউরোমরফিক সার্কিট'],
   '· Nano Circuit Design Lab, Inje University ·': ['· 인제대학교 나노회로설계(NCDL) 연구실 ·', '· ন্যানো সার্কিট ডিজাইন ল্যাব, ইনজে বিশ্ববিদ্যালয় ·'],

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="One channel drawn with real part pinouts">
+<rect width="1200" height="760" fill="#ffffff"/>
+<text x="24" y="34" font-size="18" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">ONE CHANNEL AS REAL PARTS (12 V channel shown; 48 V and 72 V are identical)</text>
+<text x="24" y="54" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Channel 2 uses D3, Q2, K3, K4. Channel 3 uses D4, Q3, K5, K6.</text>
+<rect x="40" y="110" width="150" height="230" rx="6" fill="#e8f1ec" stroke="#111111" stroke-width="1.8"/>
+<text x="115" y="134" font-size="12" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">ARDUINO UNO</text>
+<text x="115" y="150" font-size="10" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">digital header</text>
+<rect x="170" y="172" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="162" y="184" font-size="12" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D2</text>
+<rect x="170" y="204" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="162" y="216" font-size="12" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D3</text>
+<rect x="170" y="236" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="162" y="248" font-size="12" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D4</text>
+<rect x="170" y="268" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="162" y="280" font-size="12" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">GND</text>
+<rect x="170" y="300" width="20" height="16" rx="0" fill="#222" stroke="#111111" stroke-width="1.2"/>
+<text x="162" y="312" font-size="12" font-weight="700" fill="#d07a00" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">5V</text>
+<rect x="420" y="90" width="100" height="40" rx="2" fill="#cfd3d6" stroke="#111111" stroke-width="1.6"/>
+<circle cx="470" cy="110" r="9" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<rect x="420" y="130" width="100" height="90" rx="2" fill="#2b2b2b" stroke="#111111" stroke-width="1.8"/>
+<text x="470" y="168" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">IRLZ44N</text>
+<text x="470" y="186" font-size="9" font-weight="400" fill="#dddddd" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">Q1 · text faces you</text>
+<rect x="436" y="220" width="8" height="70" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="440" y="306" font-size="14" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">G</text>
+<rect x="466" y="220" width="8" height="70" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="470" y="306" font-size="14" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">D</text>
+<rect x="496" y="220" width="8" height="70" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="500" y="306" font-size="14" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">S</text>
+<text x="470" y="322" font-size="10" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">1=Gate  2=Drain  3=Source</text>
+<text x="526" y="106" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">metal tab = Drain</text>
+<polyline points="190,180 230,180 230,360" fill="none" stroke="#1e7b45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="230,360 295.0,360" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="335.0,360 400,360" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="295.0" y="353" width="40" height="14" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="315.0" y="348" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R1 100 Ω</text>
+<polyline points="400,360 440,360 440,290" fill="none" stroke="#1e7b45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="440" cy="360" r="4" fill="#1e7b45"/>
+<polyline points="440,360 440,400 450,400" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="450" y="393" width="50" height="14" rx="0" fill="#d9c27a" stroke="#111111" stroke-width="1.4"/>
+<text x="475" y="425" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R4 10 kΩ  G→S</text>
+<polyline points="500,400 500,400 500,290" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="500" cy="400" r="4" fill="#111111"/>
+<polyline points="500,400 500,640" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="190,276 215,276 215,640" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="60,640 1160,640" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="500" cy="640" r="4" fill="#111111"/>
+<circle cx="215" cy="640" r="4" fill="#111111"/>
+<text x="60" y="660" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">CONTROL GND BUS → 12 V control battery −  (also buck IN−/OUT−)</text>
+<path d="M470 290 V342 H492 A8 8 0 0 1 508 342 H560 V470 H600" fill="none" stroke="#111111" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="606" y="474" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Q1 Drain → K1 pin 85 + K2 pin 85</text>
+<rect x="660" y="110" width="170" height="170" rx="6" fill="#f4f4f4" stroke="#111111" stroke-width="1.8"/>
+<text x="745" y="130" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">K1 (pin side)</text>
+<rect x="731" y="246" width="28" height="8" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="745" y="272" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">30</text>
+<rect x="731" y="156" width="28" height="8" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="745" y="182" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">87</text>
+<rect x="691" y="191" width="8" height="28" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="695" y="185" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<rect x="791" y="191" width="8" height="28" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="795" y="185" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="660" y="306" font-size="11" font-weight="700" fill="#c0392b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">87 → 12 V charger PV+</text>
+<text x="660" y="323" font-size="11" font-weight="700" fill="#c0392b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">30 ← PV+ bus</text>
+<text x="660" y="340" font-size="11" font-weight="700" fill="#c0392b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86 → +12 V fused, diode stripe</text>
+<text x="660" y="357" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85 → Q1 drain, diode plain end</text>
+<text x="666" y="396" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<polyline points="686,392 710,392" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="710" y="384" width="60" height="16" rx="2" fill="#333" stroke="#111111" stroke-width="1"/>
+<rect x="758" y="384" width="8" height="16" rx="0" fill="#e6e6e6" stroke="#111111" stroke-width="0"/>
+<polyline points="770,392 794,392" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="798" y="396" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="660" y="416" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D1 1N4007, band (stripe) on 86</text>
+<rect x="960" y="110" width="170" height="170" rx="6" fill="#f4f4f4" stroke="#111111" stroke-width="1.8"/>
+<text x="1045" y="130" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">K2 (pin side)</text>
+<rect x="1031" y="246" width="28" height="8" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="1045" y="272" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">30</text>
+<rect x="1031" y="156" width="28" height="8" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="1045" y="182" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">87</text>
+<rect x="991" y="191" width="8" height="28" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="995" y="185" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<rect x="1091" y="191" width="8" height="28" rx="0" fill="#b9b9b9" stroke="#111111" stroke-width="1"/>
+<text x="1095" y="185" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="960" y="306" font-size="11" font-weight="700" fill="#1f4fa0" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">87 → 12 V charger PV−</text>
+<text x="960" y="323" font-size="11" font-weight="700" fill="#1f4fa0" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">30 ← PV− bus</text>
+<text x="960" y="340" font-size="11" font-weight="700" fill="#c0392b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86 → +12 V fused, diode stripe</text>
+<text x="960" y="357" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85 → Q1 drain, diode plain end</text>
+<text x="966" y="396" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<polyline points="986,392 1010,392" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1010" y="384" width="60" height="16" rx="2" fill="#333" stroke="#111111" stroke-width="1"/>
+<rect x="1058" y="384" width="8" height="16" rx="0" fill="#e6e6e6" stroke="#111111" stroke-width="0"/>
+<polyline points="1070,392 1094,392" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1098" y="396" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="960" y="416" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D2 1N4007, band (stripe) on 86</text>
+<rect x="640" y="520" width="520" height="70" rx="4" fill="#fff6e3" stroke="#a96a00" stroke-width="1.4"/>
+<text x="652" y="542" font-size="11" font-weight="700" fill="#7a4c00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Relay pin POSITIONS differ between brands.</text>
+<text x="652" y="560" font-size="11" font-weight="400" fill="#7a4c00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Always go by the numbers molded on the relay body:</text>
+<text x="652" y="578" font-size="11" font-weight="400" fill="#7a4c00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85/86 = coil, 30 = common, 87 = normally open (87a unused).</text>
+<rect x="880" y="712" width="300" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="890" y="730" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Solar charger selector · Sheet 2 of 4</text>
+<text x="890" y="745" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Rev B · 2026-11-26</text>
+</svg>
