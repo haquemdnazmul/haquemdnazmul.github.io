@@ -10,7 +10,7 @@ This repository holds the source of that website and the project files.
 | **3D weight sorter simulator** | https://haquemdnazmul.github.io/simulator/ |
 | **3D conveyor sorter simulator** | https://haquemdnazmul.github.io/conveyor-simulator/ |
 | **3D elevator simulator** | https://haquemdnazmul.github.io/elevator-simulator/ |
-| **Solar selector simulator** | https://haquemdnazmul.github.io/solar-simulator/ |
+| **Solar selector simulator** | https://haquemdnazmul.github.io/solar-simulator/final.html (first version: https://haquemdnazmul.github.io/solar-simulator/) |
 | **Project files** | [projects/](projects/) |
 
 ## Projects

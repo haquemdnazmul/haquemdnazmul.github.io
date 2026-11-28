@@ -550,6 +550,94 @@ def sheet4():
     return s.svg("16x2 LCD wiring")
 
 
+def sheet6():
+    """Panel-voltage sensing on A5 + PV+-only switching (common-negative controllers)."""
+    s = Svg(1200, 700)
+    s.text(24, 34, "SHEET 6 · PANEL-VOLTAGE SENSING + PV+ ONLY SWITCHING", 18, bold=True)
+    s.text(24, 54, "Full detection without battery wires: a charger that has finished stops pulling current, so the panel voltage rises back towards Voc.", 11, col=GRY)
+    PVP, PVN, GND = 130, 190, 560
+    s.box(30, 100, 150, 110, "PV ARRAY", ["Voc ≤ 110 V", "for 220k / 10k"], RED)
+    s.line([(180, PVP), (1160, PVP)], RED, 3.5)
+    s.line([(180, PVN), (1160, PVN)], BLUE, 3.5)
+    s.text(190, PVP - 8, "PV+ BUS", 10, bold=True, col=RED)
+    s.text(190, PVN + 16, "PV− BUS", 10, bold=True, col=BLUE)
+
+    # chargers: one relay each, PV+ only
+    for (name, k, q, pin), cx in zip((("12 V", "K1", "Q1", "D2"), ("48 V", "K3", "Q2", "D3"), ("72 V", "K5", "Q3", "D4")),
+                                     (600, 820, 1040)):
+        xp, xn = cx - 50, cx + 50
+        s.path(f"M{xp} {PVP} V{PVN - 8} A8 8 0 0 1 {xp} {PVN + 8} V232", RED, 3.5)
+        s.dot(xp, PVP, RED)
+        s.contact(xp, 236, 284, k, RED)
+        s.text(xp + 26, 262, f"coil ← {q} ({pin})", 9, col=GRY)
+        s.line([(xp, 288), (xp, 330)], RED, 3.5)
+        s.line([(xn, PVN), (xn, 330)], BLUE, 3.5)
+        s.dot(xn, PVN, BLUE)
+        s.rect(cx - 90, 330, 180, 64, BLK, 1.8, rx=4)
+        s.text(cx, 366, f"{name} MPPT", 13, "middle", True)
+        s.text(xp, 345, "PV+", 9, "middle", col=RED)
+        s.text(xn, 345, "PV−", 9, "middle", col=BLUE)
+        s.text(xp, 389, "BAT+", 9, "middle", col=RED)
+        s.text(xn, 389, "BAT−", 9, "middle")
+        s.line([(xp, 394), (xp, 430)], RED, 2.5)
+        s.line([(xn, 394), (xn, 430)], BLK, 2.5)
+        s.rect(cx - 80, 430, 160, 30, BLK, 1.4, rx=3)
+        s.text(cx, 450, f"{name} battery", 11, "middle")
+        s.line([(xn, 460), (xn, GND)], BLK, 2.5)
+        s.dot(xn, GND)
+    s.text(1040 + 92, 362, "PV− = BAT−", 9, col=GRY)
+    s.text(1040 + 92, 374, "inside", 9, col=GRY)
+
+    # divider on the PV+ bus (before the relays, so Voc is read during the 10 s pause)
+    DX = 270
+    s.dot(DX, PVP, RED)
+    s.path(f"M{DX} {PVP} V{PVN - 8} A8 8 0 0 1 {DX} {PVN + 8} V212", RED, 2)
+    s.rect(DX - 8, 212, 16, 36, BLK, 1.6)
+    s.line([(DX, 212), (DX, 248)], BLK, 1.2)
+    s.text(DX + 14, 228, "F5", 11, bold=True)
+    s.text(DX + 14, 241, "0.5 A", 9, col=GRY)
+    s.res_v(DX, 248, 340, "R18", "220k 1%")
+    s.dot(DX, 340, ORG)
+    s.res_v(DX, 340, 440, "R19", "10k 1%")
+    s.line([(DX, 440), (DX, GND)], BLK, 2)
+    s.dot(DX, GND)
+    xc, xz = DX + 60, DX + 120
+    s.line([(DX, 340), (xz, 340)], ORG, 2)
+    s.dot(xc, 340, ORG)
+    s.line([(xc, 340), (xc, 386)], BLK, 2)
+    s.line([(xc - 14, 386), (xc + 14, 386)], BLK, 3)
+    s.line([(xc - 14, 394), (xc + 14, 394)], BLK, 3)
+    s.line([(xc, 394), (xc, GND)], BLK, 2)
+    s.dot(xc, GND)
+    s.text(xc + 18, 386, "C4", 11, bold=True)
+    s.text(xc + 18, 399, "100 nF", 9, col=GRY)
+    s.diode_up(xz, 340, 440, "ZD1", "5.1 V zener")
+    s.line([(xz, 440), (xz, GND)], BLK, 2)
+    s.dot(xz, GND)
+    s.text(xz + 12, 470, "(protects A5)", 9, col=GRY)
+
+    # Arduino
+    s.rect(40, 280, 130, 170, BLK, 1.8, rx=4, fill="#e8f1ec")
+    s.text(105, 304, "ARDUINO", 12, "middle", True)
+    s.text(105, 318, "UNO", 12, "middle", True)
+    s.line([(DX, 340), (170, 340)], ORG, 2)
+    s.text(162, 344, "A5", 12, "end", True, ORG)
+    s.text(105, 444, "GND", 10, "middle", True)
+    s.line([(105, 450), (105, GND)], BLK, 2)
+    s.dot(105, GND)
+
+    s.line([(30, GND), (1160, GND)], BLK, 2.5)
+    s.text(30, GND + 20, "CONTROL GND = Arduino GND = every BAT− (= PV− inside each common-negative controller)", 11, bold=True)
+    s.text(24, 606, "Only PV+ is switched: one relay per controller (K1, K3, K5). K2, K4, K6 are not needed. Each MOSFET drives one coil, with its own 1N4007.", 11, col=GRY)
+    s.text(24, 622, "Needs common-negative controllers: PV− and BAT− must beep together on every controller. Never join PV− on a common-positive controller.", 11, col=GRY)
+    s.text(24, 638, "220k/10k reads up to about 115 V (Voc 110 V gives 4.8 V on A5). For Voc 110–160 V use 330k for R18. The tap is on the PV+ bus, before the relays.", 11, col=GRY)
+    s.text(24, 654, "Full = panel voltage stays above 95 % of Voc for 15 min while there is good sun. Voc is measured in every 10 s all-off pause.", 11, col=GRY)
+    s.rect(880, 664, 300, 34, BLK, 1.4)
+    s.text(890, 680, "Solar charger selector · Sheet 6", 11, bold=True)
+    s.text(890, 693, "Rev C · 2026-11-28", 10, col=GRY)
+    return s.svg("Panel voltage sensing on A5 and PV plus only switching")
+
+
 def wiring_rows():
     rows = [
         ("Control", "B1 control battery +", "F1 fuse (1 A) in", "1.0 mm² / 18 AWG red", "Fuse within 20 cm of the battery"),
@@ -597,6 +685,11 @@ def wiring_rows():
         ("Mode LEDs", "Arduino D8", "R17 330 Ω → LED5 red long leg (+); short leg → GND", "wire + resistor leads", "Red = TIMER mode. Both off = MANUAL"),
     ]
     rows += [
+        ("Panel sense", "PV+ bus (before the relays)", "F5 0.5 A fuse → R18 220 kΩ", "0.5 mm² red", "Sheet 6. Reads Voc during the 10 s pause"),
+        ("Panel sense", "R18 / R19 junction", "Arduino A5", "0.25 mm² orange", "C4 100 nF and ZD1 5.1 V zener from A5 to GND"),
+        ("Panel sense", "R19 10 kΩ other end", "Control GND", "0.25 mm² black", "PV− must share this GND (common-negative controllers)"),
+    ]
+    rows += [
         ("PV", "PV array +/−", "Q0 2-pole DC isolator", "PV cable", "Rated above cold Voc"),
         ("PV", "Q0 out +", "PV+ bus (K1, K3, K5 pin 30)", "PV cable red", ""),
         ("PV", "Q0 out −", "PV− bus (K2, K4, K6 pin 30)", "PV cable black/blue", ""),
@@ -635,7 +728,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:8px;max-width:85ch}
 """
 
 
-def page(svg1, svg2, svg3, svg4, svg5="", svg6=""):
+def page(svg1, svg2, svg3, svg4, svg5="", svg6="", svg7=""):
     rows = wiring_rows()
     trs, last = [], None
     for g, a, b, w, n in rows:
@@ -662,6 +755,11 @@ def page(svg1, svg2, svg3, svg4, svg5="", svg6=""):
         ("1", "R9", "220 kΩ 1 % metal film"),
         ("3", "R10–R12", "10 kΩ 1 % metal film"),
         ("3", "C1–C3", "100 nF ceramic capacitor"),
+        ("1", "R18", "220 kΩ 1 % metal film (panel sense, sheet 6; 330 kΩ if Voc is above 110 V)"),
+        ("1", "R19", "10 kΩ 1 % metal film (panel sense)"),
+        ("1", "C4", "100 nF ceramic capacitor (panel sense)"),
+        ("1", "ZD1", "5.1 V zener diode, 0.5 W (protects A5)"),
+        ("1", "F5", "Inline fuse holder + 0.5 A fuse (panel sense wire)"),
         ("1", "DS1", "16x2 character LCD with I2C backpack (PCF8574)"),
         ("3", "SW1–SW3", "Push button, normally open, panel mount (AUTO, NEXT, TIMER)"),
         ("1", "—", "Uno prototype shield; screw terminals 5.08 mm: one 3-way, one 4-way, one 2-way; male pin headers"),
@@ -729,6 +827,12 @@ def page(svg1, svg2, svg3, svg4, svg5="", svg6=""):
 <li>Q1–Q3 metal tabs are the drains. They must not touch each other or anything else.</li>
 </ol>
 </section>
+<section class="panel"><h2>Sheet 6 · Panel-voltage sensing</h2>
+<p class="muted">Detects a full battery from the panel voltage instead of the battery voltage, so the battery sense wires are not needed. It also shows the simpler power wiring with one relay per controller, switching PV+ only.</p>
+<div class="sheet">{svg7}</div>
+<div class="note">How it decides "full": in every 10 s all-off pause the Arduino reads the panel's open-circuit voltage (Voc). While a charger is working, it pulls the panel down to about 75–80 % of Voc. When its battery is full the charger stops pulling current, and the panel climbs back above 95 % of Voc. If that lasts 15 minutes while there is good sun, the battery counts as full and the selector moves on.</div>
+<div class="warn">Check every controller before joining PV−: with nothing connected, PV− and BAT− must beep together (common negative). If one does not, do not use this wiring for it.</div>
+</section>
 <section class="panel"><h2>Wiring list</h2>
 <p class="muted">Tick each line off as you wire it. Every channel is wired the same way.</p>
 <div class="tbl"><table><thead><tr><th>Group</th><th>From</th><th>To</th><th>Wire</th><th>Note</th></tr></thead><tbody>{''.join(trs)}</tbody></table></div></section>
@@ -749,20 +853,20 @@ def page(svg1, svg2, svg3, svg4, svg5="", svg6=""):
 <li>Send <b>0</b>, close Q0, then select a charger and confirm it starts charging. Check polarity at each charger before closing Q0.</li>
 <li>Send <b>auto</b>. The Arduino picks the first battery that is not full and moves on by itself when it is full.</li>
 </ol></section>
-<p class="files">Files: Solar_Selector/sheet1_schematic.svg · sheet2_channel.svg · sheet3_sensing.svg · sheet4_lcd.svg · shield_top.svg · shield_bottom.svg · solar_selector/solar_selector.ino · regenerate with make_schematic.py</p>
+<p class="files">Files: Solar_Selector/sheet1_schematic.svg · sheet2_channel.svg · sheet3_sensing.svg · sheet4_lcd.svg · shield_top.svg · shield_bottom.svg · sheet6_panel_sense.svg · solar_selector/solar_selector.ino · regenerate with make_schematic.py</p>
 </div>
 """
 
 
 def main():
-    s1, s2, s3, s4 = sheet1(), sheet2(), sheet3(), sheet4()
+    s1, s2, s3, s4, s7 = sheet1(), sheet2(), sheet3(), sheet4(), sheet6()
     s5, s6 = shield.top_svg(), shield.bottom_svg()
     for name, data in (("sheet1_schematic.svg", s1), ("sheet2_channel.svg", s2), ("sheet3_sensing.svg", s3), ("sheet4_lcd.svg", s4),
-                       ("shield_top.svg", s5), ("shield_bottom.svg", s6)):
+                       ("shield_top.svg", s5), ("shield_bottom.svg", s6), ("sheet6_panel_sense.svg", s7)):
         with open(os.path.join(HERE, name), "w", encoding="utf-8") as f:
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n' + data)
     with open(os.path.join(HERE, "solar_selector_wiring.html"), "w", encoding="utf-8") as f:
-        f.write(page(s1, s2, s3, s4, s5, s6))
+        f.write(page(s1, s2, s3, s4, s5, s6, s7))
     print("ok")
 
 

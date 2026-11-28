@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar Selector Simulator</title>
+<style>
+:root{--bg:#eef0ec;--panel:#fff;--ink:#1b2220;--muted:#5b6662;--line:#d3d8d2;--ok:#1e7b45;--warn:#b26a00;--bad:#b3372b;--acc:#1f4fa0;
+--mono:ui-monospace,Consolas,"Cascadia Mono",monospace;--sans:system-ui,"Segoe UI",sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111513;--panel:#192020;--ink:#e4ebe7;--muted:#97a39e;--line:#2d3633;--acc:#76a0ea;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111513;--panel:#192020;--ink:#e4ebe7;--muted:#97a39e;--line:#2d3633;--acc:#76a0ea;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding:50px 16px 40px;position:relative}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:16px}
+h1{margin:0;font-size:1.6rem}h2{margin:0 0 6px;font-size:.95rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+p{margin:0;max-width:80ch}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;gap:12px;min-width:0}
+.lcd{background:#1d1d1d;padding:10px;border-radius:6px;overflow-x:auto}
+.lcd pre{margin:0;background:#9bc0e8;color:#0d2140;font:600 21px/1.3 var(--mono);letter-spacing:.1em;padding:4px 10px;white-space:pre}
+.lcd pre:first-child{padding-top:8px}.lcd pre:last-child{padding-bottom:8px}
+.leds{display:flex;flex-wrap:wrap;gap:14px}
+.led{display:grid;justify-items:center;gap:3px;font-size:12px;min-width:56px}
+.led i{width:22px;height:22px;border-radius:50%;background:var(--c);opacity:.18;border:2px solid #0006}
+.led.on i{opacity:1;box-shadow:0 0 12px 4px var(--c)}
+.led span{color:var(--muted);font:11px var(--mono)}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pb{display:grid;justify-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:inherit;font:inherit;cursor:pointer;touch-action:none;user-select:none}
+.pb i{width:34px;height:34px;border-radius:50%;background:#2a2a2a;box-shadow:0 3px 0 #000,inset 0 2px 3px #fff4}
+.pb.down i{transform:translateY(2px);box-shadow:0 1px 0 #000}
+.pb b{font-size:13px}.pb span{font:11px var(--mono);color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button.s{border:1px solid var(--line);background:var(--bg);color:inherit;border-radius:6px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+label{font-size:13px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+select,input[type=number],input[type=text]{font:inherit;font-size:13px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit}
+.bats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bat{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:6px;min-width:0}
+.bat.on{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--acc)}
+.bat.on .bar i{background:var(--ok)}
+.k{font:12px var(--mono);color:var(--muted)}
+.big{font:600 22px var(--mono)}
+.relays{display:flex;gap:10px;flex-wrap:wrap}
+.relay{font:12px var(--mono);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.relay.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+#log{height:240px;overflow:auto;background:#0f1412;color:#cfe3d8;font:12.5px/1.45 var(--mono);padding:8px 10px;border-radius:6px;white-space:pre-wrap}
+.note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header style="display:grid;gap:4px">
+  <h1>Solar Selector Simulator</h1>
+  <p class="muted">Runs the same logic as the final firmware: one panel shared by the 12 V, 48 V and 72 V controllers, all relays off for 10 s between batteries, and "full" detected from the panel voltage. Speed up time to watch a whole day.</p>
+  <p style="font-size:13px"><a href="./" style="color:var(--acc)">First-version simulator (relay pairs, battery sensing, faults) ↗</a></p>
+</header>
+
+<div class="grid">
+  <section class="panel">
+    <h2>Board</h2>
+    <div class="lcd" data-noi18n><pre id="l1"></pre><pre id="l2"></pre></div>
+    <div class="leds">
+      <div class="led" id="led0" style="--c:#2ecc40"><i></i>12 V<span>D2</span></div>
+      <div class="led" id="led1" style="--c:#ffd400"><i></i>48 V<span>D3</span></div>
+      <div class="led" id="led2" style="--c:#2f7bff"><i></i>72 V<span>D4</span></div>
+      <div class="led" id="ledW" style="--c:#f4f4ee"><i></i>AUTO<span>D9</span></div>
+      <div class="led" id="ledR" style="--c:#ff3b30"><i></i>TIMER<span>D8</span></div>
+    </div>
+    <div class="btns">
+      <button class="pb" id="bAuto"><i></i><b>AUTO</b><span>D5</span></button>
+      <button class="pb" id="bNext"><i></i><b>NEXT</b><span>D6 · hold 5 s</span></button>
+      <button class="pb" id="bTimer"><i></i><b>TIMER</b><span>A3</span></button>
+    </div>
+    <div class="relays"><span class="relay" id="k0">K1 12 V</span><span class="relay" id="k1">K3 48 V</span><span class="relay" id="k2">K5 72 V</span></div>
+    <div class="row"><button class="s" id="power">Power cycle (reset)</button><span class="note">NEXT: tap = next battery, hold 5 s = MANUAL</span></div>
+  </section>
+
+  <section class="panel">
+    <h2>Sun, panel and time</h2>
+    <div class="row" style="justify-content:space-between"><span>Sun <b id="sunv">100 %</b></span>
+      <span><button class="s" data-sun="0">Night</button> <button class="s" data-sun="30">Cloudy</button> <button class="s" data-sun="100">Full sun</button></span></div>
+    <input type="range" id="sun" min="0" max="100" value="100">
+    <div class="row">
+      <label>Time speed <select id="speed"><option value="1">1×</option><option value="10">10×</option><option value="60" selected>60× (1 min/s)</option><option value="600">600× (10 min/s)</option><option value="3600">3600× (1 h/s)</option></select></label>
+      <label>Real panel Voc <input type="number" id="voc" value="100" min="40" max="160" step="1" style="width:76px"> V</label>
+    </div>
+    <div class="row" style="gap:22px">
+      <div><div class="k">CLOCK (since power-up)</div><div class="big" id="clock">0:00:00</div></div>
+      <div><div class="k">PANEL VOLTAGE</div><div class="big" id="pv">0 V</div></div>
+      <div><div class="k">PANEL / Voc</div><div class="big" id="ratio">-</div></div>
+    </div>
+    <h2 style="margin-top:4px">Batteries</h2>
+    <div class="bats" id="bats"></div>
+    <p class="note">Each controller charges its own battery. When it is full the controller floats it, stops pulling current, and the panel voltage rises back to about 97 % of Voc. That is how the Arduino sees "full".</p>
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Serial monitor</h2>
+  <div id="log" data-noi18n></div>
+  <form class="row" id="cmdf"><input type="text" id="cmd" data-noi18n placeholder="auto, timer, timer 1, next, manual, 12, 48, 72, 0, ?" style="flex:1;min-width:200px"><button class="s">Send</button></form>
+</section>
+</div>
+
+<script>
+// ------------------------------------------------------------------ firmware constants (same as the sketch)
+const PANEL_VOC = 100, DEAD = 10000, MAXSTEP = 240 * 60000, FULL_RATIO = 0.95, FULL_HOLD = 15 * 60000,
+      VOC_REFRESH = 30 * 60000, SUN_MIN = 0.70, NIGHT_LEVEL = 0.15, DAY_LEVEL = 0.50,
+      NIGHT_HOLD = 10 * 60000, DAY_HOLD = 2 * 60000, LONG_PRESS = 5000;
+const NAME = ['12V', '48V', '72V'];
+const $ = id => document.getElementById(id);
+
+// ------------------------------------------------------------------ physical world
+const W = {sun: 1, vocReal: 100, soc: [45, 60, 30], rate: [30, 20, 15]};   // rate = % per hour in full sun
+function vocNow() {
+  const s = W.sun;
+  if (s <= 0) return 0;
+  if (s < 0.05) return W.vocReal * 0.7 * s / 0.05;
+  return W.vocReal * (0.88 + 0.12 * s);
+}
+function panelVolts() {
+  const v = vocNow(), a = F.active, canCharge = W.sun >= 0.05;
+  let r = 1;
+  if (a >= 0 && canCharge) r = W.soc[a] < 99.9 ? 0.78 : 0.97;
+  return Math.max(0, v * r + (Math.random() - 0.5) * 0.3);
+}
+function physics(sec) {
+  const a = F.active;
+  if (a >= 0 && W.sun >= 0.05 && W.soc[a] < 100) W.soc[a] = Math.min(100, W.soc[a] + W.rate[a] * W.sun * sec / 3600);
+}
+
+// ------------------------------------------------------------------ firmware (port of solar_selector.ino)
+let F;
+function log(t) {
+  const el = $('log'), ts = fmtClock(F ? F.now : 0);
+  el.textContent += `[${ts}] ${t}\n`;
+  if (el.textContent.length > 60000) el.textContent = el.textContent.slice(-40000);
+  el.scrollTop = el.scrollHeight;
+}
+function reset() {
+  F = {now: 0, mode: 'TIMER', active: -1, pending: -1, waiting: false, vocCheck: false, interlock: false,
+       offAt: 0, stepStart: 0, lastVocCheck: 0, vpv: 0, voc: 0, vocValid: false, full: [false, false, false],
+       highPv: false, highSince: 0, night: false, dark: false, light: false, darkSince: 0, lightSince: 0,
+       stage: 0, timerStart: 0, timer12Min: 180, lastSample: 0};
+  log('Solar selector ready. AUTO D5, TIMER A3, NEXT D6 (hold 5 s = MANUAL)');
+  setTimer();
+}
+function allOff() { F.active = -1; }
+function requestChannel(ch) {
+  if (ch === F.active && !F.waiting) return;
+  allOff(); F.offAt = F.now; F.highPv = false; F.vocCheck = false;
+  if (ch < 0) { F.waiting = false; log('All relays off'); return; }
+  F.pending = ch; F.waiting = true;
+  log(`All relays off, waiting 10 s, then ${NAME[ch]}`);
+}
+function startVocCheck() {
+  const ch = F.active; allOff(); F.offAt = F.now; F.pending = ch; F.waiting = true; F.vocCheck = true;
+  log('Voc check: relays open for 10 s');
+}
+function finishPause() {
+  const v = panelVolts();
+  F.voc = v; F.vocValid = true; F.lastVocCheck = F.now;
+  F.active = F.pending; F.interlock = false;
+  if (!F.vocCheck) F.stepStart = F.now;
+  F.highPv = false;
+  log(`${NAME[F.active]} connected, Voc ${F.voc.toFixed(1)} V`);
+  F.waiting = false; F.vocCheck = false;
+}
+function pickNext() {
+  if (F.active >= 0 && !F.full[F.active]) return F.active;
+  const start = F.active < 0 ? 0 : F.active + 1;
+  for (let k = 0; k < 3; k++) { const i = (start + k) % 3; if (!F.full[i]) return i; }
+  return F.active;
+}
+function setAuto() { F.mode = 'AUTO'; log('AUTO mode'); }
+function setTimer() {
+  F.mode = 'TIMER'; F.stage = 0; F.timerStart = F.now;
+  log(`TIMER: 12V for ${F.timer12Min} min, then 48V until full, then 72V until full`);
+  requestChannel(0);
+}
+function timerAdvance(why) {
+  while (true) {
+    F.stage++;
+    if (F.stage > 2) { F.stage = 2; F.mode = 'AUTO'; log('TIMER done, continuing in AUTO'); return; }
+    if (!F.full[F.stage]) break;
+    log(`TIMER: ${NAME[F.stage]} already full, skipped`);
+  }
+  log(`TIMER: ${why} -> ${NAME[F.stage]}`);
+  requestChannel(F.stage);
+}
+function timerFollow() {
+  if (F.stage === 0 && F.now - F.timerStart >= F.timer12Min * 60000) { timerAdvance('12V time is up'); return; }
+  if (F.stage > 0 && F.full[F.stage]) { timerAdvance('battery full'); return; }
+  if (F.active !== F.stage) requestChannel(F.stage);
+}
+function enterManual() { if (F.mode === 'MANUAL') return; F.mode = 'MANUAL'; log('MANUAL (NEXT held 5 s): NEXT = next battery, AUTO or TIMER to leave'); }
+function manual(ch) { if (F.mode !== 'MANUAL') log('MANUAL mode'); F.mode = 'MANUAL'; requestChannel(ch); }
+function swapNext() {
+  if (F.night) { log('Night: no switching'); return; }
+  const cur = F.waiting ? F.pending : F.active;
+  if (F.mode === 'MANUAL') { const n = cur >= 2 ? -1 : cur + 1; log(`MANUAL: NEXT -> ${n < 0 ? 'OFF' : NAME[n]}`); requestChannel(n); }
+  else if (F.mode === 'TIMER') timerAdvance('NEXT pressed');
+  else {
+    const start = cur < 0 ? 0 : cur + 1; let n = start % 3;
+    for (let k = 0; k < 3; k++) { const i = (start + k) % 3; if (!F.full[i]) { n = i; break; } }
+    log(`AUTO: NEXT -> ${NAME[n]}`); requestChannel(n);
+  }
+}
+function sample() {
+  const now = F.now;
+  F.vpv = panelVolts();
+  if (F.vpv < NIGHT_LEVEL * PANEL_VOC) {
+    F.light = false;
+    if (!F.dark) { F.dark = true; F.darkSince = now; }
+    if (!F.night && now - F.darkSince >= NIGHT_HOLD) {
+      F.night = true; requestChannel(-1); F.full = [false, false, false];
+      log('NIGHT: no sun, all relays off');
+    }
+  } else F.dark = false;
+  if (F.night) {
+    if (F.vpv > DAY_LEVEL * PANEL_VOC) {
+      if (!F.light) { F.light = true; F.lightSince = now; }
+      if (now - F.lightSince >= DAY_HOLD) { F.night = false; log('MORNING: sun is back'); setTimer(); }
+    } else F.light = false;
+    return;
+  }
+  if (F.active >= 0 && !F.waiting) {
+    const i = F.active;
+    if (F.vocValid && F.voc >= SUN_MIN * PANEL_VOC && F.vpv >= FULL_RATIO * F.voc) {
+      if (!F.highPv) { F.highPv = true; F.highSince = now; }
+      else if (!F.full[i] && now - F.highSince >= FULL_HOLD) { F.full[i] = true; log(`${NAME[i]} FULL (panel voltage back near Voc)`); }
+    } else F.highPv = false;
+    const timedStep = F.mode === 'TIMER' && F.stage === 0;
+    if (F.mode !== 'MANUAL' && !timedStep && !F.full[i] && now - F.stepStart >= MAXSTEP) { F.full[i] = true; log(`${NAME[i]}: 4 h limit, counted as done`); }
+  }
+  if (F.waiting) return;
+  if (F.active >= 0 && now - F.lastVocCheck >= VOC_REFRESH) { startVocCheck(); return; }
+  if (F.mode === 'AUTO') { const n = pickNext(); if (n !== F.active) { log(`AUTO -> ${NAME[n]}`); requestChannel(n); } }
+  else if (F.mode === 'TIMER') timerFollow();
+}
+function step1s() {
+  F.now += 1000;
+  physics(1);
+  if (F.waiting && F.now - F.offAt >= DEAD) finishPause();
+  sample();
+}
+
+// ------------------------------------------------------------------ display (same layout as updateLcd)
+const pad = s => (s + ' '.repeat(16)).slice(0, 16);
+const hm = ms => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`; };
+function fmtClock(ms) { const s = Math.floor(ms / 1000); return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
+let page = 0, lastPage = 0;
+function lcdLines(realNow) {
+  const m = F.mode === 'AUTO' ? 'AUTO  ' : F.mode === 'MANUAL' ? 'MANUAL' : 'TIMER ';
+  let l1, l2;
+  const holding = H.down && !H.longDone && realNow - H.t0 >= 1000;
+  if (F.interlock) l1 = 'INTERLOCK FAULT';
+  else if (holding && F.mode !== 'MANUAL') l1 = `HOLD ${Math.ceil((LONG_PRESS - (realNow - H.t0)) / 1000)}s->MANUAL`;
+  else if (F.night) l1 = 'NIGHT   all off';
+  else if (F.waiting) {
+    const left = Math.max(0, Math.ceil((DEAD - (F.now - F.offAt)) / 1000));
+    l1 = F.vocCheck ? `${m}VocChk ${String(left).padStart(2)}s` : `${m} >>${NAME[F.pending]} ${String(left).padStart(2)}s`;
+  } else if (F.active < 0) l1 = `${m} ALL OFF`;
+  else l1 = `${m} CHG ${NAME[F.active]}`;
+  if (page === 0) l2 = `PV${F.vpv.toFixed(1).padStart(5)}V Voc${F.voc.toFixed(0).padStart(3)}`;
+  else if (page === 1) {
+    if (F.active < 0 || F.waiting) l2 = '--';
+    else if (F.mode === 'TIMER' && F.stage === 0) { const t = F.timer12Min * 60000, el = F.now - F.timerStart; l2 = `12V left ${hm(Math.max(0, t - el))}`; }
+    else l2 = `${NAME[F.active]} on ${hm(F.now - F.stepStart)}` + (F.highPv ? ` F${String(Math.floor((FULL_HOLD - (F.now - F.highSince)) / 60000) + 1).padStart(2)}m` : '');
+  } else l2 = `Full12/48/72:${F.full.map(f => f ? 'Y' : '-').join('')}`;
+  return [pad(l1), pad(l2)];
+}
+
+// ------------------------------------------------------------------ UI
+const H = {down: false, t0: 0, longDone: false};
+function nextDown() { if (H.down) return; H.down = true; H.t0 = performance.now(); H.longDone = false; $('bNext').classList.add('down'); }
+function nextUp() { if (!H.down) return; H.down = false; $('bNext').classList.remove('down'); if (!H.longDone) swapNext(); }
+const bn = $('bNext');
+bn.addEventListener('pointerdown', e => { e.preventDefault(); bn.setPointerCapture(e.pointerId); nextDown(); });
+bn.addEventListener('pointerup', nextUp);
+bn.addEventListener('pointercancel', nextUp);
+bn.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); nextDown(); } });
+bn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); nextUp(); } });
+$('bAuto').onclick = () => setAuto();
+$('bTimer').onclick = () => setTimer();
+$('power').onclick = () => { log('--- power cycle ---'); reset(); };
+$('sun').oninput = e => { W.sun = e.target.value / 100; $('sunv').textContent = e.target.value + ' %'; };
+document.querySelectorAll('[data-sun]').forEach(b => b.onclick = () => { $('sun').value = b.dataset.sun; $('sun').oninput({target: $('sun')}); });
+$('voc').oninput = e => { W.vocReal = +e.target.value || 100; };
+$('cmdf').onsubmit = e => {
+  e.preventDefault();
+  const c = $('cmd').value.trim().toLowerCase(); $('cmd').value = '';
+  if (!c) return;
+  log('> ' + c);
+  if (c === '0' || c === 'off') manual(-1);
+  else if (c === '12') manual(0); else if (c === '48') manual(1); else if (c === '72') manual(2);
+  else if (c === 'auto') setAuto();
+  else if (c === 'timer') setTimer();
+  else if (c.startsWith('timer ')) { const t = parseInt(c.slice(6)); if (t >= 1 && t <= 1440) { F.timer12Min = t; setTimer(); } else log('timer N: 12V minutes, 1 to 1440'); }
+  else if (c === 'next') swapNext();
+  else if (c === 'manual') enterManual();
+  else if (c === '?') log(`[${F.mode}${F.mode === 'TIMER' ? ' step ' + (F.stage + 1) : ''}${F.night ? ' NIGHT' : ''}] ` +
+    (F.waiting ? `pause, next ${NAME[F.pending]}` : F.active < 0 ? 'all off' : `${NAME[F.active]} for ${Math.floor((F.now - F.stepStart) / 60000)} min`) +
+    ` | PV ${F.vpv.toFixed(1)} V, Voc ${F.voc.toFixed(1)} V | full 12/48/72: ${F.full.map(f => f ? 'Y' : '-').join('')}`);
+  else log('Commands: auto, timer, timer N, next, manual, 0/off, 12, 48, 72, ?');
+};
+
+function buildBats() {
+  $('bats').innerHTML = NAME.map((n, i) => `<div class="bat" id="bat${i}"><b>${n.replace('V', ' V')} battery</b>
+    <div class="bar"><i id="soc${i}"></i></div><div class="k"><span id="socv${i}"></span> · <span id="st${i}"></span></div>
+    <button class="s" data-use="${i}">Use 30 %</button></div>`).join('');
+  document.querySelectorAll('[data-use]').forEach(b => b.onclick = () => { const i = +b.dataset.use; W.soc[i] = Math.max(0, W.soc[i] - 30); });
+}
+function render(realNow) {
+  if (realNow - lastPage >= 2500) { lastPage = realNow; page = (page + 1) % 3; }
+  const [a, b] = lcdLines(realNow);
+  $('l1').textContent = a; $('l2').textContent = b;
+  for (let i = 0; i < 3; i++) {
+    const on = F.active === i;
+    $('led' + i).classList.toggle('on', on);
+    $('k' + i).classList.toggle('on', on);
+    $('bat' + i).classList.toggle('on', on);
+    $('soc' + i).style.width = W.soc[i] + '%';
+    $('socv' + i).textContent = W.soc[i].toFixed(0) + ' %';
+    $('st' + i).textContent = !on ? 'idle' : W.sun < 0.05 ? 'no sun' : W.soc[i] >= 99.9 ? 'full, float' : 'charging';
+  }
+  $('ledW').classList.toggle('on', F.mode === 'AUTO');
+  $('ledR').classList.toggle('on', F.mode === 'TIMER');
+  $('clock').textContent = fmtClock(F.now);
+  $('pv').textContent = F.vpv.toFixed(1) + ' V';
+  $('ratio').textContent = F.vocValid && F.voc > 1 ? Math.round(100 * F.vpv / F.voc) + ' %' : '-';
+}
+
+buildBats();
+reset();
+let last = performance.now(), acc = 0;
+function frame(t) {
+  const dt = Math.min(250, t - last); last = t;
+  acc += dt * +$('speed').value;
+  let n = 0;
+  while (acc >= 1000 && n < 5000) { step1s(); acc -= 1000; n++; }
+  if (H.down && !H.longDone && t - H.t0 >= LONG_PRESS) { H.longDone = true; enterManual(); }
+  render(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+<script src="final-i18n-dict.js"></script>
+<script src="../sim-i18n.js"></script>
+</body>
+</html>

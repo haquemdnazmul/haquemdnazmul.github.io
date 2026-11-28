@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1180" role="img" aria-label="Final schematic of the solar charger selector">
+<rect width="1600" height="1180" fill="#ffffff"/>
+<text x="24" y="34" font-size="20" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">SOLAR CHARGER SELECTOR — FINAL SCHEMATIC (as built)</text>
+<text x="24" y="54" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Dots are connections; wires that cross without a dot (or with a hop) are not connected. ⏚ = control GND.</text>
+<text x="24" y="84" font-size="12" font-weight="700" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">A · PV SIDE — one relay per controller switches PV+; PV− goes to every controller (common-negative controllers only)</text>
+<rect x="30" y="100" width="150" height="110" rx="4" fill="#ffffff" stroke="#c0392b" stroke-width="1.8"/>
+<text x="105.0" y="120" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV ARRAY</text>
+<text x="105.0" y="136" font-size="10" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">Voc set in sketch</text>
+<text x="105.0" y="150" font-size="10" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">(PANEL_VOC)</text>
+<polyline points="180,130 1570,130" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="180,190 1570,190" fill="none" stroke="#1f4fa0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="190" y="122" font-size="10" font-weight="700" fill="#c0392b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">PV+ BUS</text>
+<text x="190" y="206" font-size="10" font-weight="700" fill="#1f4fa0" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">PV− BUS</text>
+<circle cx="300" cy="130" r="4" fill="#c0392b"/>
+<path d="M300 130 V182 A8 8 0 0 1 300 198 V212" fill="none" stroke="#c0392b" stroke-width="2" stroke-linejoin="round"/>
+<rect x="292" y="212" width="16" height="36" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="300,212 300,248" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="314" y="228" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">F5</text>
+<text x="314" y="241" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">0.5 A</text>
+<polyline points="300,248 300,274.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="300,314.0 300,340" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="293" y="274.0" width="14" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="288" y="292.0" font-size="11" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">R18</text>
+<text x="288" y="305.0" font-size="10" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">220k 1%</text>
+<circle cx="300" cy="340" r="4" fill="#d07a00"/>
+<polyline points="300,340 300,365.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="300,405.0 300,430" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="293" y="365.0" width="14" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="288" y="383.0" font-size="11" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">R19</text>
+<text x="288" y="396.0" font-size="10" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">10k 1%</text>
+<polyline points="300,430 300,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="290,438 310,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="294,442 306,442" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="298,446 302,446" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="300,340 490,340" fill="none" stroke="#d07a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="360" cy="340" r="4" fill="#d07a00"/>
+<polyline points="360,340 360,380" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="346,380 374,380" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="346,388 374,388" fill="none" stroke="#111111" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="360,388 360,430" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="360,430 360,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="350,438 370,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="354,442 366,442" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="358,446 362,446" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="378" y="380" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">C4</text>
+<text x="378" y="393" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">100 nF</text>
+<circle cx="420" cy="340" r="4" fill="#d07a00"/>
+<polyline points="420,340 420,375.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="420,395.0 420,430" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M411 395.0 L429 395.0 L420 375.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="411,375.0 429,375.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="432" y="383.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">ZD1</text>
+<text x="432" y="395.0" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">5.1 V</text>
+<polyline points="420,430 420,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="410,438 430,438" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="414,442 426,442" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="418,446 422,446" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="493" cy="340" r="3.5" fill="#ffffff" stroke="#d07a00" stroke-width="1.6"/>
+<text x="490" y="330" font-size="12" font-weight="700" fill="#d07a00" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">→ A5</text>
+<path d="M700 130 V182 A8 8 0 0 1 700 198 V232" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linejoin="round"/>
+<circle cx="700" cy="130" r="4" fill="#c0392b"/>
+<circle cx="700" cy="236" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<circle cx="700" cy="284" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="700,236 720,276" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="688" y="264.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K1</text>
+<text x="708" y="239" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">30</text>
+<text x="708" y="296" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">87</text>
+<text x="726" y="262" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">coil: section B</text>
+<polyline points="700,288 700,310" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="820,190 820,310" fill="none" stroke="#1f4fa0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="820" cy="190" r="4" fill="#1f4fa0"/>
+<rect x="650" y="310" width="220" height="70" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<text x="760" y="350" font-size="12" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">12 V MPPT CONTROLLER</text>
+<text x="700" y="325" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV+</text>
+<text x="820" y="325" font-size="9" font-weight="400" fill="#1f4fa0" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV−</text>
+<text x="700" y="374" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT+</text>
+<text x="820" y="374" font-size="9" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT−</text>
+<polyline points="700,380 700,420" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="820,380 820,420" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="670" y="420" width="180" height="30" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="760" y="440" font-size="11" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">12 V battery bank</text>
+<path d="M980 130 V182 A8 8 0 0 1 980 198 V232" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linejoin="round"/>
+<circle cx="980" cy="130" r="4" fill="#c0392b"/>
+<circle cx="980" cy="236" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<circle cx="980" cy="284" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="980,236 1000,276" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="968" y="264.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K3</text>
+<text x="988" y="239" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">30</text>
+<text x="988" y="296" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">87</text>
+<text x="1006" y="262" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">coil: section B</text>
+<polyline points="980,288 980,310" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1100,190 1100,310" fill="none" stroke="#1f4fa0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1100" cy="190" r="4" fill="#1f4fa0"/>
+<rect x="930" y="310" width="220" height="70" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<text x="1040" y="350" font-size="12" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">48 V MPPT CONTROLLER</text>
+<text x="980" y="325" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV+</text>
+<text x="1100" y="325" font-size="9" font-weight="400" fill="#1f4fa0" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV−</text>
+<text x="980" y="374" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT+</text>
+<text x="1100" y="374" font-size="9" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT−</text>
+<polyline points="980,380 980,420" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1100,380 1100,420" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="950" y="420" width="180" height="30" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="1040" y="440" font-size="11" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">48 V battery bank</text>
+<path d="M1260 130 V182 A8 8 0 0 1 1260 198 V232" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linejoin="round"/>
+<circle cx="1260" cy="130" r="4" fill="#c0392b"/>
+<circle cx="1260" cy="236" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<circle cx="1260" cy="284" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="1260,236 1280,276" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1248" y="264.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K5</text>
+<text x="1268" y="239" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">30</text>
+<text x="1268" y="296" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">87</text>
+<text x="1286" y="262" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">coil: section B</text>
+<polyline points="1260,288 1260,310" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1380,190 1380,310" fill="none" stroke="#1f4fa0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1380" cy="190" r="4" fill="#1f4fa0"/>
+<rect x="1210" y="310" width="220" height="70" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<text x="1320" y="350" font-size="12" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">72 V MPPT CONTROLLER</text>
+<text x="1260" y="325" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV+</text>
+<text x="1380" y="325" font-size="9" font-weight="400" fill="#1f4fa0" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">PV−</text>
+<text x="1260" y="374" font-size="9" font-weight="400" fill="#c0392b" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT+</text>
+<text x="1380" y="374" font-size="9" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">BAT−</text>
+<polyline points="1260,380 1260,420" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1380,380 1380,420" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1230" y="420" width="180" height="30" rx="3" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="1320" y="440" font-size="11" font-weight="400" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">72 V battery bank</text>
+<polyline points="650,330 560,330 560,600" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="644" y="325" font-size="9" font-weight="400" fill="#c0392b" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">LOAD+</text>
+<polyline points="650,362 590,362 590,378" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="590,378 590,386" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="580,386 600,386" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="584,390 596,390" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="588,394 592,394" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="644" y="358" font-size="9" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">LOAD−</text>
+<rect x="552" y="470" width="16" height="36" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="560,470 560,506" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="574" y="486" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">F1 1 A</text>
+<text x="574" y="499" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">LOAD set to 24 h / always on</text>
+<text x="760" y="476" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Inside each common-negative controller PV− = BAT− = LOAD−, so ⏚ (control GND) = PV−.</text>
+<text x="760" y="490" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Check each controller with a meter: PV− and BAT− must beep together.</text>
+<line x1="20" y1="540" x2="1580" y2="540" stroke="#999" stroke-width="1" stroke-dasharray="6 5"/>
+<text x="24" y="566" font-size="12" font-weight="700" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">B · CONTROL — Arduino Uno and the proto shield</text>
+<polyline points="80,600 1570,600" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="560" cy="600" r="4" fill="#c0392b"/>
+<text x="1570" y="592" font-size="11" font-weight="700" fill="#c0392b" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">+12 V CONTROL (LOAD+ through F1)</text>
+<rect x="80" y="630" width="130" height="76" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<text x="145.0" y="650" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">U1 BUCK</text>
+<text x="145.0" y="666" font-size="10" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">12 V → 5 V</text>
+<polyline points="100,600 100,630" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="100" cy="600" r="4" fill="#c0392b"/>
+<polyline points="100,706 100,716" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="100,716 100,724" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="90,724 110,724" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="94,728 106,728" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="98,732 102,732" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="210,650 400,650" fill="none" stroke="#d07a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="216" y="644" font-size="9" font-weight="400" fill="#d07a00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">OUT+ 5 V</text>
+<rect x="400" y="630" width="140" height="400" rx="4" fill="#e8f1ec" stroke="#111111" stroke-width="1.8"/>
+<text x="470" y="656" font-size="13" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">U2</text>
+<text x="470" y="672" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">ARDUINO UNO</text>
+<text x="408" y="654" font-size="10" font-weight="700" fill="#d07a00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">5V</text>
+<polyline points="470,1030 470,1044" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="470,1044 470,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="460,1052 480,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="464,1056 476,1056" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="468,1060 472,1060" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="476" y="1024" font-size="10" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">GND</text>
+<text x="408" y="704" font-size="11" font-weight="700" fill="#d07a00" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">A5</text>
+<polyline points="400,700 352,700" fill="none" stroke="#d07a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="349" cy="700" r="3.5" fill="#ffffff" stroke="#d07a00" stroke-width="1.6"/>
+<text x="345" y="690" font-size="10" font-weight="700" fill="#d07a00" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">from panel sense (A)</text>
+<rect x="120" y="730" width="140" height="74" rx="4" fill="#eef3d6" stroke="#111111" stroke-width="1.6"/>
+<text x="190" y="752" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">DS1 16x2 LCD</text>
+<text x="190" y="766" font-size="9" font-weight="400" fill="#666666" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">I2C backpack 0x27</text>
+<text x="254" y="784" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">SDA</text>
+<polyline points="260,780 400,780" fill="none" stroke="#0097a7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="408" y="784" font-size="11" font-weight="700" fill="#0097a7" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">A4</text>
+<text x="254" y="800" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">SCL</text>
+<polyline points="260,796 400,796" fill="none" stroke="#0097a7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="408" y="800" font-size="11" font-weight="700" fill="#0097a7" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D7</text>
+<polyline points="190,730 190,716 230,716 230,650" fill="none" stroke="#d07a00" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="230" cy="650" r="4" fill="#d07a00"/>
+<text x="196" y="726" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">VCC</text>
+<polyline points="150,804 150,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="150,812 150,820" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="140,820 160,820" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="144,824 156,824" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="148,828 152,828" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="408" y="854" font-size="11" font-weight="700" fill="#c2185b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D5</text>
+<polyline points="400,850 342,850" fill="none" stroke="#c2185b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="338" cy="850" r="3.5" fill="#ffffff" stroke="#c2185b" stroke-width="1.6"/>
+<circle cx="298" cy="850" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="332,841 304,841" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="318,841 318,831" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="311,831 325,831" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="318" y="826" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">SW1 AUTO</text>
+<polyline points="294,850 270,850" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="270,850 270,858" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="260,858 280,858" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="264,862 276,862" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="268,866 272,866" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="408" y="894" font-size="11" font-weight="700" fill="#c2185b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D6</text>
+<polyline points="400,890 342,890" fill="none" stroke="#c2185b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="338" cy="890" r="3.5" fill="#ffffff" stroke="#c2185b" stroke-width="1.6"/>
+<circle cx="298" cy="890" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="332,881 304,881" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="318,881 318,871" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="311,871 325,871" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="318" y="866" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">SW2 NEXT</text>
+<polyline points="294,890 270,890" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="270,890 270,898" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="260,898 280,898" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="264,902 276,902" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="268,906 272,906" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="408" y="934" font-size="11" font-weight="700" fill="#c2185b" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">A3</text>
+<polyline points="400,930 342,930" fill="none" stroke="#c2185b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="338" cy="930" r="3.5" fill="#ffffff" stroke="#c2185b" stroke-width="1.6"/>
+<circle cx="298" cy="930" r="3.5" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="332,921 304,921" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="318,921 318,911" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="311,911 325,911" fill="none" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="318" y="906" font-size="10" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">SW3 TIMER</text>
+<polyline points="294,930 270,930" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="270,930 270,938" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="260,938 280,938" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="264,942 276,942" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="268,946 272,946" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="150" y="872" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">no resistors:</text>
+<text x="150" y="884" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">internal pull-ups</text>
+<text x="408" y="979" font-size="11" font-weight="700" fill="#0097a7" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D9</text>
+<polyline points="400,975 382,975" fill="none" stroke="#0097a7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="342" y="969" width="40" height="12" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="362" y="965" font-size="9" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R16 330Ω</text>
+<polyline points="342,975 334,975" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M334 966 L334 984 L316 975 Z" fill="#ffffff" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
+<polyline points="316,966 316,984" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="324,964 319,956" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="331,964 326,956" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="316,975 270,975" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="270,975 270,983" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="260,983 280,983" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="264,987 276,987" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="268,991 272,991" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="240" y="979" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">LED4 white = AUTO</text>
+<text x="408" y="1014" font-size="11" font-weight="700" fill="#0097a7" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D8</text>
+<polyline points="400,1010 382,1010" fill="none" stroke="#0097a7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="342" y="1004" width="40" height="12" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="362" y="1000" font-size="9" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R17 330Ω</text>
+<polyline points="342,1010 334,1010" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M334 1001 L334 1019 L316 1010 Z" fill="#e53935" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
+<polyline points="316,1001 316,1019" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="324,999 319,991" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="331,999 326,991" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="316,1010 270,1010" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="270,1010 270,1018" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="260,1018 280,1018" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="264,1022 276,1022" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="268,1026 272,1026" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="240" y="1014" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">LED5 red = TIMER</text>
+<text x="532" y="884" font-size="11" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D2</text>
+<circle cx="770" cy="600" r="4" fill="#c0392b"/>
+<polyline points="770,600 770,640" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="757" y="640" width="26" height="50" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<polyline points="757,690 783,640" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="752" y="669.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K1</text>
+<text x="786" y="649" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="786" y="688" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<polyline points="770,690 770,730" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="770,620 810,620" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="770" cy="620" r="4" fill="#111111"/>
+<polyline points="810,620 810,656.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="810,676.0 810,712" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M801 676.0 L819 676.0 L810 656.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="801,656.0 819,656.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="822" y="664.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D1</text>
+<text x="822" y="676.0" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">1N4007</text>
+<polyline points="810,712 770,712" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="770" cy="712" r="4" fill="#111111"/>
+<polyline points="770,730 770,748.0 762,748.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="762,772.0 770,772.0 770,790" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="762,760.0 770,760.0 770,772.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="762,744.0 762,752.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="762,756.0 762,764.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="762,768.0 762,776.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="754,745.0 754,775.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M763 760.0 L770 756.0 L770 764.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<circle cx="764" cy="760.0" r="21" fill="none" stroke="#111111" stroke-width="1.3"/>
+<text x="790" y="756.0" font-size="13" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Q1</text>
+<text x="790" y="770.0" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">IRLZ44N</text>
+<text x="774" y="740" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D</text>
+<text x="774" y="787" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">S</text>
+<text x="744" y="754.0" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">G</text>
+<polyline points="770,790 770,804" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="770,804 770,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="760,812 780,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="764,816 776,816" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="768,820 772,820" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="754,760.0 690,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="690" cy="760.0" r="4" fill="#1e7b45"/>
+<polyline points="600,760.0 625.0,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="665.0,760.0 690,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="625.0" y="753.0" width="40" height="14" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="645.0" y="748.0" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R1 100Ω</text>
+<polyline points="690,760.0 690,780.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="690,820.0 690,840" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="683" y="780.0" width="14" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="678" y="798.0" font-size="11" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">R4</text>
+<text x="678" y="811.0" font-size="10" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">10k</text>
+<polyline points="690,840 690,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="680,848 700,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="684,852 696,852" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="688,856 692,856" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="600,760.0 570,760.0 570,880 540,880" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="570" cy="880" r="4" fill="#1e7b45"/>
+<path d="M570 880 V913 A7 7 0 0 1 570 927 V953 A7 7 0 0 1 570 967 V970" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linejoin="round"/>
+<rect x="564" y="970" width="12" height="30" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="570,1000 570,1008" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="582" y="983" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">R13</text>
+<text x="582" y="996" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">330Ω</text>
+<polyline points="570,1008 570,1013.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="570,1031.0 570,1036" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M561 1013.0 L579 1013.0 L570 1031.0 Z" fill="#2ecc40" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
+<polyline points="561,1031.0 579,1031.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="581,1016.0 590,1023.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M590 1023.0 L584 1021.0 L588 1017.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="581,1024.0 590,1031.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M590 1031.0 L584 1029.0 L588 1025.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<text x="594" y="1021.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">LED1</text>
+<text x="594" y="1033.0" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">green</text>
+<polyline points="570,1036 570,1044" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="570,1044 570,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="560,1052 580,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="564,1056 576,1056" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="568,1060 572,1060" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="790" y="830" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">relay K1 → 12 V controller PV+</text>
+<text x="532" y="924" font-size="11" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D3</text>
+<circle cx="1090" cy="600" r="4" fill="#c0392b"/>
+<polyline points="1090,600 1090,640" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1077" y="640" width="26" height="50" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<polyline points="1077,690 1103,640" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1072" y="669.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K3</text>
+<text x="1106" y="649" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="1106" y="688" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<polyline points="1090,690 1090,730" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1090,620 1130,620" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1090" cy="620" r="4" fill="#111111"/>
+<polyline points="1130,620 1130,656.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1130,676.0 1130,712" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1121 676.0 L1139 676.0 L1130 656.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1121,656.0 1139,656.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1142" y="664.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D3</text>
+<text x="1142" y="676.0" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">1N4007</text>
+<polyline points="1130,712 1090,712" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1090" cy="712" r="4" fill="#111111"/>
+<polyline points="1090,730 1090,748.0 1082,748.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1082,772.0 1090,772.0 1090,790" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1082,760.0 1090,760.0 1090,772.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1082,744.0 1082,752.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1082,756.0 1082,764.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1082,768.0 1082,776.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1074,745.0 1074,775.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1083 760.0 L1090 756.0 L1090 764.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<circle cx="1084" cy="760.0" r="21" fill="none" stroke="#111111" stroke-width="1.3"/>
+<text x="1110" y="756.0" font-size="13" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Q2</text>
+<text x="1110" y="770.0" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">IRLZ44N</text>
+<text x="1094" y="740" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D</text>
+<text x="1094" y="787" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">S</text>
+<text x="1064" y="754.0" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">G</text>
+<polyline points="1090,790 1090,804" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1090,804 1090,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1080,812 1100,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1084,816 1096,816" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1088,820 1092,820" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1074,760.0 1010,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1010" cy="760.0" r="4" fill="#1e7b45"/>
+<polyline points="920,760.0 945.0,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="985.0,760.0 1010,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="945.0" y="753.0" width="40" height="14" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="965.0" y="748.0" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R2 100Ω</text>
+<polyline points="1010,760.0 1010,780.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1010,820.0 1010,840" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1003" y="780.0" width="14" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="998" y="798.0" font-size="11" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">R5</text>
+<text x="998" y="811.0" font-size="10" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">10k</text>
+<polyline points="1010,840 1010,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1000,848 1020,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1004,852 1016,852" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1008,856 1012,856" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="920,760.0 890,760.0 890,920 540,920" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="890" cy="920" r="4" fill="#1e7b45"/>
+<path d="M890 920 V953 A7 7 0 0 1 890 967 V970" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linejoin="round"/>
+<rect x="884" y="970" width="12" height="30" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="890,1000 890,1008" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="902" y="983" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">R14</text>
+<text x="902" y="996" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">330Ω</text>
+<polyline points="890,1008 890,1013.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="890,1031.0 890,1036" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M881 1013.0 L899 1013.0 L890 1031.0 Z" fill="#ffd400" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
+<polyline points="881,1031.0 899,1031.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="901,1016.0 910,1023.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M910 1023.0 L904 1021.0 L908 1017.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="901,1024.0 910,1031.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M910 1031.0 L904 1029.0 L908 1025.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<text x="914" y="1021.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">LED2</text>
+<text x="914" y="1033.0" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">yellow</text>
+<polyline points="890,1036 890,1044" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="890,1044 890,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="880,1052 900,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="884,1056 896,1056" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="888,1060 892,1060" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1110" y="830" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">relay K3 → 48 V controller PV+</text>
+<text x="532" y="964" font-size="11" font-weight="700" fill="#1e7b45" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">D4</text>
+<circle cx="1410" cy="600" r="4" fill="#c0392b"/>
+<polyline points="1410,600 1410,640" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1397" y="640" width="26" height="50" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.8"/>
+<polyline points="1397,690 1423,640" fill="none" stroke="#111111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1392" y="669.0" font-size="13" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">K5</text>
+<text x="1426" y="649" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">86</text>
+<text x="1426" y="688" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">85</text>
+<polyline points="1410,690 1410,730" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1410,620 1450,620" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1410" cy="620" r="4" fill="#111111"/>
+<polyline points="1450,620 1450,656.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1450,676.0 1450,712" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1441 676.0 L1459 676.0 L1450 656.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1441,656.0 1459,656.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1462" y="664.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D5</text>
+<text x="1462" y="676.0" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">1N4007</text>
+<polyline points="1450,712 1410,712" fill="none" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1410" cy="712" r="4" fill="#111111"/>
+<polyline points="1410,730 1410,748.0 1402,748.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1402,772.0 1410,772.0 1410,790" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1402,760.0 1410,760.0 1410,772.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1402,744.0 1402,752.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1402,756.0 1402,764.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1402,768.0 1402,776.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1394,745.0 1394,775.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1403 760.0 L1410 756.0 L1410 764.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<circle cx="1404" cy="760.0" r="21" fill="none" stroke="#111111" stroke-width="1.3"/>
+<text x="1430" y="756.0" font-size="13" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Q3</text>
+<text x="1430" y="770.0" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">IRLZ44N</text>
+<text x="1414" y="740" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">D</text>
+<text x="1414" y="787" font-size="9" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">S</text>
+<text x="1384" y="754.0" font-size="9" font-weight="400" fill="#666666" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">G</text>
+<polyline points="1410,790 1410,804" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1410,804 1410,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1400,812 1420,812" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1404,816 1416,816" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1408,820 1412,820" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1394,760.0 1330,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1330" cy="760.0" r="4" fill="#1e7b45"/>
+<polyline points="1240,760.0 1265.0,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1305.0,760.0 1330,760.0" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1265.0" y="753.0" width="40" height="14" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="1285.0" y="748.0" font-size="11" font-weight="700" fill="#111111" text-anchor="middle" style="font-family:Consolas,'IBM Plex Mono',monospace">R3 100Ω</text>
+<polyline points="1330,760.0 1330,780.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1330,820.0 1330,840" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1323" y="780.0" width="14" height="40" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<text x="1318" y="798.0" font-size="11" font-weight="700" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">R6</text>
+<text x="1318" y="811.0" font-size="10" font-weight="400" fill="#111111" text-anchor="end" style="font-family:Consolas,'IBM Plex Mono',monospace">10k</text>
+<polyline points="1330,840 1330,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1320,848 1340,848" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1324,852 1336,852" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1328,856 1332,856" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1240,760.0 1210,760.0 1210,960 540,960" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1210" cy="960" r="4" fill="#1e7b45"/>
+<path d="M1210 960 V970" fill="none" stroke="#1e7b45" stroke-width="2" stroke-linejoin="round"/>
+<rect x="1204" y="970" width="12" height="30" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.6"/>
+<polyline points="1210,1000 1210,1008" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1222" y="983" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">R15</text>
+<text x="1222" y="996" font-size="10" font-weight="400" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">330Ω</text>
+<polyline points="1210,1008 1210,1013.0" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1210,1031.0 1210,1036" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1201 1013.0 L1219 1013.0 L1210 1031.0 Z" fill="#2f7bff" stroke="#111111" stroke-width="1.4" stroke-linejoin="round"/>
+<polyline points="1201,1031.0 1219,1031.0" fill="none" stroke="#111111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1221,1016.0 1230,1023.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1230 1023.0 L1224 1021.0 L1228 1017.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1221,1024.0 1230,1031.0" fill="none" stroke="#111111" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1230 1031.0 L1224 1029.0 L1228 1025.0 Z" fill="#111111" stroke="#111111" stroke-width="1" stroke-linejoin="round"/>
+<text x="1234" y="1021.0" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">LED3</text>
+<text x="1234" y="1033.0" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">blue</text>
+<polyline points="1210,1036 1210,1044" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1210,1044 1210,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1200,1052 1220,1052" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1204,1056 1216,1056" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1208,1060 1212,1060" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1430" y="830" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">relay K5 → 72 V controller PV+</text>
+<text x="24" y="1104" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Only one relay is ever on. Every change: all relays off for 10 s, then one relay on. Each relay coil has its own 1N4007 (stripe to +12 V).</text>
+<text x="24" y="1120" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Relay contacts K1/K3/K5 must be rated for the array&#x27;s cold Voc in DC. Divider R18: 220k for Voc up to ~110 V, 330k up to ~160 V (set R_TOP_K in the sketch).</text>
+<text x="24" y="1136" font-size="11" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Battery voltage sensing (A0–A2) is not used in this version: a full battery is detected from the panel voltage on A5.</text>
+<rect x="1240" y="1140" width="340" height="36" rx="0" fill="#ffffff" stroke="#111111" stroke-width="1.4"/>
+<text x="1250" y="1156" font-size="11" font-weight="700" fill="#111111" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Solar charger selector · final schematic</text>
+<text x="1250" y="1170" font-size="10" font-weight="400" fill="#666666" text-anchor="start" style="font-family:Consolas,'IBM Plex Mono',monospace">Rev D · 2026-11-28 · code/solar_selector/solar_selector.ino</text>
+</svg>

@@ -8,7 +8,7 @@ Automation projects by **Md Nazmul Haque**. Portfolio: https://haquemdnazmul.git
 | [Motion-X Studio](motion-x-studio/) | Operator app for the weight sorting cell, with face login, a live 3D robot view and English/Korean screens | Python, Tkinter, OpenCV |
 | [Conveyor Length Sorter](conveyor-length-sorter/) | Two conveyors and pneumatic pushers that sort blocks into three bins by length | LS XGB PLC, TOP HMI, Python |
 | [6-Floor Elevator](six-floor-elevator/) | 6-floor elevator model with an AC motor, a pneumatic door and an HMI car panel | LS XGB PLC, TOP Design Studio |
-| [Solar Charger Selector](solar-charger-selector/) | Switches one solar array between 12 V, 48 V and 72 V battery chargers with relay pairs, break-before-make and a 16x2 display | Arduino Uno (C++), IRLZ44N, Python (drawings, 3D-printed box) |
+| [Solar Charger Selector](solar-charger-selector/) | Switches one solar array between 12 V, 48 V and 72 V battery chargers: one relay per charger on PV+, break-before-make, full detection from the panel voltage, 16x2 display | Arduino Uno (C++), IRLZ44N, Python (drawings, 3D-printed box) |
 
 The four PLC and robot projects were team projects made during an automation training course in 2026. The solar charger selector is a separate electronics project.
 

@@ -100,6 +100,9 @@ header.hero{padding-top:56px;display:flex;flex-direction:column;gap:18px;border-
 
 .photo{margin:0;display:flex;flex-direction:column;gap:8px}
 .photo img{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);display:block}
+.photo-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.photo-row img{aspect-ratio:3/4;object-fit:cover}
+@media (max-width:560px){.photo-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .sim-frame{position:relative;width:100%;aspect-ratio:16/10;max-width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
 .sim-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .sim-load{position:absolute;inset:0;margin:auto;width:max-content;height:max-content;font-family:var(--mono);font-size:.95rem;padding:14px 22px;border-radius:4px;border:2px solid var(--accent);background:var(--bg);color:var(--ink);cursor:pointer}
@@ -375,24 +378,34 @@ footer{border-top:1px solid var(--line);padding-top:24px;display:flex;flex-wrap:
   <div class="project-head">
     <span class="label">Project · electronics</span>
     <h2 id="solar-h">Solar Charger Selector for Three Battery Banks</h2>
-    <div class="meta"><span><b>When</b> Nov 2026</span><span><b>Controller</b> Arduino Uno</span><span><b>Switching</b> 3 relay pairs, IRLZ44N</span><span><b>Banks</b> 12 V · 48 V · 72 V</span></div>
+    <div class="meta"><span><b>When</b> Nov 2026</span><span><b>Controller</b> Arduino Uno</span><span><b>Switching</b> 3 relays on PV+, IRLZ44N</span><span><b>Banks</b> 12 V · 48 V · 72 V</span></div>
   </div>
   <p>One solar array has to charge three battery banks at different voltages. I designed and built a controller that connects the panel to one bank's charger at a time, charges it until it is full, then moves on. I designed the circuit, soldered it on an Arduino proto shield, wrote the firmware and modelled a 3D-printed box for it.</p>
   <figure class="photo">
-    <div class="diagram"><img src="img/solar-schematic.svg" alt="Schematic: an Arduino Uno drives three IRLZ44N MOSFETs, each switching a relay pair that connects the solar array to the 12 V, 48 V or 72 V charger; resistor dividers feed the three battery voltages to A0–A2; a 16x2 LCD and three buttons." style="display:block;width:100%;min-width:720px;height:auto;border-radius:4px" loading="lazy"></div>
-    <figcaption class="caption">Full schematic (sheet 1 of 4). All sheets, the shield layout and the wiring guide are in the project folder.</figcaption>
+    <div class="photo-row">
+      <img src="img/solar-board-top.jpg" alt="The soldered Arduino proto shield with three IRLZ44N MOSFETs, the five LEDs and the push buttons, next to the 16x2 display." loading="lazy">
+      <img src="img/solar-board-display.jpg" alt="The 16x2 display held upright in front of the board, the way it sits in the box." loading="lazy">
+      <img src="img/solar-board-angle.jpg" alt="The finished board from the side, with the display module behind it." loading="lazy">
+    </div>
+    <figcaption class="caption">The board as built on an Arduino Uno proto shield. The 16x2 display fits the front window of the 3D-printed box.</figcaption>
+  </figure>
+  <figure class="photo">
+    <div class="diagram"><img src="img/solar-schematic.svg" alt="Final schematic: an Arduino Uno drives three IRLZ44N MOSFETs, each switching one relay that connects the solar array's PV+ to the 12 V, 48 V or 72 V controller; a divider feeds the panel voltage to A5; a 16x2 LCD, three buttons and five LEDs." style="display:block;width:100%;min-width:720px;height:auto;border-radius:4px" loading="lazy"></div>
+    <figcaption class="caption">Final schematic as built. The first-version sheets, the shield layout and the wiring guide are in the project folder.</figcaption>
   </figure>
   <ul class="highlights">
-    <li><strong>Break-before-make</strong><span>Only one relay pair may ever be closed. Every change opens all pairs and waits 10 seconds for the relays to drop out before closing the next one, so two chargers can never be tied together.</span></li>
+    <li><strong>Break-before-make</strong><span>Only one relay may ever be closed. Every change opens all of them and waits 10 seconds for the relays to drop out before closing the next one, so two controllers can never be tied together.</span></li>
     <li><strong>Three modes</strong><span>AUTO charges each battery until it is full, then moves on. TIMER gives the 12 V bank three hours first, then fills the 48 V and 72 V banks. NEXT swaps by hand, and holding it for 5 seconds gives full manual control.</span></li>
-    <li><strong>Knowing when a battery is full</strong><span>Each bank is read through a resistor divider. A battery counts as full only after it stays above its full voltage for a set time, and it is skipped until it drops below a lower resume voltage, so the selector doesn't flip back and forth.</span></li>
+    <li><strong>Knowing when a battery is full</strong><span>There are no battery sense wires. In every 10-second pause the Arduino reads the panel's open-circuit voltage on A5. A charging controller pulls the panel down to about 80 % of it; when its battery is full, the controller stops taking current and the panel climbs back above 95 %. Fifteen minutes there counts as full.</span></li>
     <li><strong>Working with the real board</strong><span>When a shield track to the display's clock pin turned out to be broken, I moved the wire to D7 and wrote a small software I2C driver for the display, so no rework of the soldered board was needed.</span></li>
+    <li><strong>Day and night</strong><span>When the panel stays dark for 10 minutes, all relays open. When the sun comes back, the TIMER sequence starts again.</span></li>
+    <li><strong>Three relays instead of six</strong><span>The controllers are common-negative, so their PV− terminals are joined and only PV+ is switched. That halves the relays and the coil current.</span></li>
   </ul>
   <div class="sim-frame">
-    <iframe src="about:blank" data-src="solar-simulator/index.html" title="Simulator of the solar charger selector" loading="lazy"></iframe>
+    <iframe src="about:blank" data-src="solar-simulator/final.html" title="Simulator of the solar charger selector" loading="lazy"></iframe>
     <button type="button" class="sim-load">Load the solar selector simulator</button>
   </div>
-  <p class="caption">Runs the same logic as the firmware. Press the buttons, speed up time to watch the TIMER sequence, type serial commands, or switch on a fault to see what goes wrong. <a href="solar-simulator/" target="_blank" rel="noopener">Open full screen ↗</a> · <a href="https://github.com/haquemdnazmul/haquemdnazmul.github.io/tree/main/projects/solar-charger-selector" target="_blank" rel="noopener">Code and drawings ↗</a></p>
+  <p class="caption">Runs the same logic as the final firmware. Press the buttons, hold NEXT for 5 seconds, speed up time to watch a whole day, or slide the sun down to see night mode. <a href="solar-simulator/final.html" target="_blank" rel="noopener">Open full screen ↗</a> · <a href="solar-simulator/" target="_blank" rel="noopener">First version with faults ↗</a> · <a href="https://github.com/haquemdnazmul/haquemdnazmul.github.io/tree/main/projects/solar-charger-selector" target="_blank" rel="noopener">Code and drawings ↗</a></p>
 </section>
 
 <section id="background" aria-labelledby="bg-h">

@@ -293,36 +293,55 @@ window.PORTFOLIO_I18N = {
   'Solar Charger Selector for Three Battery Banks': ['배터리 3종을 위한 태양광 충전 선택기', 'তিনটি ব্যাটারি ব্যাংকের জন্য সোলার চার্জার সিলেক্টর'],
   'Switching': ['스위칭', 'সুইচিং'],
   'Banks': ['배터리', 'ব্যাংক'],
-  '3 relay pairs, IRLZ44N': ['릴레이 3쌍, IRLZ44N', '৩ জোড়া রিলে, IRLZ44N'],
+  '3 relays on PV+, IRLZ44N': ['PV+ 릴레이 3개, IRLZ44N', 'PV+-এ ৩টি রিলে, IRLZ44N'],
+  'The soldered Arduino proto shield with three IRLZ44N MOSFETs, the five LEDs and the push buttons, next to the 16x2 display.':
+    ['납땜한 Arduino 프로토 실드: IRLZ44N MOSFET 3개, LED 5개, 푸시 버튼이 있고 옆에 16x2 디스플레이가 있습니다.',
+     'সোল্ডার করা Arduino প্রোটো শিল্ড: তিনটি IRLZ44N MOSFET, পাঁচটি LED ও পুশ বোতাম, পাশে 16x2 ডিসপ্লে।'],
+  'The 16x2 display held upright in front of the board, the way it sits in the box.':
+    ['상자에 들어가는 모습처럼 보드 앞에 세워 든 16x2 디스플레이.', 'বাক্সে যেভাবে বসে, সেভাবে বোর্ডের সামনে খাড়া করে ধরা 16x2 ডিসপ্লে।'],
+  'The finished board from the side, with the display module behind it.':
+    ['옆에서 본 완성된 보드와 그 뒤의 디스플레이 모듈.', 'পাশ থেকে দেখা সম্পূর্ণ বোর্ড, পেছনে ডিসপ্লে মডিউল।'],
+  'The board as built on an Arduino Uno proto shield. The 16x2 display fits the front window of the 3D-printed box.':
+    ['Arduino Uno 프로토 실드에 제작한 실제 보드. 16x2 디스플레이는 3D 프린팅 케이스의 앞면 창에 맞게 들어갑니다.',
+     'Arduino Uno প্রোটো শিল্ডে তৈরি আসল বোর্ড। 16x2 ডিসপ্লেটি 3D-প্রিন্টেড বাক্সের সামনের জানালায় বসে।'],
   "One solar array has to charge three battery banks at different voltages. I designed and built a controller that connects the panel to one bank's charger at a time, charges it until it is full, then moves on. I designed the circuit, soldered it on an Arduino proto shield, wrote the firmware and modelled a 3D-printed box for it.":
     ['하나의 태양광 어레이로 전압이 다른 배터리 3종을 충전해야 했습니다. 패널을 한 번에 한 배터리의 충전기에만 연결해 만충까지 충전한 뒤 다음 배터리로 넘어가는 컨트롤러를 설계하고 제작했습니다. 회로를 설계하고, Arduino 프로토 실드에 납땜하고, 펌웨어를 작성하고, 3D 프린팅 케이스까지 모델링했습니다.',
      'একটি সোলার অ্যারে দিয়ে ভিন্ন ভোল্টেজের তিনটি ব্যাটারি ব্যাংক চার্জ করতে হতো। আমি একটি কন্ট্রোলার ডিজাইন ও তৈরি করেছি, যা প্যানেলকে একবারে একটি ব্যাংকের চার্জারের সাথে যুক্ত করে, সেটি পূর্ণ হওয়া পর্যন্ত চার্জ করে, তারপর পরেরটিতে যায়। সার্কিট ডিজাইন করেছি, Arduino প্রোটো শিল্ডে সোল্ডার করেছি, ফার্মওয়্যার লিখেছি এবং এর জন্য একটি 3D-প্রিন্টেড বাক্স মডেল করেছি।'],
-  'Schematic: an Arduino Uno drives three IRLZ44N MOSFETs, each switching a relay pair that connects the solar array to the 12 V, 48 V or 72 V charger; resistor dividers feed the three battery voltages to A0–A2; a 16x2 LCD and three buttons.':
-    ['회로도: Arduino Uno가 IRLZ44N MOSFET 3개를 구동하고, 각 MOSFET이 릴레이 한 쌍을 스위칭해 태양광 어레이를 12 V, 48 V, 72 V 충전기에 연결합니다. 분압 저항으로 배터리 3개의 전압을 A0–A2에 입력하며, 16x2 LCD와 버튼 3개가 있습니다.',
-     'স্কিম্যাটিক: একটি Arduino Uno তিনটি IRLZ44N MOSFET চালায়, প্রতিটি একটি রিলে জোড়া সুইচ করে সোলার অ্যারেকে 12 V, 48 V বা 72 V চার্জারের সাথে যুক্ত করে; রেজিস্টর ডিভাইডার তিনটি ব্যাটারির ভোল্টেজ A0–A2-তে দেয়; একটি 16x2 LCD ও তিনটি বোতাম।'],
-  'Full schematic (sheet 1 of 4). All sheets, the shield layout and the wiring guide are in the project folder.':
-    ['전체 회로도 (4장 중 1장). 모든 도면, 실드 배치도, 배선 가이드는 프로젝트 폴더에 있습니다.', 'পূর্ণ স্কিম্যাটিক (৪টির মধ্যে ১ নম্বর শিট)। সব শিট, শিল্ড লেআউট ও ওয়্যারিং গাইড প্রকল্প ফোল্ডারে আছে।'],
+  "Final schematic: an Arduino Uno drives three IRLZ44N MOSFETs, each switching one relay that connects the solar array's PV+ to the 12 V, 48 V or 72 V controller; a divider feeds the panel voltage to A5; a 16x2 LCD, three buttons and five LEDs.":
+    ['최종 회로도: Arduino Uno가 IRLZ44N MOSFET 3개를 구동하고, 각 MOSFET이 릴레이 하나를 스위칭해 태양광 어레이의 PV+를 12 V, 48 V, 72 V 컨트롤러에 연결합니다. 분압 저항으로 패널 전압을 A5에 입력하며, 16x2 LCD, 버튼 3개, LED 5개가 있습니다.',
+     'চূড়ান্ত স্কিম্যাটিক: একটি Arduino Uno তিনটি IRLZ44N MOSFET চালায়, প্রতিটি একটি রিলে সুইচ করে সোলার অ্যারের PV+ কে 12 V, 48 V বা 72 V কন্ট্রোলারের সাথে যুক্ত করে; একটি ডিভাইডার প্যানেলের ভোল্টেজ A5-এ দেয়; একটি 16x2 LCD, তিনটি বোতাম ও পাঁচটি LED।'],
+  'Final schematic as built. The first-version sheets, the shield layout and the wiring guide are in the project folder.':
+    ['실제 제작 기준의 최종 회로도. 첫 번째 버전 도면, 실드 배치도, 배선 가이드는 프로젝트 폴더에 있습니다.', 'যেভাবে তৈরি হয়েছে সেই চূড়ান্ত স্কিম্যাটিক। প্রথম সংস্করণের শিট, শিল্ড লেআউট ও ওয়্যারিং গাইড প্রকল্প ফোল্ডারে আছে।'],
   'Break-before-make': ['Break-before-make (선개방 후투입)', 'ব্রেক-বিফোর-মেক'],
-  'Only one relay pair may ever be closed. Every change opens all pairs and waits 10 seconds for the relays to drop out before closing the next one, so two chargers can never be tied together.':
-    ['릴레이는 항상 한 쌍만 닫힐 수 있습니다. 전환할 때마다 모든 릴레이를 열고 10초 동안 완전히 떨어지기를 기다린 뒤 다음 쌍을 닫으므로, 두 충전기가 서로 연결될 수 없습니다.',
-     'যেকোনো সময় শুধু একটি রিলে জোড়া বন্ধ থাকতে পারে। প্রতিটি পরিবর্তনে সব জোড়া খোলা হয় এবং পরেরটি বন্ধ করার আগে রিলেগুলো পুরো ছেড়ে দেওয়ার জন্য ১০ সেকেন্ড অপেক্ষা করা হয়, তাই দুটি চার্জার কখনো একসাথে যুক্ত হতে পারে না।'],
+  'Only one relay may ever be closed. Every change opens all of them and waits 10 seconds for the relays to drop out before closing the next one, so two controllers can never be tied together.':
+    ['릴레이는 항상 하나만 닫힐 수 있습니다. 전환할 때마다 모든 릴레이를 열고 10초 동안 완전히 떨어지기를 기다린 뒤 다음 릴레이를 닫으므로, 두 컨트롤러가 서로 연결될 수 없습니다.',
+     'যেকোনো সময় শুধু একটি রিলে বন্ধ থাকতে পারে। প্রতিটি পরিবর্তনে সবগুলো খোলা হয় এবং পরেরটি বন্ধ করার আগে রিলেগুলো পুরো ছেড়ে দেওয়ার জন্য ১০ সেকেন্ড অপেক্ষা করা হয়, তাই দুটি কন্ট্রোলার কখনো একসাথে যুক্ত হতে পারে না।'],
   'Three modes': ['세 가지 모드', 'তিনটি মোড'],
   'AUTO charges each battery until it is full, then moves on. TIMER gives the 12 V bank three hours first, then fills the 48 V and 72 V banks. NEXT swaps by hand, and holding it for 5 seconds gives full manual control.':
     ['AUTO는 각 배터리를 만충까지 충전한 뒤 다음으로 넘어갑니다. TIMER는 12 V 배터리를 먼저 3시간 충전한 다음 48 V와 72 V를 채웁니다. NEXT로 수동 전환하고, 5초간 누르면 완전 수동 모드가 됩니다.',
      'AUTO প্রতিটি ব্যাটারি পূর্ণ হওয়া পর্যন্ত চার্জ করে, তারপর পরেরটিতে যায়। TIMER প্রথমে 12 V ব্যাংককে তিন ঘণ্টা দেয়, তারপর 48 V ও 72 V ব্যাংক পূর্ণ করে। NEXT দিয়ে হাতে বদলানো যায়, আর ৫ সেকেন্ড চেপে ধরলে পুরো ম্যানুয়াল নিয়ন্ত্রণ পাওয়া যায়।'],
   'Knowing when a battery is full': ['만충 판단', 'ব্যাটারি কখন পূর্ণ তা বোঝা'],
-  "Each bank is read through a resistor divider. A battery counts as full only after it stays above its full voltage for a set time, and it is skipped until it drops below a lower resume voltage, so the selector doesn't flip back and forth.":
-    ['각 배터리 전압은 분압 저항으로 측정합니다. 만충 전압 이상이 일정 시간 유지되어야 만충으로 판단하고, 더 낮은 재충전 전압 아래로 떨어질 때까지 건너뛰므로 선택기가 왔다 갔다 하지 않습니다.',
-     'প্রতিটি ব্যাংক একটি রেজিস্টর ডিভাইডার দিয়ে পড়া হয়। একটি ব্যাটারি নির্দিষ্ট সময় ধরে পূর্ণ ভোল্টেজের উপরে থাকলে তবেই পূর্ণ ধরা হয়, এবং নিচের রিজিউম ভোল্টেজের নিচে না নামা পর্যন্ত সেটি বাদ থাকে, তাই সিলেক্টর বারবার আসা-যাওয়া করে না।'],
+  "There are no battery sense wires. In every 10-second pause the Arduino reads the panel's open-circuit voltage on A5. A charging controller pulls the panel down to about 80 % of it; when its battery is full, the controller stops taking current and the panel climbs back above 95 %. Fifteen minutes there counts as full.":
+    ['배터리 측정선이 없습니다. 10초 정지 시간마다 Arduino가 A5로 패널의 개방 전압을 읽습니다. 충전 중인 컨트롤러는 패널 전압을 그 약 80 %까지 끌어내리고, 배터리가 가득 차면 전류를 더 끌어가지 않아 패널 전압이 95 % 이상으로 다시 올라갑니다. 그 상태가 15분 이어지면 만충으로 판단합니다.',
+     'কোনো ব্যাটারি সেন্স তার নেই। প্রতিটি ১০ সেকেন্ডের বিরতিতে Arduino A5 দিয়ে প্যানেলের ওপেন-সার্কিট ভোল্টেজ পড়ে। চার্জ করা কন্ট্রোলার প্যানেলকে তার প্রায় ৮০ %-এ নামিয়ে আনে; ব্যাটারি পূর্ণ হলে কন্ট্রোলার কারেন্ট নেওয়া বন্ধ করে, আর প্যানেল আবার ৯৫ %-এর উপরে ওঠে। সেখানে ১৫ মিনিট থাকলে পূর্ণ ধরা হয়।'],
+  'Day and night': ['낮과 밤', 'দিন ও রাত'],
+  'When the panel stays dark for 10 minutes, all relays open. When the sun comes back, the TIMER sequence starts again.':
+    ['패널이 10분 동안 어두우면 모든 릴레이를 엽니다. 해가 다시 뜨면 TIMER 순서가 처음부터 다시 시작됩니다.',
+     'প্যানেল ১০ মিনিট অন্ধকার থাকলে সব রিলে খুলে যায়। সূর্য ফিরে এলে TIMER ধাপগুলো আবার শুরু হয়।'],
+  'Three relays instead of six': ['릴레이 6개 대신 3개', 'ছয়টির বদলে তিনটি রিলে'],
+  'The controllers are common-negative, so their PV− terminals are joined and only PV+ is switched. That halves the relays and the coil current.':
+    ['컨트롤러가 공통 음극(common negative)이라 PV− 단자를 서로 연결하고 PV+만 스위칭합니다. 릴레이 수와 코일 전류가 절반으로 줄었습니다.',
+     'কন্ট্রোলারগুলো কমন-নেগেটিভ, তাই তাদের PV− টার্মিনাল যুক্ত করে শুধু PV+ সুইচ করা হয়। এতে রিলের সংখ্যা ও কয়েলের কারেন্ট অর্ধেক হয়ে যায়।'],
   'Working with the real board': ['실제 보드에 맞춘 해결', 'আসল বোর্ডের সাথে কাজ'],
   "When a shield track to the display's clock pin turned out to be broken, I moved the wire to D7 and wrote a small software I2C driver for the display, so no rework of the soldered board was needed.":
     ['디스플레이 클럭 핀으로 가는 실드 배선이 끊어져 있는 것을 발견하고, 선을 D7로 옮긴 뒤 디스플레이용 소프트웨어 I2C 드라이버를 직접 작성했습니다. 덕분에 납땜한 보드를 다시 작업할 필요가 없었습니다.',
      'ডিসপ্লের ক্লক পিনে যাওয়া শিল্ডের ট্র্যাক ভাঙা পাওয়া গেলে, আমি তারটি D7-এ সরিয়ে ডিসপ্লের জন্য একটি ছোট সফটওয়্যার I2C ড্রাইভার লিখেছি, তাই সোল্ডার করা বোর্ড আবার কাজ করতে হয়নি।'],
   'Simulator of the solar charger selector': ['태양광 충전 선택기 시뮬레이터', 'সোলার চার্জার সিলেক্টরের সিমুলেটর'],
   'Load the solar selector simulator': ['태양광 선택기 시뮬레이터 불러오기', 'সোলার সিলেক্টর সিমুলেটর লোড করুন'],
-  'Runs the same logic as the firmware. Press the buttons, speed up time to watch the TIMER sequence, type serial commands, or switch on a fault to see what goes wrong.':
-    ['펌웨어와 같은 로직으로 동작합니다. 버튼을 누르거나, 시간을 빠르게 해 TIMER 순서를 보거나, 시리얼 명령을 입력하거나, 고장을 켜서 무엇이 잘못되는지 확인해 보세요.',
-     'ফার্মওয়্যারের একই লজিকে চলে। বোতাম চাপুন, TIMER ধাপগুলো দেখতে সময় দ্রুত করুন, সিরিয়াল কমান্ড লিখুন, অথবা কী ভুল হয় দেখতে একটি ত্রুটি চালু করুন।'],
+  'Runs the same logic as the final firmware. Press the buttons, hold NEXT for 5 seconds, speed up time to watch a whole day, or slide the sun down to see night mode.':
+    ['최종 펌웨어와 같은 로직으로 동작합니다. 버튼을 누르거나, NEXT를 5초간 누르거나, 시간을 빠르게 해 하루 전체를 보거나, 햇빛을 낮춰 야간 모드를 확인해 보세요.',
+     'চূড়ান্ত ফার্মওয়্যারের একই লজিকে চলে। বোতাম চাপুন, NEXT ৫ সেকেন্ড ধরে রাখুন, পুরো একটি দিন দেখতে সময় দ্রুত করুন, অথবা রাতের মোড দেখতে সূর্য কমিয়ে দিন।'],
+  'First version with faults ↗': ['고장 시뮬레이션이 있는 첫 번째 버전 ↗', 'ত্রুটিসহ প্রথম সংস্করণ ↗'],
   'Code and drawings ↗': ['코드 및 도면 ↗', 'কোড ও ড্রয়িং ↗'],
   'Open full screen ↗': ['전체 화면으로 열기 ↗', 'পূর্ণ স্ক্রিনে খুলুন ↗'],
 
